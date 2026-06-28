@@ -10,7 +10,16 @@
     --pill-a:#d63b6e;   /* batting side block in the score pill */
     --pill-b:#16b3a6;   /* bowling side block                  */
     --bg:rgba(12,16,22,.94); --bg2:rgba(12,16,22,.82);
+    --scorebg:#11161d;  /* score box; recoloured from ?bg= at runtime */
     --text:#fff; --muted:#b9c6d4; --live:#ff4242; --four:#36c275; --six:#c879ff;
+    /* sizes — a ?provider= preset can shrink these so long names fit */
+    --barH:104px; --nm:24px; --rb:24px; --rbS:15px; --ini:18px;
+    --logoW:96px; --logoImg:62px; --pillName:14px; --pillMax:128px; --score:26px; --ov:16px;
+  }
+  /* Streamlabs/PRISM render narrower, so compact the type + logos a touch */
+  body.prov-streamlabs, body.prov-prism{
+    --barH:96px; --nm:20px; --rb:21px; --rbS:13px; --ini:16px;
+    --logoW:74px; --logoImg:52px; --pillName:12px; --pillMax:104px; --score:23px; --ov:14px;
   }
   body.theme-blue   { --accent:#2563eb; --accent2:#1e40af; }
   body.theme-purple { --accent:#7c3aed; --accent2:#5b21b6; }
@@ -21,33 +30,35 @@
             font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
 
   #bar{
-    position:fixed; left:0; right:0; bottom:0; height:104px;
+    position:fixed; left:18px; right:18px; bottom:16px; height:var(--barH);
     display:flex; align-items:stretch; color:var(--text);
     background:linear-gradient(180deg,var(--bg2),var(--bg));
-    box-shadow:0 -6px 24px rgba(0,0,0,.5);
-    transform:translateY(120%); transition:transform .45s ease;
+    border-radius:20px; overflow:hidden;
+    box-shadow:0 8px 28px rgba(0,0,0,.5);
+    transform:translateY(160%); transition:transform .45s ease;
   }
   #bar.show{ transform:translateY(0); }
 
-  .logo{ width:96px; display:flex; align-items:center; justify-content:center; }
-  .logo img{ width:62px; height:62px; border-radius:50%; object-fit:cover;
+  .logo{ width:var(--logoW); display:flex; align-items:center; justify-content:center; flex:none; }
+  .logo img{ width:var(--logoImg); height:var(--logoImg); border-radius:50%; object-fit:cover;
              background:#fff; border:2px solid rgba(255,255,255,.85); }
-  .logo .ini{ width:62px; height:62px; border-radius:50%; display:flex; align-items:center;
-              justify-content:center; font-weight:800; font-size:18px; color:#fff;
-              border:2px solid rgba(255,255,255,.85); }
+  .logo .ini{ width:var(--logoImg); height:var(--logoImg); border-radius:50%; display:flex;
+              align-items:center; justify-content:center; font-weight:800; font-size:var(--ini);
+              color:#fff; border:2px solid rgba(255,255,255,.85); }
   .logo .ini.a{ background:var(--pill-a); } .logo .ini.b{ background:var(--pill-b); }
 
   /* batsmen (left) and bowler (right) share this stacked-rows style */
   .players{ flex:1; display:flex; flex-direction:column; justify-content:center;
-            gap:9px; padding:0 22px; min-width:0; }
+            gap:9px; padding:0 20px; min-width:0; }
   .players.right{ align-items:flex-end; text-align:right; }
-  .prow{ display:flex; align-items:baseline; gap:12px; white-space:nowrap;
-         max-width:100%; overflow:hidden; }
-  .prow .nm{ font-weight:700; font-size:24px; overflow:hidden; text-overflow:ellipsis; }
-  .prow .rb{ font-weight:800; font-size:24px; font-variant-numeric:tabular-nums; }
-  .prow .rb small{ font-size:15px; color:var(--muted); font-weight:600; margin-left:3px; }
+  .prow{ display:flex; align-items:baseline; gap:10px; white-space:nowrap;
+         max-width:100%; min-width:0; }
+  .prow .nm{ font-weight:700; font-size:var(--nm); min-width:0;
+             overflow:hidden; text-overflow:ellipsis; }
+  .prow .rb{ font-weight:800; font-size:var(--rb); font-variant-numeric:tabular-nums; flex:none; }
+  .prow .rb small{ font-size:var(--rbS); color:var(--muted); font-weight:600; margin-left:3px; }
   .prow.dim{ opacity:.72; }
-  .prow .strike{ color:var(--accent); font-size:20px; margin-right:-6px; }
+  .prow .strike{ color:var(--accent); font-size:var(--ini); margin-right:-6px; flex:none; }
 
   /* recent-over dots under the bowler */
   .balls{ display:flex; gap:6px; align-items:center; margin-top:2px; }
@@ -59,17 +70,17 @@
 
   /* center score pill */
   .center{ display:flex; flex-direction:column; align-items:center; justify-content:center;
-           min-width:300px; padding:0 6px; }
+           flex:none; padding:0 6px; }
   .pill{ display:flex; align-items:stretch; border-radius:12px; overflow:hidden;
          box-shadow:0 2px 10px rgba(0,0,0,.35); }
-  .pill .ab{ padding:7px 12px; font-weight:800; font-size:14px; line-height:1.12;
-             display:flex; align-items:center; text-align:center; background:#11161d;
-             max-width:128px; white-space:normal; word-break:break-word; }
+  .pill .ab{ padding:7px 12px; font-weight:800; font-size:var(--pillName); line-height:1.12;
+             display:flex; align-items:center; text-align:center; background:var(--scorebg);
+             max-width:var(--pillMax); white-space:normal; word-break:break-word; }
   .pill .ab.a{ color:#ff7aa3; box-shadow:inset 4px 0 0 var(--pill-a); }
   .pill .ab.b{ color:#3fd9cb; box-shadow:inset -4px 0 0 var(--pill-b); }
-  .pill .sc{ background:#11161d; padding:8px 16px; display:flex; align-items:center; gap:10px; }
-  .pill .sc .score{ font-weight:800; font-size:26px; font-variant-numeric:tabular-nums; }
-  .pill .sc .ov{ color:var(--muted); font-weight:700; font-size:16px; }
+  .pill .sc{ background:var(--scorebg); padding:8px 16px; display:flex; align-items:center; gap:10px; }
+  .pill .sc .score{ font-weight:800; font-size:var(--score); font-variant-numeric:tabular-nums; }
+  .pill .sc .ov{ color:var(--muted); font-weight:700; font-size:var(--ov); }
   .csub{ margin-top:7px; font-size:15px; font-weight:700; letter-spacing:.3px;
          text-transform:uppercase; color:#fff; text-align:center; max-width:360px;
          white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -107,11 +118,16 @@
   if (apiBase.slice(-1) !== "/") apiBase += "/";
   if (theme) document.body.classList.add("theme-"+theme.replace(/[^a-z]/gi,""));
 
+  // ?provider=streamlabs|prism -> compact type + logos so long names fit.
+  var prov = (q.get("provider")||"").toLowerCase().replace(/[^a-z]/g,"");
+  if (prov==="streamlabs"||prov==="prism") document.body.classList.add("prov-"+prov);
+
   var $ = function(id){ return document.getElementById(id); };
   var bar = $("bar");
 
   // ---- translucent ticker colour from ?bg=<hex> (also accepts #hash) ----
   // e.g. ?bg=078BDC  -> royal-blue translucent bar.  8-digit hex sets alpha.
+  // The score box is set to a deep shade of the same hue so it stays cohesive.
   function applyBg(hex){
     if (!hex) return;
     hex = String(hex).replace(/^#/, "");
@@ -120,6 +136,10 @@
     var a = hex.length===8 ? parseInt(hex.slice(6,8),16)/255 : 0.82;
     var rgba=function(al){ return "rgba("+r+","+g+","+b+","+al.toFixed(3)+")"; };
     bar.style.background = "linear-gradient(180deg,"+rgba(a*0.85)+","+rgba(a)+")";
+    // deep, slightly-desaturated shade of the bar colour for the score box
+    var dk=function(c){ return Math.round(c*0.34); };
+    document.documentElement.style.setProperty("--scorebg",
+      "rgba("+dk(r)+","+dk(g)+","+dk(b)+",0.96)");
   }
   applyBg(q.get("bg") || (location.hash ? location.hash.slice(1) : ""));
 

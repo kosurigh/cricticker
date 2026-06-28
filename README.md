@@ -97,22 +97,25 @@ match ID and bar colour ever change:
 https://YOURNAME.github.io/cricticker/ticker.html?id=<MATCH_ID>&bg=<HEX>
 ```
 
-e.g. `…/ticker.html?id=25801306&bg=078BDC` → translucent royal-blue bar.
-Open `index.html` (the setup page) to generate this URL with a colour picker.
+e.g. `…/ticker.html?id=25801306&bg=078BDC` → translucent royal-blue bar with a
+matching deep-navy score box. Add `&provider=streamlabs` (or `&prism`) so long
+batsman names aren't clipped in those apps. Open `index.html` (the setup page) to
+generate this URL with a colour picker and app selector.
 
 > **Note on the colour:** put the hex **without** a leading `#` — in a URL `#`
 > starts the fragment and would be dropped. `bg=078BDC`, not `bg=#078BDC`.
 
 ### URL options
 
-| Param     | Default     | Notes                                                         |
-|-----------|-------------|---------------------------------------------------------------|
-| `id`      | `25801383`  | Match ID from the scorecard URL                               |
-| `bg`      | dark        | 6- or 8-digit hex (no `#`) for the translucent bar; 8 = alpha |
-| `theme`   | `default`   | Batsman accent: `blue` · `purple` · `dark` · `gold`           |
-| `refresh` | `8`         | Seconds between updates (min 5)                               |
-| `api`     | `DEFAULT_API` | Override the Worker URL (rarely needed)                     |
-| `demo`    | off         | `1` = green backdrop to preview translucency locally          |
+| Param      | Default       | Notes                                                          |
+|------------|---------------|----------------------------------------------------------------|
+| `id`       | `25801383`    | Match ID from the scorecard URL                                |
+| `bg`       | dark          | 6- or 8-digit hex (no `#`); translucent bar. Score box is auto-tinted to a deep shade of it. |
+| `provider` | off (large)   | `streamlabs` or `prism` — compacts text + logos so long names fit |
+| `theme`    | `default`     | Batsman accent: `blue` · `purple` · `dark` · `gold`            |
+| `refresh`  | `8`           | Seconds between updates (min 5)                                |
+| `api`      | `DEFAULT_API` | Override the Worker URL (rarely needed)                        |
+| `demo`     | off           | `1` = green backdrop to preview translucency locally           |
 
 The match ID is the number in any scorecard URL:
 `cricheroes.com/scorecard/`**`25801383`**`/mega-smash/…`

@@ -31,6 +31,12 @@
       <input id="pick" type="color" value="#078BDC" style="width:54px;height:42px;padding:2px;" />
       <input id="bg" value="078BDC" style="flex:1;" />
     </div>
+    <label>Streaming app (compacts text so long names fit)</label>
+    <select id="provider" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3645;background:#0d1117;color:#e6edf3;font-size:15px;">
+      <option value="">Default (OBS / large)</option>
+      <option value="streamlabs">Streamlabs</option>
+      <option value="prism">PRISM Live Studio</option>
+    </select>
     <a class="btn" id="open" href="#" target="_blank">Open ticker ↗</a>
     <div class="url" id="url"></div>
   </div>
@@ -42,12 +48,15 @@
   function build(){
     var id=document.getElementById('id').value.trim()||'25801383';
     var bg=document.getElementById('bg').value.trim().replace(/^#/,'');
+    var pr=document.getElementById('provider').value;
     var u='ticker.html?id='+encodeURIComponent(id);
     if(bg) u+='&bg='+encodeURIComponent(bg);
+    if(pr) u+='&provider='+pr;
     var abs=new URL(u, location.href).href;
     document.getElementById('open').href=u;
     document.getElementById('url').textContent=abs;
   }
+  document.getElementById('provider').addEventListener('change',build);
   var pick=document.getElementById('pick'), bg=document.getElementById('bg');
   pick.addEventListener('input',function(){ bg.value=pick.value.replace(/^#/,'').toUpperCase(); build(); });
   bg.addEventListener('input',function(){
