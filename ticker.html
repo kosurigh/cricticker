@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CricHeroes Live Ticker</title>
+<style>
+  :root{
+    --accent:#1e9e54; --accent2:#0b6e3a;
+    --pill-a:#d63b6e;   /* batting side block in the score pill */
+    --pill-b:#16b3a6;   /* bowling side block                  */
+    --bg:rgba(12,16,22,.94); --bg2:rgba(12,16,22,.82);
+    --text:#fff; --muted:#b9c6d4; --live:#ff4242; --four:#36c275; --six:#c879ff;
+  }
+  body.theme-blue   { --accent:#2563eb; --accent2:#1e40af; }
+  body.theme-purple { --accent:#7c3aed; --accent2:#5b21b6; }
+  body.theme-dark   { --accent:#374151; --accent2:#111827; }
+  body.theme-gold   { --accent:#d4a017; --accent2:#9a7400; }
+
+  html,body{margin:0;height:100%;width:100%;overflow:hidden;background:transparent;
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+
+  #bar{
+    position:fixed; left:0; right:0; bottom:0; height:104px;
+    display:flex; align-items:stretch; color:var(--text);
+    background:linear-gradient(180deg,var(--bg2),var(--bg));
+    box-shadow:0 -6px 24px rgba(0,0,0,.5);
+    transform:translateY(120%); transition:transform .45s ease;
+  }
+  #bar.show{ transform:translateY(0); }
+
+  .logo{ width:96px; display:flex; align-items:center; justify-content:center; }
+  .logo img{ width:62px; height:62px; border-radius:50%; object-fit:cover;
+             background:#fff; border:2px solid rgba(255,255,255,.85); }
+  .logo .ini{ width:62px; height:62px; border-radius:50%; display:flex; align-items:center;
+              justify-content:center; font-weight:800; font-size:18px; color:#fff;
+              border:2px solid rgba(255,255,255,.85); }
+  .logo .ini.a{ background:var(--pill-a); } .logo .ini.b{ background:var(--pill-b); }
+
+  /* batsmen (left) and bowler (right) share this stacked-rows style */
+  .players{ flex:1; display:flex; flex-direction:column; justify-content:center;
+            gap:9px; padding:0 22px; min-width:0; }
+  .players.right{ align-items:flex-end; text-align:right; }
+  .prow{ display:flex; align-items:baseline; gap:12px; white-space:nowrap;
+         max-width:100%; overflow:hidden; }
+  .prow .nm{ font-weight:700; font-size:24px; overflow:hidden; text-overflow:ellipsis; }
+  .prow .rb{ font-weight:800; font-size:24px; font-variant-numeric:tabular-nums; }
+  .prow .rb small{ font-size:15px; color:var(--muted); font-weight:600; margin-left:3px; }
+  .prow.dim{ opacity:.72; }
+  .prow .strike{ color:var(--accent); font-size:20px; margin-right:-6px; }
+
+  /* recent-over dots under the bowler */
+  .balls{ display:flex; gap:6px; align-items:center; margin-top:2px; }
+  .ball{ min-width:24px; height:24px; padding:0 4px; border-radius:50%;
+         background:rgba(255,255,255,.16); color:#fff; font-size:13px; font-weight:700;
+         display:flex; align-items:center; justify-content:center; box-sizing:border-box; }
+  .ball.four{ background:var(--four); } .ball.six{ background:var(--six); }
+  .ball.wkt{ background:var(--live); } .ball.dot{ color:var(--muted); }
+
+  /* center score pill */
+  .center{ display:flex; flex-direction:column; align-items:center; justify-content:center;
+           min-width:300px; padding:0 6px; }
+  .pill{ display:flex; align-items:stretch; border-radius:12px; overflow:hidden;
+         box-shadow:0 2px 10px rgba(0,0,0,.35); }
+  .pill .ab{ padding:7px 12px; font-weight:800; font-size:14px; line-height:1.12;
+             display:flex; align-items:center; text-align:center; background:#11161d;
+             max-width:128px; white-space:normal; word-break:break-word; }
+  .pill .ab.a{ color:#ff7aa3; box-shadow:inset 4px 0 0 var(--pill-a); }
+  .pill .ab.b{ color:#3fd9cb; box-shadow:inset -4px 0 0 var(--pill-b); }
+  .pill .sc{ background:#11161d; padding:8px 16px; display:flex; align-items:center; gap:10px; }
+  .pill .sc .score{ font-weight:800; font-size:26px; font-variant-numeric:tabular-nums; }
+  .pill .sc .ov{ color:var(--muted); font-weight:700; font-size:16px; }
+  .csub{ margin-top:7px; font-size:15px; font-weight:700; letter-spacing:.3px;
+         text-transform:uppercase; color:#fff; text-align:center; max-width:360px;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .csub.chase{ color:#ffe08a; }
+  .csub .tour{ color:var(--muted); }
+  .liveDot{ display:inline-block; width:8px; height:8px; border-radius:50%;
+            background:var(--live); margin-right:6px; vertical-align:1px; }
+</style>
+</head>
+<body>
+  <div id="bar">
+    <div class="logo" id="logoL"></div>
+    <div class="players" id="bat"></div>
+    <div class="center">
+      <div class="pill" id="pill"></div>
+      <div class="csub" id="csub"></div>
+    </div>
+    <div class="players right" id="bowl"></div>
+    <div class="logo" id="logoR"></div>
+  </div>
+
+<script>
+(function(){
+  var q       = new URLSearchParams(location.search);
+  var matchId = q.get("id") || "25801383";
+  var theme   = q.get("theme") || "";
+  var refresh = Math.max(5, parseInt(q.get("refresh")||"8",10))*1000;
+  var apiBase = q.get("api") || "/api/";
+  if (apiBase.slice(-1) !== "/") apiBase += "/";
+  if (theme) document.body.classList.add("theme-"+theme.replace(/[^a-z]/gi,""));
+  if (q.get("bg")==="1")
+    document.body.style.background =
+      "radial-gradient(120% 90% at 50% 0%, #2f5d33 0%, #16331b 55%, #0a1a0d 100%)";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var bar = $("bar");
+
+  function abbr(name, short){
+    if (short && short.trim()) return short.trim().toUpperCase();
+    var w = (name||"").trim().split(/\s+/);
+    if (w.length >= 2) return (w[0][0]+w[1][0]).toUpperCase();
+    return (name||"?").slice(0,3).toUpperCase();
+  }
+  function esc(s){ return (s==null?"":String(s)).replace(/[&<>]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+  function batRow(p, striker){
+    if (!p || !p.name) return "";
+    return '<div class="prow'+(striker?'':' dim')+'">'
+      + (striker?'<span class="strike">▶</span>':'')
+      + '<span class="nm">'+esc(p.name)+'</span>'
+      + '<span class="rb">'+(p.runs||0)+'<small>('+(p.balls||0)+')</small></span></div>';
+  }
+  function bowlRow(b){
+    if (!b || !b.name) return "";
+    var figs = (b.wickets||0)+'-'+(b.runs||0);
+    return '<div class="prow"><span class="nm">'+esc(b.name)+'</span>'
+      + '<span class="rb">'+figs+'<small>('+(b.overs!=null?b.overs:0)+')</small></span></div>';
+  }
+  // recent_over like "1 0 0 1 0 | 4 1 1 1 " -> dots for the current (last) over
+  function ballsHtml(recent){
+    if (!recent) return "";
+    var segs = String(recent).split("|");
+    var over = segs[segs.length-1].trim().split(/\s+/).filter(Boolean).slice(-6);
+    return '<div class="balls">' + over.map(function(t){
+      var u = t.toUpperCase(), cls="ball", lbl=t;
+      if (u.indexOf("W")>=0) cls+=" wkt";
+      else if (u==="4") cls+=" four";
+      else if (u==="6") cls+=" six";
+      else if (u==="0") cls+=" dot";
+      return '<span class="'+cls+'">'+esc(lbl)+'</span>';
+    }).join("") + '</div>';
+  }
+
+  function pick(d){
+    var cur = d.current_inning || 1;
+    function lastInn(t){ return (t.innings&&t.innings.length)?t.innings[t.innings.length-1]:{}; }
+    var a=d.team_a, b=d.team_b;
+    var aInn=lastInn(a), bInn=lastInn(b);
+    var batT, bowT, batInn;
+    if (bInn.inning===cur){ batT=b; bowT=a; batInn=bInn; }
+    else { batT=a; bowT=b; batInn=aInn; }
+    return {cur:cur, batT:batT, bowT:bowT, batInn:batInn};
+  }
+
+  function render(d){
+    var p = pick(d);
+    // logos
+    $("logoL").innerHTML = p.batT.logo ? '<img src="'+esc(p.batT.logo)+'" alt="">'
+      : '<div class="ini a">'+abbr(p.batT.name,p.batT.short_name)+'</div>';
+    $("logoR").innerHTML = p.bowT.logo ? '<img src="'+esc(p.bowT.logo)+'" alt="">'
+      : '<div class="ini b">'+abbr(p.bowT.name,p.bowT.short_name)+'</div>';
+
+    // batsmen
+    var sb=(d.batsmen||{}).sb, nsb=(d.batsmen||{}).nsb;
+    $("bat").innerHTML = batRow(sb,true) + batRow(nsb,false);
+
+    // bowler + recent balls
+    var bw=(d.bowlers||{}).sb;
+    $("bowl").innerHTML = bowlRow(bw) + ballsHtml(d.recent_over);
+
+    // center pill
+    var bi=p.batInn||{};
+    var score=(bi.total_run!=null?bi.total_run:0)+'-'+(bi.total_wicket!=null?bi.total_wicket:0);
+    var ov=bi.overs_played!=null?bi.overs_played:'0';
+    $("pill").innerHTML =
+        '<div class="ab a">'+esc(p.batT.name)+'</div>'
+      + '<div class="sc"><span class="score">'+score+'</span><span class="ov">'+ov+' ov</span></div>'
+      + '<div class="ab b">'+esc(p.bowT.name)+'</div>';
+
+    // sub line: special event > chase equation > tournament
+    var ms=d.match_summary||{};
+    var ev=(d.match_event_type||"").trim();
+    var sub=$("csub"); sub.className="csub";
+    if (ev && ev.toUpperCase()!=="LIVE"){
+      sub.innerHTML='<span class="liveDot"></span>'+esc(ev.replace(/-/g," "));
+    } else if (p.cur>=2 && (ms.ticker_summary||ms.required_run!=null)){
+      sub.className="csub chase";
+      var eq = ms.ticker_summary || ("Need "+ms.required_run+" in "+ms.required_ball);
+      sub.innerHTML = esc(eq) + (ms.rrr?'  •  RRR '+ms.rrr:'');
+    } else {
+      sub.innerHTML='<span class="liveDot"></span><span class="tour">'+esc(d.tournament_name||"Live")+'</span>';
+    }
+    bar.classList.add("show");
+  }
+
+  function showMsg(msg){
+    $("bat").innerHTML=""; $("bowl").innerHTML="";
+    $("pill").innerHTML='<div class="sc"><span class="score">—</span></div>';
+    $("csub").className="csub";
+    $("csub").innerHTML=esc(msg||"");
+    bar.classList.add("show");
+  }
+
+  function tick(){
+    fetch(apiBase+encodeURIComponent(matchId),{cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if (j && j.status && j.data) render(j.data);
+        else showMsg((j&&j.error&&j.error.message)||"match not live");
+      })
+      .catch(function(e){ showMsg(String(e)); });
+  }
+  tick(); setInterval(tick, refresh);
+})();
+</script>
+</body>
+</html>
