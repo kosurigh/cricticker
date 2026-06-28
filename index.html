@@ -26,10 +26,11 @@
   <div class="box">
     <label>Match ID (from the scorecard URL, e.g. cricheroes.com/scorecard/<b>25801383</b>/…)</label>
     <input id="id" value="25801383" />
-    <label>Theme (optional): default, blue, purple, dark, gold</label>
-    <input id="theme" placeholder="default" />
-    <label>Proxy / API base — your Cloudflare Worker URL (leave blank for same-origin /api)</label>
-    <input id="api" placeholder="https://cricticker.YOURNAME.workers.dev/" />
+    <label>Ticker bar colour (translucent)</label>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <input id="pick" type="color" value="#078BDC" style="width:54px;height:42px;padding:2px;" />
+      <input id="bg" value="078BDC" style="flex:1;" />
+    </div>
     <a class="btn" id="open" href="#" target="_blank">Open ticker ↗</a>
     <div class="url" id="url"></div>
   </div>
@@ -40,16 +41,19 @@
 <script>
   function build(){
     var id=document.getElementById('id').value.trim()||'25801383';
-    var th=document.getElementById('theme').value.trim();
-    var api=document.getElementById('api').value.trim();
+    var bg=document.getElementById('bg').value.trim().replace(/^#/,'');
     var u='ticker.html?id='+encodeURIComponent(id);
-    if(th) u+='&theme='+encodeURIComponent(th);
-    if(api) u+='&api='+encodeURIComponent(api);
+    if(bg) u+='&bg='+encodeURIComponent(bg);
     var abs=new URL(u, location.href).href;
     document.getElementById('open').href=u;
     document.getElementById('url').textContent=abs;
   }
-  ['id','theme','api'].forEach(function(k){document.getElementById(k).addEventListener('input',build);});
+  var pick=document.getElementById('pick'), bg=document.getElementById('bg');
+  pick.addEventListener('input',function(){ bg.value=pick.value.replace(/^#/,'').toUpperCase(); build(); });
+  bg.addEventListener('input',function(){
+    var v=bg.value.trim().replace(/^#/,''); if(/^[0-9a-fA-F]{6}$/.test(v)) pick.value='#'+v; build();
+  });
+  document.getElementById('id').addEventListener('input',build);
   build();
 </script>
 </body>

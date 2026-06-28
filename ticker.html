@@ -93,19 +93,49 @@
 
 <script>
 (function(){
+  // ---- one-time config: your deployed Cloudflare Worker proxy ----------
+  // With this set, production URLs only need ?id= and ?bg= (no &api=).
+  var DEFAULT_API = "https://cricticker.tclnc.workers.dev/";
+
   var q       = new URLSearchParams(location.search);
   var matchId = q.get("id") || "25801383";
   var theme   = q.get("theme") || "";
   var refresh = Math.max(5, parseInt(q.get("refresh")||"8",10))*1000;
-  var apiBase = q.get("api") || "/api/";
+  // Local dev (python server) serves /api itself; in production use the Worker.
+  var isLocal = /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname);
+  var apiBase = q.get("api") || (isLocal ? "/api/" : DEFAULT_API);
   if (apiBase.slice(-1) !== "/") apiBase += "/";
   if (theme) document.body.classList.add("theme-"+theme.replace(/[^a-z]/gi,""));
-  if (q.get("bg")==="1")
-    document.body.style.background =
-      "radial-gradient(120% 90% at 50% 0%, #2f5d33 0%, #16331b 55%, #0a1a0d 100%)";
 
   var $ = function(id){ return document.getElementById(id); };
   var bar = $("bar");
+
+  // ---- translucent ticker colour from ?bg=<hex> (also accepts #hash) ----
+  // e.g. ?bg=078BDC  -> royal-blue translucent bar.  8-digit hex sets alpha.
+  function applyBg(hex){
+    if (!hex) return;
+    hex = String(hex).replace(/^#/, "");
+    if (!/^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hex)) return;
+    var r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
+    var a = hex.length===8 ? parseInt(hex.slice(6,8),16)/255 : 0.82;
+    var rgba=function(al){ return "rgba("+r+","+g+","+b+","+al.toFixed(3)+")"; };
+    bar.style.background = "linear-gradient(180deg,"+rgba(a*0.85)+","+rgba(a)+")";
+  }
+  applyBg(q.get("bg") || (location.hash ? location.hash.slice(1) : ""));
+
+  // ?demo=1 paints a backdrop so you can preview translucency outside OBS.
+  if (q.get("demo")==="1")
+    document.body.style.background =
+      "radial-gradient(120% 90% at 50% 0%, #2f5d33 0%, #16331b 55%, #0a1a0d 100%)";
+
+  // ---- local team-logo manifest (assets/team-logos/manifest.json) -------
+  var LOGOS = {};
+  function norm(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
+  function logoSrc(team){
+    var f = LOGOS[norm(team.name)];
+    if (f) return "assets/team-logos/" + encodeURIComponent(f);
+    return team.logo || null;            // CricHeroes URL fallback
+  }
 
   function abbr(name, short){
     if (short && short.trim()) return short.trim().toUpperCase();
@@ -115,6 +145,18 @@
   }
   function esc(s){ return (s==null?"":String(s)).replace(/[&<>]/g,function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+  // Set a corner logo: local file -> CricHeroes URL -> initials circle.
+  function setLogo(elId, team, side){
+    var el = $(elId), src = logoSrc(team), ab = abbr(team.name, team.short_name);
+    if (!src){ el.innerHTML = '<div class="ini '+side+'">'+ab+'</div>'; return; }
+    el.innerHTML = "";
+    var img = new Image();
+    img.alt = ab;
+    img.onerror = function(){ el.innerHTML = '<div class="ini '+side+'">'+ab+'</div>'; };
+    img.src = src;
+    el.appendChild(img);
+  }
 
   function batRow(p, striker){
     if (!p || !p.name) return "";
@@ -158,10 +200,8 @@
   function render(d){
     var p = pick(d);
     // logos
-    $("logoL").innerHTML = p.batT.logo ? '<img src="'+esc(p.batT.logo)+'" alt="">'
-      : '<div class="ini a">'+abbr(p.batT.name,p.batT.short_name)+'</div>';
-    $("logoR").innerHTML = p.bowT.logo ? '<img src="'+esc(p.bowT.logo)+'" alt="">'
-      : '<div class="ini b">'+abbr(p.bowT.name,p.bowT.short_name)+'</div>';
+    setLogo("logoL", p.batT, "a");
+    setLogo("logoR", p.bowT, "b");
 
     // batsmen
     var sb=(d.batsmen||{}).sb, nsb=(d.batsmen||{}).nsb;
@@ -213,7 +253,12 @@
       })
       .catch(function(e){ showMsg(String(e)); });
   }
-  tick(); setInterval(tick, refresh);
+  // Load the logo manifest once, then start polling (start anyway if it fails).
+  fetch("assets/team-logos/manifest.json", {cache:"force-cache"})
+    .then(function(r){ return r.ok ? r.json() : {}; })
+    .then(function(m){ LOGOS = m || {}; })
+    .catch(function(){})
+    .then(function(){ tick(); setInterval(tick, refresh); });
 })();
 </script>
 </body>
