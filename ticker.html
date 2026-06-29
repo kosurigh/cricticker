@@ -10,8 +10,8 @@
     --barH:104px; --nm:24px; --rb:24px; --rbS:15px; --ini:18px;
     --logoW:96px; --logoImg:62px; --pillName:14px; --pillMax:128px; --score:26px; --ov:16px;
 
-    /* CLASSIC theme (default) — white broadcast bar */
-    --bar-bg:#ffffff; --bar-shadow:0 8px 26px rgba(0,0,0,.45);
+    /* CLASSIC theme (default) — translucent white broadcast bar */
+    --bar-bg:rgba(255,255,255,.70); --bar-shadow:0 8px 26px rgba(0,0,0,.4);
     --name:#16181d; --sub:#7c828c; --strike:#f0682e;
     --sc-bg:#16181d; --sc-text:#fff; --sc-ov:#aeb6c2;
     --ab-a-bg:#e84a7f; --ab-a-text:#fff; --ab-a-inset:none;
@@ -54,6 +54,7 @@
     position:fixed; left:18px; right:18px; bottom:16px; height:var(--barH);
     display:flex; align-items:stretch; color:var(--name);
     background:var(--bar-bg); border-radius:20px; overflow:hidden;
+    -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px);
     box-shadow:var(--bar-shadow);
     transform:translateY(160%); transition:transform .45s ease;
   }
@@ -112,8 +113,9 @@
   #scorecard{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
               padding:3vh 3vw; box-sizing:border-box; }
   #scorecard.show{ display:flex; }
-  .sc-card{ width:min(1080px,94%); background:#fff; border-radius:18px; overflow:hidden;
-            box-shadow:0 16px 44px rgba(0,0,0,.55);
+  .sc-card{ width:min(1080px,94%); background:rgba(255,255,255,.72); border-radius:18px; overflow:hidden;
+            -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+            box-shadow:0 16px 44px rgba(0,0,0,.5);
             font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
   .sc-head{ background:#262c70; color:#fff; display:flex; justify-content:space-between;
             align-items:center; padding:12px 22px; }
@@ -121,7 +123,7 @@
   .sc-head .r{ opacity:.85; font-size:12px; text-transform:uppercase; font-weight:600; }
   .sc-result{ background:#e84a7f; color:#fff; text-align:center; padding:9px;
               font-weight:800; font-size:19px; letter-spacing:.3px; }
-  .sc-inn{ padding:14px 22px; border-bottom:1px solid #e6e8ec; }
+  .sc-inn{ padding:14px 22px; border-bottom:1px solid rgba(20,24,29,.14); }
   .sc-tm{ display:flex; align-items:center; gap:12px; margin-bottom:9px; }
   .sc-tm img{ width:38px; height:38px; border-radius:50%; object-fit:cover; }
   .sc-tm .ini{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
@@ -134,7 +136,7 @@
   .sc-h{ font-size:10px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; margin-bottom:3px; }
   .sc-bat .sc-h{ color:#e84a7f; } .sc-bowl .sc-h{ color:#14b4a4; }
   .sc-line{ display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0;
-            border-bottom:1px solid #eef0f3; color:#16181d; }
+            border-bottom:1px solid rgba(20,24,29,.10); color:#16181d; }
   .sc-line .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .sc-line .v{ font-weight:700; flex:none; }
   .sc-line .v small{ color:#7c828c; font-weight:600; font-size:11px; }
