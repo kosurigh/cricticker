@@ -8,13 +8,20 @@ It reads the same JSON the official CricHeroes web ticker uses
 broadcast lower-third:
 
 - **Striker** (▶) and **non-striker** with runs (balls)
-- Compact centre score pill: `BAT v BOW   <score>   <overs>` with the
-  tournament name small underneath (no wasted space)
+- Centre score pill: full team names + `<score>  <overs>`, with a strip beneath
 - **Current bowler** with figures (wkts-runs, overs) and the **recent-over**
   ball-by-ball dots (boundaries and wickets colour-coded)
-- In the **second innings**, the live chase equation —
-  e.g. "Need 106 runs in 98 balls • RRR 6.49"
-- Special states (FREE HIT, INNINGS BREAK) shown in the centre when active
+- **First innings** → strip reads `<tournament> · First Innings`;
+  **second innings** → live chase equation, e.g. "Need 106 runs in 98 balls • RRR 6.49"
+- Special states (FREE HIT, INNINGS BREAK) shown when active
+- **Themes** via `?theme=` — `classic` (white broadcast bar, the default) or
+  `dark` (translucent, colour-customisable)
+- **`?provider=streamlabs`/`prism`** compacts the layout for those apps and
+  shrinks/abbreviates long names so they never clip
+  (`Laxman Guru Meenakshi Sundaram Kalaivani` → `Laxman G. M. S. K.`)
+- **When the match ends**, the bar is replaced automatically by a full
+  two-innings **scorecard** in the same palette
+- Local **team logos** in the corners from `assets/team-logos/`
 
 There is **no Cloudflare challenge to solve** — the API just rejects non-browser
 requests, so a tiny proxy adds a normal browser `User-Agent` + the ticker's
@@ -90,17 +97,21 @@ snippet in **Team logos** below whenever you add files.)
 
 ## Use it in OBS / Streamlabs / PRISM
 
-Add a **Browser Source**, size **1920×1080**, and use this short URL — only the
-match ID and bar colour ever change:
+Add a **Browser Source**, size **1920×1080**. The default Classic theme needs
+only the match ID, plus your streaming app:
 
 ```
-https://YOURNAME.github.io/cricticker/ticker.html?id=<MATCH_ID>&bg=<HEX>
+# Streamlabs
+https://YOURNAME.github.io/cricticker/ticker.html?id=<MATCH_ID>&provider=streamlabs
+# PRISM
+https://YOURNAME.github.io/cricticker/ticker.html?id=<MATCH_ID>&provider=prism
+# OBS (large layout) — just the id
+https://YOURNAME.github.io/cricticker/ticker.html?id=<MATCH_ID>
 ```
 
-e.g. `…/ticker.html?id=25801306&bg=078BDC` → translucent royal-blue bar with a
-matching deep-navy score box. Add `&provider=streamlabs` (or `&prism`) so long
-batsman names aren't clipped in those apps. Open `index.html` (the setup page) to
-generate this URL with a colour picker and app selector.
+For the **dark** translucent theme with a custom colour, add `&theme=dark&bg=<HEX>`
+(e.g. `&theme=dark&bg=078BDC`). Open `index.html` (the setup page) to build any of
+these with dropdowns and a colour picker.
 
 > **Note on the colour:** put the hex **without** a leading `#` — in a URL `#`
 > starts the fragment and would be dropped. `bg=078BDC`, not `bg=#078BDC`.
@@ -110,12 +121,12 @@ generate this URL with a colour picker and app selector.
 | Param      | Default       | Notes                                                          |
 |------------|---------------|----------------------------------------------------------------|
 | `id`       | `25801383`    | Match ID from the scorecard URL                                |
-| `bg`       | dark          | 6- or 8-digit hex (no `#`); translucent bar. Score box is auto-tinted to a deep shade of it. |
-| `provider` | off (large)   | `streamlabs` or `prism` — compacts text + logos so long names fit |
-| `theme`    | `default`     | Batsman accent: `blue` · `purple` · `dark` · `gold`            |
+| `theme`    | `classic`     | `classic` (white bar) or `dark` (translucent)                  |
+| `bg`       | —             | DARK theme only: 6/8-digit hex (no `#`) for the translucent bar; score box auto-tinted |
+| `provider` | off (large)   | `streamlabs` or `prism` — compacts layout + fits long names    |
 | `refresh`  | `8`           | Seconds between updates (min 5)                                |
 | `api`      | `DEFAULT_API` | Override the Worker URL (rarely needed)                        |
-| `demo`     | off           | `1` = green backdrop to preview translucency locally           |
+| `demo`     | off           | `1` = green backdrop to preview the overlay locally            |
 
 The match ID is the number in any scorecard URL:
 `cricheroes.com/scorecard/`**`25801383`**`/mega-smash/…`

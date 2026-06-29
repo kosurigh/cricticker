@@ -6,88 +6,138 @@
 <title>CricHeroes Live Ticker</title>
 <style>
   :root{
-    --accent:#1e9e54; --accent2:#0b6e3a;
-    --pill-a:#d63b6e;   /* batting side block in the score pill */
-    --pill-b:#16b3a6;   /* bowling side block                  */
-    --bg:rgba(12,16,22,.94); --bg2:rgba(12,16,22,.82);
-    --scorebg:#11161d;  /* score box; recoloured from ?bg= at runtime */
-    --text:#fff; --muted:#b9c6d4; --live:#ff4242; --four:#36c275; --six:#c879ff;
-    /* sizes — a ?provider= preset can shrink these so long names fit */
+    /* sizes — a ?provider= preset shrinks these so long names fit */
     --barH:104px; --nm:24px; --rb:24px; --rbS:15px; --ini:18px;
     --logoW:96px; --logoImg:62px; --pillName:14px; --pillMax:128px; --score:26px; --ov:16px;
+
+    /* CLASSIC theme (default) — white broadcast bar */
+    --bar-bg:#ffffff; --bar-shadow:0 8px 26px rgba(0,0,0,.45);
+    --name:#16181d; --sub:#7c828c; --strike:#f0682e;
+    --sc-bg:#16181d; --sc-text:#fff; --sc-ov:#aeb6c2;
+    --ab-a-bg:#e84a7f; --ab-a-text:#fff; --ab-a-inset:none;
+    --ab-b-bg:#14b4a4; --ab-b-text:#fff; --ab-b-inset:none;
+    --strip-bg:#262c70; --strip-text:#fff;
+    --strip-chase-bg:#b0335c; --strip-chase-text:#fff;
+    --ball-bg:#e7e9ee; --ball-text:#16181d; --ball-four:#14b4a4; --ball-six:#c879ff;
+    --ball-wkt:#e23b3b; --ball-dot:#9097a3;
+    --logo-bd:#e6e8ec;
+    --pill-a:#d63b6e; --pill-b:#16b3a6; --scorebg:#11161d;
   }
-  /* Streamlabs/PRISM render narrower, so compact the type + logos a touch */
+  /* DARK theme — the original translucent bar (opt-in via ?theme=dark) */
+  body.theme-dark{
+    --bar-bg:linear-gradient(180deg,rgba(12,16,22,.82),rgba(12,16,22,.94));
+    --bar-shadow:0 8px 28px rgba(0,0,0,.5);
+    --name:#fff; --sub:#b9c6d4; --strike:#1e9e54;
+    --sc-bg:var(--scorebg); --sc-text:#fff; --sc-ov:#b9c6d4;
+    --ab-a-bg:var(--scorebg); --ab-a-text:#ff7aa3; --ab-a-inset:inset 4px 0 0 var(--pill-a);
+    --ab-b-bg:var(--scorebg); --ab-b-text:#3fd9cb; --ab-b-inset:inset -4px 0 0 var(--pill-b);
+    --strip-bg:transparent; --strip-text:#fff;
+    --strip-chase-bg:transparent; --strip-chase-text:#ffe08a;
+    --ball-bg:rgba(255,255,255,.16); --ball-text:#fff; --ball-dot:#b9c6d4;
+    --logo-bd:rgba(255,255,255,.85);
+  }
+  /* Streamlabs/PRISM render the overlay narrow — compact type + logos */
   body.prov-streamlabs, body.prov-prism{
-    --barH:96px; --nm:20px; --rb:21px; --rbS:13px; --ini:16px;
-    --logoW:74px; --logoImg:52px; --pillName:12px; --pillMax:104px; --score:23px; --ov:14px;
+    --barH:88px; --nm:17px; --rb:18px; --rbS:12px; --ini:14px;
+    --logoW:58px; --logoImg:42px; --pillName:11px; --pillMax:96px; --score:19px; --ov:12px;
   }
-  body.theme-blue   { --accent:#2563eb; --accent2:#1e40af; }
-  body.theme-purple { --accent:#7c3aed; --accent2:#5b21b6; }
-  body.theme-dark   { --accent:#374151; --accent2:#111827; }
-  body.theme-gold   { --accent:#d4a017; --accent2:#9a7400; }
+  body.prov-streamlabs .players, body.prov-prism .players{ padding:0 12px; gap:6px; }
+  body.prov-streamlabs .pill .sc, body.prov-prism .pill .sc{ padding:6px 10px; gap:7px; }
+  body.prov-streamlabs .pill .ab, body.prov-prism .pill .ab{ padding:5px 9px; }
+  body.prov-streamlabs .ball, body.prov-prism .ball{ min-width:18px; height:18px; font-size:11px; }
+  body.prov-streamlabs .csub, body.prov-prism .csub{ font-size:12px; margin-top:5px; }
 
   html,body{margin:0;height:100%;width:100%;overflow:hidden;background:transparent;
             font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
 
   #bar{
     position:fixed; left:18px; right:18px; bottom:16px; height:var(--barH);
-    display:flex; align-items:stretch; color:var(--text);
-    background:linear-gradient(180deg,var(--bg2),var(--bg));
-    border-radius:20px; overflow:hidden;
-    box-shadow:0 8px 28px rgba(0,0,0,.5);
+    display:flex; align-items:stretch; color:var(--name);
+    background:var(--bar-bg); border-radius:20px; overflow:hidden;
+    box-shadow:var(--bar-shadow);
     transform:translateY(160%); transition:transform .45s ease;
   }
   #bar.show{ transform:translateY(0); }
 
   .logo{ width:var(--logoW); display:flex; align-items:center; justify-content:center; flex:none; }
   .logo img{ width:var(--logoImg); height:var(--logoImg); border-radius:50%; object-fit:cover;
-             background:#fff; border:2px solid rgba(255,255,255,.85); }
+             background:#fff; border:2px solid var(--logo-bd); }
   .logo .ini{ width:var(--logoImg); height:var(--logoImg); border-radius:50%; display:flex;
               align-items:center; justify-content:center; font-weight:800; font-size:var(--ini);
-              color:#fff; border:2px solid rgba(255,255,255,.85); }
+              color:#fff; border:2px solid var(--logo-bd); }
   .logo .ini.a{ background:var(--pill-a); } .logo .ini.b{ background:var(--pill-b); }
 
-  /* batsmen (left) and bowler (right) share this stacked-rows style */
   .players{ flex:1; display:flex; flex-direction:column; justify-content:center;
-            gap:9px; padding:0 20px; min-width:0; }
+            gap:9px; padding:0 18px; min-width:0; }
   .players.right{ align-items:flex-end; text-align:right; }
-  .prow{ display:flex; align-items:baseline; gap:10px; white-space:nowrap;
-         max-width:100%; min-width:0; }
-  .prow .nm{ font-weight:700; font-size:var(--nm); min-width:0;
+  .prow{ display:flex; align-items:baseline; gap:9px; white-space:nowrap; max-width:100%; min-width:0; }
+  .prow .nm{ font-weight:700; font-size:var(--nm); color:var(--name); min-width:0;
              overflow:hidden; text-overflow:ellipsis; }
-  .prow .rb{ font-weight:800; font-size:var(--rb); font-variant-numeric:tabular-nums; flex:none; }
-  .prow .rb small{ font-size:var(--rbS); color:var(--muted); font-weight:600; margin-left:3px; }
-  .prow.dim{ opacity:.72; }
-  .prow .strike{ color:var(--accent); font-size:var(--ini); margin-right:-6px; flex:none; }
+  .prow .rb{ font-weight:800; font-size:var(--rb); color:var(--name);
+             font-variant-numeric:tabular-nums; flex:none; }
+  .prow .rb small{ font-size:var(--rbS); color:var(--sub); font-weight:600; margin-left:3px; }
+  .prow.dim{ opacity:.74; }
+  .prow .strike{ color:var(--strike); font-size:var(--ini); margin-right:-5px; flex:none; }
 
-  /* recent-over dots under the bowler */
-  .balls{ display:flex; gap:6px; align-items:center; margin-top:2px; }
-  .ball{ min-width:24px; height:24px; padding:0 4px; border-radius:50%;
-         background:rgba(255,255,255,.16); color:#fff; font-size:13px; font-weight:700;
+  .balls{ display:flex; gap:5px; align-items:center; margin-top:3px; }
+  .ball{ min-width:23px; height:23px; padding:0 4px; border-radius:50%;
+         background:var(--ball-bg); color:var(--ball-text); font-size:12px; font-weight:700;
          display:flex; align-items:center; justify-content:center; box-sizing:border-box; }
-  .ball.four{ background:var(--four); } .ball.six{ background:var(--six); }
-  .ball.wkt{ background:var(--live); } .ball.dot{ color:var(--muted); }
+  .ball.four{ background:var(--ball-four); color:#fff; }
+  .ball.six{ background:var(--ball-six); color:#fff; }
+  .ball.wkt{ background:var(--ball-wkt); color:#fff; }
+  .ball.dot{ color:var(--ball-dot); }
 
-  /* center score pill */
   .center{ display:flex; flex-direction:column; align-items:center; justify-content:center;
            flex:none; padding:0 6px; }
   .pill{ display:flex; align-items:stretch; border-radius:12px; overflow:hidden;
-         box-shadow:0 2px 10px rgba(0,0,0,.35); }
+         box-shadow:0 2px 10px rgba(0,0,0,.3); }
   .pill .ab{ padding:7px 12px; font-weight:800; font-size:var(--pillName); line-height:1.12;
-             display:flex; align-items:center; text-align:center; background:var(--scorebg);
-             max-width:var(--pillMax); white-space:normal; word-break:break-word; }
-  .pill .ab.a{ color:#ff7aa3; box-shadow:inset 4px 0 0 var(--pill-a); }
-  .pill .ab.b{ color:#3fd9cb; box-shadow:inset -4px 0 0 var(--pill-b); }
-  .pill .sc{ background:var(--scorebg); padding:8px 16px; display:flex; align-items:center; gap:10px; }
-  .pill .sc .score{ font-weight:800; font-size:var(--score); font-variant-numeric:tabular-nums; }
-  .pill .sc .ov{ color:var(--muted); font-weight:700; font-size:var(--ov); }
-  .csub{ margin-top:7px; font-size:15px; font-weight:700; letter-spacing:.3px;
-         text-transform:uppercase; color:#fff; text-align:center; max-width:360px;
-         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .csub.chase{ color:#ffe08a; }
-  .csub .tour{ color:var(--muted); }
+             display:flex; align-items:center; text-align:center; max-width:var(--pillMax);
+             white-space:normal; word-break:break-word; }
+  .pill .ab.a{ background:var(--ab-a-bg); color:var(--ab-a-text); box-shadow:var(--ab-a-inset); }
+  .pill .ab.b{ background:var(--ab-b-bg); color:var(--ab-b-text); box-shadow:var(--ab-b-inset); }
+  .pill .sc{ background:var(--sc-bg); padding:8px 16px; display:flex; align-items:center; gap:10px; }
+  .pill .sc .score{ font-weight:800; font-size:var(--score); color:var(--sc-text);
+                    font-variant-numeric:tabular-nums; }
+  .pill .sc .ov{ color:var(--sc-ov); font-weight:700; font-size:var(--ov); }
+  .csub{ margin-top:7px; font-size:13px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+         color:var(--strip-text); background:var(--strip-bg); border-radius:8px; padding:3px 12px;
+         text-align:center; max-width:380px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .csub.chase{ color:var(--strip-chase-text); background:var(--strip-chase-bg); }
   .liveDot{ display:inline-block; width:8px; height:8px; border-radius:50%;
-            background:var(--live); margin-right:6px; vertical-align:1px; }
+            background:var(--ball-wkt); margin-right:6px; vertical-align:1px; }
+
+  /* ---- end-of-match full scorecard (always Classic palette) ---- */
+  #scorecard{ position:fixed; inset:0; display:none; align-items:center; justify-content:center;
+              padding:3vh 3vw; box-sizing:border-box; }
+  #scorecard.show{ display:flex; }
+  .sc-card{ width:min(1080px,94%); background:#fff; border-radius:18px; overflow:hidden;
+            box-shadow:0 16px 44px rgba(0,0,0,.55);
+            font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+  .sc-head{ background:#262c70; color:#fff; display:flex; justify-content:space-between;
+            align-items:center; padding:12px 22px; }
+  .sc-head .t{ font-weight:800; font-size:17px; letter-spacing:.4px; }
+  .sc-head .r{ opacity:.85; font-size:12px; text-transform:uppercase; font-weight:600; }
+  .sc-result{ background:#e84a7f; color:#fff; text-align:center; padding:9px;
+              font-weight:800; font-size:19px; letter-spacing:.3px; }
+  .sc-inn{ padding:14px 22px; border-bottom:1px solid #e6e8ec; }
+  .sc-tm{ display:flex; align-items:center; gap:12px; margin-bottom:9px; }
+  .sc-tm img{ width:38px; height:38px; border-radius:50%; object-fit:cover; }
+  .sc-tm .ini{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
+               justify-content:center; font-weight:800; font-size:13px; color:#fff; }
+  .sc-tm .nm{ font-weight:800; font-size:17px; color:#16181d; flex:1; min-width:0;
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sc-tm .tot{ font-weight:800; font-size:20px; color:#262c70; flex:none; }
+  .sc-cols{ display:flex; gap:26px; }
+  .sc-bat,.sc-bowl{ flex:1; min-width:0; }
+  .sc-h{ font-size:10px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; margin-bottom:3px; }
+  .sc-bat .sc-h{ color:#e84a7f; } .sc-bowl .sc-h{ color:#14b4a4; }
+  .sc-line{ display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0;
+            border-bottom:1px solid #eef0f3; color:#16181d; }
+  .sc-line .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sc-line .v{ font-weight:700; flex:none; }
+  .sc-line .v small{ color:#7c828c; font-weight:600; font-size:11px; }
 </style>
 </head>
 <body>
@@ -101,62 +151,57 @@
     <div class="players right" id="bowl"></div>
     <div class="logo" id="logoR"></div>
   </div>
+  <div id="scorecard"></div>
 
 <script>
 (function(){
   // ---- one-time config: your deployed Cloudflare Worker proxy ----------
-  // With this set, production URLs only need ?id= and ?bg= (no &api=).
   var DEFAULT_API = "https://cricticker.tclnc.workers.dev/";
 
   var q       = new URLSearchParams(location.search);
   var matchId = q.get("id") || "25801383";
-  var theme   = q.get("theme") || "";
+  var theme   = (q.get("theme") || "classic").toLowerCase().replace(/[^a-z]/g,"");
   var refresh = Math.max(5, parseInt(q.get("refresh")||"8",10))*1000;
-  // Local dev (python server) serves /api itself; in production use the Worker.
   var isLocal = /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname);
   var apiBase = q.get("api") || (isLocal ? "/api/" : DEFAULT_API);
   if (apiBase.slice(-1) !== "/") apiBase += "/";
-  if (theme) document.body.classList.add("theme-"+theme.replace(/[^a-z]/gi,""));
+  document.body.classList.add("theme-"+theme);
 
-  // ?provider=streamlabs|prism -> compact type + logos so long names fit.
+  // ?provider=streamlabs|prism -> compact type + abbreviate long names
   var prov = (q.get("provider")||"").toLowerCase().replace(/[^a-z]/g,"");
-  if (prov==="streamlabs"||prov==="prism") document.body.classList.add("prov-"+prov);
+  var compact = (prov==="streamlabs"||prov==="prism");
+  if (compact) document.body.classList.add("prov-"+prov);
 
   var $ = function(id){ return document.getElementById(id); };
   var bar = $("bar");
 
-  // ---- translucent ticker colour from ?bg=<hex> (also accepts #hash) ----
-  // e.g. ?bg=078BDC  -> royal-blue translucent bar.  8-digit hex sets alpha.
-  // The score box is set to a deep shade of the same hue so it stays cohesive.
+  // ?bg=<hex> recolours the DARK theme bar (Classic uses its fixed palette).
   function applyBg(hex){
-    if (!hex) return;
+    if (!hex || theme==="classic") return;
     hex = String(hex).replace(/^#/, "");
     if (!/^[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(hex)) return;
     var r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16);
     var a = hex.length===8 ? parseInt(hex.slice(6,8),16)/255 : 0.82;
     var rgba=function(al){ return "rgba("+r+","+g+","+b+","+al.toFixed(3)+")"; };
     bar.style.background = "linear-gradient(180deg,"+rgba(a*0.85)+","+rgba(a)+")";
-    // deep, slightly-desaturated shade of the bar colour for the score box
     var dk=function(c){ return Math.round(c*0.34); };
     document.documentElement.style.setProperty("--scorebg",
       "rgba("+dk(r)+","+dk(g)+","+dk(b)+",0.96)");
   }
   applyBg(q.get("bg") || (location.hash ? location.hash.slice(1) : ""));
 
-  // ?demo=1 paints a backdrop so you can preview translucency outside OBS.
   if (q.get("demo")==="1")
     document.body.style.background =
       "radial-gradient(120% 90% at 50% 0%, #2f5d33 0%, #16331b 55%, #0a1a0d 100%)";
 
-  // ---- local team-logo manifest (assets/team-logos/manifest.json) -------
+  // ---- local team-logo manifest ----
   var LOGOS = {};
   function norm(s){ return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,""); }
   function logoSrc(team){
     var f = LOGOS[norm(team.name)];
     if (f) return "assets/team-logos/" + encodeURIComponent(f);
-    return team.logo || null;            // CricHeroes URL fallback
+    return team.logo || null;
   }
-
   function abbr(name, short){
     if (short && short.trim()) return short.trim().toUpperCase();
     var w = (name||"").trim().split(/\s+/);
@@ -166,7 +211,17 @@
   function esc(s){ return (s==null?"":String(s)).replace(/[&<>]/g,function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 
-  // Set a corner logo: local file -> CricHeroes URL -> initials circle.
+  // Name fitting: in compact (streamlabs/prism) mode, names whose
+  // first+last name is <=20 chars stay full; longer names become
+  // "Firstname I. I." (full first name + initials of the rest).
+  function fitName(name){
+    var full = String(name||"").trim();
+    if (!compact || full.length <= 20) return esc(full);
+    var w = full.split(/\s+/);
+    if (w.length < 2) return esc(full);
+    return esc(w[0] + " " + w.slice(1).map(function(x){ return x[0].toUpperCase()+"."; }).join(" "));
+  }
+
   function setLogo(elId, team, side){
     var el = $(elId), src = logoSrc(team), ab = abbr(team.name, team.short_name);
     if (!src){ el.innerHTML = '<div class="ini '+side+'">'+ab+'</div>'; return; }
@@ -182,56 +237,48 @@
     if (!p || !p.name) return "";
     return '<div class="prow'+(striker?'':' dim')+'">'
       + (striker?'<span class="strike">▶</span>':'')
-      + '<span class="nm">'+esc(p.name)+'</span>'
+      + '<span class="nm">'+fitName(p.name)+'</span>'
       + '<span class="rb">'+(p.runs||0)+'<small>('+(p.balls||0)+')</small></span></div>';
   }
   function bowlRow(b){
     if (!b || !b.name) return "";
     var figs = (b.wickets||0)+'-'+(b.runs||0);
-    return '<div class="prow"><span class="nm">'+esc(b.name)+'</span>'
+    return '<div class="prow"><span class="nm">'+fitName(b.name)+'</span>'
       + '<span class="rb">'+figs+'<small>('+(b.overs!=null?b.overs:0)+')</small></span></div>';
   }
-  // recent_over like "1 0 0 1 0 | 4 1 1 1 " -> dots for the current (last) over
   function ballsHtml(recent){
     if (!recent) return "";
     var segs = String(recent).split("|");
     var over = segs[segs.length-1].trim().split(/\s+/).filter(Boolean).slice(-6);
     return '<div class="balls">' + over.map(function(t){
-      var u = t.toUpperCase(), cls="ball", lbl=t;
-      if (u.indexOf("W")>=0) cls+=" wkt";
+      var u = t.toUpperCase(), cls="ball";
+      if (u.indexOf("W")>=0 && u.indexOf("WD")<0) cls+=" wkt";
       else if (u==="4") cls+=" four";
       else if (u==="6") cls+=" six";
       else if (u==="0") cls+=" dot";
-      return '<span class="'+cls+'">'+esc(lbl)+'</span>';
+      return '<span class="'+cls+'">'+esc(t)+'</span>';
     }).join("") + '</div>';
   }
 
   function pick(d){
     var cur = d.current_inning || 1;
     function lastInn(t){ return (t.innings&&t.innings.length)?t.innings[t.innings.length-1]:{}; }
-    var a=d.team_a, b=d.team_b;
-    var aInn=lastInn(a), bInn=lastInn(b);
-    var batT, bowT, batInn;
-    if (bInn.inning===cur){ batT=b; bowT=a; batInn=bInn; }
-    else { batT=a; bowT=b; batInn=aInn; }
-    return {cur:cur, batT:batT, bowT:bowT, batInn:batInn};
+    var a=d.team_a, b=d.team_b, aInn=lastInn(a), bInn=lastInn(b);
+    if (bInn.inning===cur) return {cur:cur, batT:b, bowT:a, batInn:bInn};
+    return {cur:cur, batT:a, bowT:b, batInn:aInn};
   }
 
   function render(d){
     var p = pick(d);
-    // logos
     setLogo("logoL", p.batT, "a");
     setLogo("logoR", p.bowT, "b");
 
-    // batsmen
     var sb=(d.batsmen||{}).sb, nsb=(d.batsmen||{}).nsb;
     $("bat").innerHTML = batRow(sb,true) + batRow(nsb,false);
 
-    // bowler + recent balls
     var bw=(d.bowlers||{}).sb;
     $("bowl").innerHTML = bowlRow(bw) + ballsHtml(d.recent_over);
 
-    // center pill
     var bi=p.batInn||{};
     var score=(bi.total_run!=null?bi.total_run:0)+'-'+(bi.total_wicket!=null?bi.total_wicket:0);
     var ov=bi.overs_played!=null?bi.overs_played:'0';
@@ -240,7 +287,7 @@
       + '<div class="sc"><span class="score">'+score+'</span><span class="ov">'+ov+' ov</span></div>'
       + '<div class="ab b">'+esc(p.bowT.name)+'</div>';
 
-    // sub line: special event > chase equation > tournament
+    // sub-strip: special event > 2nd-innings chase > 1st-innings label > tournament
     var ms=d.match_summary||{};
     var ev=(d.match_event_type||"").trim();
     var sub=$("csub"); sub.className="csub";
@@ -250,8 +297,10 @@
       sub.className="csub chase";
       var eq = ms.ticker_summary || ("Need "+ms.required_run+" in "+ms.required_ball);
       sub.innerHTML = esc(eq) + (ms.rrr?'  •  RRR '+ms.rrr:'');
+    } else if (p.cur===1){
+      sub.innerHTML='<span class="liveDot"></span>'+esc(d.tournament_name||"Live")+' &nbsp;•&nbsp; First Innings';
     } else {
-      sub.innerHTML='<span class="liveDot"></span><span class="tour">'+esc(d.tournament_name||"Live")+'</span>';
+      sub.innerHTML='<span class="liveDot"></span>'+esc(d.tournament_name||"Live");
     }
     bar.classList.add("show");
   }
@@ -259,21 +308,72 @@
   function showMsg(msg){
     $("bat").innerHTML=""; $("bowl").innerHTML="";
     $("pill").innerHTML='<div class="sc"><span class="score">—</span></div>';
-    $("csub").className="csub";
-    $("csub").innerHTML=esc(msg||"");
+    $("csub").className="csub"; $("csub").innerHTML=esc(msg||"");
     bar.classList.add("show");
+  }
+
+  // ---- end-of-match detection + full scorecard ----
+  function isEnded(d){
+    var ms=d.match_summary||{};
+    return d.status==="past" ||
+      /won by|match tied|tied|drawn|abandoned|no result/i.test(ms.ticker_summary||ms.summary||"");
+  }
+  var cardShown=false;
+  function enterScorecard(d){
+    if (cardShown) return;
+    cardShown=true;
+    bar.classList.remove("show");
+    var ms=d.match_summary||{};
+    var resultText = ms.ticker_summary || ms.summary || "";
+    fetch(apiBase+"sc/"+encodeURIComponent(matchId),{cache:"no-store"})
+      .then(function(r){ return r.json(); })
+      .then(function(j){ if (j&&j.status&&j.data) renderScorecard(j.data, resultText); })
+      .catch(function(){});
+  }
+  function scLine(n, v){ return '<div class="sc-line"><span class="n">'+n+'</span><span class="v">'+v+'</span></div>'; }
+  function inningsBlock(team){
+    var sc=(team.scorecard&&team.scorecard[0])||{}, inn=(team.innings&&team.innings[0])||{};
+    var bats=(sc.batting||[]).slice().sort(function(a,b){return (b.runs||0)-(a.runs||0);}).slice(0,5);
+    var bowls=(sc.bowling||[]).slice().sort(function(a,b){
+      return (b.wickets||0)-(a.wickets||0) || (a.runs||0)-(b.runs||0); }).slice(0,4);
+    var batHtml=bats.map(function(pl){
+      var star=/not out/i.test(pl.how_to_out||"")?' <b style="color:#14b4a4">*</b>':'';
+      return scLine(fitName(pl.name)+star,(pl.runs||0)+' <small>('+(pl.balls||0)+')</small>');
+    }).join('');
+    var bowlHtml=bowls.map(function(pl){
+      return scLine(fitName(pl.name),(pl.wickets||0)+'-'+(pl.runs||0)+' <small>('+(pl.overs!=null?pl.overs:0)+')</small>');
+    }).join('');
+    var total=(inn.total_run!=null?inn.total_run:0)+'/'+(inn.total_wicket!=null?inn.total_wicket:0)
+              +' ('+(inn.overs_played!=null?inn.overs_played:0)+')';
+    var src=logoSrc(team);
+    var logoTag= src? '<img src="'+esc(src)+'" alt="">' : '<div class="ini" style="background:#262c70">'+abbr(team.name,team.short_name)+'</div>';
+    return '<div class="sc-inn"><div class="sc-tm">'+logoTag
+      +'<span class="nm">'+esc(team.name)+'</span><span class="tot">'+total+'</span></div>'
+      +'<div class="sc-cols"><div class="sc-bat"><div class="sc-h">Batting</div>'+batHtml+'</div>'
+      +'<div class="sc-bowl"><div class="sc-h">Bowling</div>'+bowlHtml+'</div></div></div>';
+  }
+  function renderScorecard(full, resultText){
+    var teams=[full.team_a, full.team_b].filter(function(t){ return t && t.innings && t.innings.length; });
+    teams.sort(function(a,b){
+      return ((a.innings[0].inning)||9)-((b.innings[0].inning)||9); });
+    var head='<div class="sc-head"><span class="t">'+esc(full.tournament_name||"")+'</span>'
+      +'<span class="r">'+esc(full.tournament_round_name||"")+'</span></div>';
+    var res= resultText? '<div class="sc-result">'+esc(resultText)+'</div>':'';
+    $("scorecard").innerHTML='<div class="sc-card">'+head+res
+      +teams.map(inningsBlock).join('')+'</div>';
+    $("scorecard").classList.add("show");
   }
 
   function tick(){
     fetch(apiBase+encodeURIComponent(matchId),{cache:"no-store"})
       .then(function(r){ return r.json(); })
       .then(function(j){
-        if (j && j.status && j.data) render(j.data);
-        else showMsg((j&&j.error&&j.error.message)||"match not live");
+        if (!(j && j.status && j.data)) { showMsg((j&&j.error&&j.error.message)||"match not live"); return; }
+        if (isEnded(j.data)) enterScorecard(j.data);
+        else render(j.data);
       })
       .catch(function(e){ showMsg(String(e)); });
   }
-  // Load the logo manifest once, then start polling (start anyway if it fails).
   fetch("assets/team-logos/manifest.json", {cache:"force-cache"})
     .then(function(r){ return r.ok ? r.json() : {}; })
     .then(function(m){ LOGOS = m || {}; })

@@ -26,10 +26,17 @@
   <div class="box">
     <label>Match ID (from the scorecard URL, e.g. cricheroes.com/scorecard/<b>25801383</b>/…)</label>
     <input id="id" value="25801383" />
-    <label>Ticker bar colour (translucent)</label>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <input id="pick" type="color" value="#078BDC" style="width:54px;height:42px;padding:2px;" />
-      <input id="bg" value="078BDC" style="flex:1;" />
+    <label>Theme</label>
+    <select id="theme" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3645;background:#0d1117;color:#e6edf3;font-size:15px;">
+      <option value="classic">Classic (white broadcast bar)</option>
+      <option value="dark">Dark (translucent, custom colour)</option>
+    </select>
+    <div id="bgRow" style="display:none;">
+      <label>Dark-theme bar colour (translucent)</label>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input id="pick" type="color" value="#078BDC" style="width:54px;height:42px;padding:2px;" />
+        <input id="bg" value="078BDC" style="flex:1;" />
+      </div>
     </div>
     <label>Streaming app (compacts text so long names fit)</label>
     <select id="provider" style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3645;background:#0d1117;color:#e6edf3;font-size:15px;">
@@ -47,15 +54,19 @@
 <script>
   function build(){
     var id=document.getElementById('id').value.trim()||'25801383';
+    var th=document.getElementById('theme').value;
     var bg=document.getElementById('bg').value.trim().replace(/^#/,'');
     var pr=document.getElementById('provider').value;
+    document.getElementById('bgRow').style.display = th==='dark' ? 'block' : 'none';
     var u='ticker.html?id='+encodeURIComponent(id);
-    if(bg) u+='&bg='+encodeURIComponent(bg);
+    if(th && th!=='classic') u+='&theme='+th;       // classic is the default
+    if(th==='dark' && bg) u+='&bg='+encodeURIComponent(bg);
     if(pr) u+='&provider='+pr;
     var abs=new URL(u, location.href).href;
     document.getElementById('open').href=u;
     document.getElementById('url').textContent=abs;
   }
+  document.getElementById('theme').addEventListener('change',build);
   document.getElementById('provider').addEventListener('change',build);
   var pick=document.getElementById('pick'), bg=document.getElementById('bg');
   pick.addEventListener('input',function(){ bg.value=pick.value.replace(/^#/,'').toUpperCase(); build(); });
