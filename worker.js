@@ -20,6 +20,8 @@ const API =
   "https://api.cricheroes.in/api/v1/scorecard/get-mini-scorecard/";
 const SCORECARD =
   "https://api.cricheroes.in/api/v1/scorecard/v2/get-scorecard/";
+const COMMENTARY =
+  "https://api.cricheroes.in/api/v1/scorecard/get-commentary/";
 
 const UPSTREAM_HEADERS = {
   "api-key": "cr!CkH3r0s",
@@ -47,9 +49,10 @@ export default {
 
     const url = new URL(request.url);
     const parts = url.pathname.replace(/^\/+|\/+$/g, "").split("/");
-    // /sc/<id> -> full scorecard;  /<id> or ?id= -> live mini-scorecard
-    const full = parts[0] === "sc";
-    const id = url.searchParams.get("id") || (full ? parts[1] : parts[parts.length - 1]);
+    // /sc/<id> -> full scorecard; /cm/<id> -> ball-by-ball commentary (worm
+    // graph); /<id> or ?id= -> live mini-scorecard
+    const kind = parts[0] === "sc" || parts[0] === "cm" ? parts[0] : "";
+    const id = url.searchParams.get("id") || (kind ? parts[1] : parts[parts.length - 1]);
 
     if (!id || !/^\d+$/.test(id)) {
       return json({ status: false, error: "pass a numeric match id" }, 400);
@@ -57,7 +60,8 @@ export default {
 
     let upstream;
     try {
-      upstream = await fetch((full ? SCORECARD : API) + id, { headers: UPSTREAM_HEADERS });
+      const base = kind === "sc" ? SCORECARD : kind === "cm" ? COMMENTARY : API;
+      upstream = await fetch(base + id, { headers: UPSTREAM_HEADERS });
     } catch (e) {
       return json({ status: false, error: String(e) }, 502);
     }

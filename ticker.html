@@ -149,6 +149,37 @@
   .sc-line .n{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .sc-line .v{ font-weight:700; flex:none; }
   .sc-line .v small{ color:#7c828c; font-weight:600; font-size:11px; }
+
+  /* ---- full-innings scorecard (all batters + bowling below) ---- */
+  .sc-sec{ padding:10px 22px 12px; }
+  .sc-sec + .sc-sec{ border-top:1px solid rgba(20,24,29,.14); }
+  .sc-sech{ font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; margin-bottom:2px; }
+  .sc-sech.bat{ color:#e84a7f; } .sc-sech.bowl{ color:#14b4a4; }
+  .sc-th,.sc-tr{ display:flex; align-items:baseline; gap:8px; }
+  .sc-th{ font-size:10px; font-weight:800; color:#7c828c; text-transform:uppercase;
+          letter-spacing:.5px; padding:3px 0; border-bottom:1px solid rgba(20,24,29,.18); }
+  .sc-tr{ font-size:13px; color:#16181d; padding:2.5px 0; border-bottom:1px solid rgba(20,24,29,.08); }
+  .sc-tr .pn{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700; }
+  .sc-th .pn{ flex:1; font-weight:800; }
+  .sc-tr .pn small{ color:#7c828c; font-weight:600; font-size:11px; margin-left:6px; }
+  .sc-tr .pn small.no{ color:#0f8d81; }
+  .sc-c{ flex:none; width:32px; text-align:right; font-variant-numeric:tabular-nums; font-weight:700; }
+  .sc-c.w{ width:50px; }
+  .sc-xtr{ display:flex; justify-content:space-between; font-size:12px; color:#16181d;
+           padding:4px 0 0; font-weight:700; }
+  .sc-xtr .lbl{ color:#7c828c; text-transform:uppercase; font-size:10px; letter-spacing:.5px;
+                font-weight:800; margin-right:8px; }
+  .sc-ytb{ font-size:11px; color:#7c828c; padding-top:3px; white-space:nowrap;
+           overflow:hidden; text-overflow:ellipsis; }
+  .sc-ytb b{ color:#16181d; }
+
+  /* ---- worm graph ---- */
+  .sc-worm{ padding:12px 22px 16px; }
+  .sc-worm .lg{ display:flex; gap:26px; margin-bottom:6px; }
+  .sc-worm .lg span{ display:flex; align-items:center; gap:7px; font-size:11px; font-weight:800;
+                     letter-spacing:.5px; text-transform:uppercase; color:#16181d; }
+  .sc-worm .lg i{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+  .sc-worm svg{ width:100%; height:auto; display:block; }
 </style>
 </head>
 <body>
@@ -282,7 +313,8 @@
   function ballsHtml(recent){
     if (!recent) return "";
     var segs = String(recent).split("|");
-    var over = segs[segs.length-1].trim().split(/\s+/).filter(Boolean).slice(-6);
+    // last segment = current over; keep every delivery (wides/no-balls make it >6)
+    var over = segs[segs.length-1].trim().split(/\s+/).filter(Boolean);
     return '<div class="balls">' + over.map(function(t){
       var u = t.toUpperCase(), cls="ball";
       if (u.indexOf("W")>=0 && u.indexOf("WD")<0) cls+=" wkt";
@@ -402,6 +434,149 @@
     el.classList.add("show");
   }
 
+  // ---- full-innings card: every batter on top, that innings' bowling below ----
+  function innEntry(team, inn){
+    var s=(team.scorecard||[]).filter(function(x){ return x.inning===inn; })[0];
+    var i=(team.innings||[]).filter(function(x){ return x.inning===inn; })[0];
+    return s ? {sc:s, inn:i||{}} : null;
+  }
+  // team batting in innings `inn` (its scorecard entry holds the opposition's bowling)
+  function battingTeamOf(full, inn){
+    var a=innEntry(full.team_a, inn);
+    if (a) return {team:full.team_a, e:a};
+    var b=innEntry(full.team_b, inn);
+    return b ? {team:full.team_b, e:b} : null;
+  }
+  function renderFullCard(full, banner, curInn){
+    var bt=battingTeamOf(full, curInn);
+    if (!bt){ renderScorecard(full, banner, true, true); return; }
+    var sc=bt.e.sc, inn=bt.e.inn;
+    var batHead='<div class="sc-th"><span class="pn">Batting</span><span class="sc-c">R</span>'
+      +'<span class="sc-c">B</span><span class="sc-c">4s</span><span class="sc-c">6s</span>'
+      +'<span class="sc-c w">SR</span></div>';
+    var batRows=(sc.batting||[]).map(function(pl){
+      var out=pl.how_to_out_short_name||pl.how_to_out||"";
+      var no=/not out/i.test(out);
+      return '<div class="sc-tr"><span class="pn">'+fitName(pl.name)
+        +'<small'+(no?' class="no"':'')+'>'+esc(out)+'</small></span>'
+        +'<span class="sc-c">'+(pl.runs||0)+'</span><span class="sc-c">'+(pl.balls||0)+'</span>'
+        +'<span class="sc-c">'+(pl["4s"]||0)+'</span><span class="sc-c">'+(pl["6s"]||0)+'</span>'
+        +'<span class="sc-c w">'+esc(pl.SR||"0.00")+'</span></div>';
+    }).join('');
+    var ex=sc.extras||{};
+    var total=(inn.total_run!=null?inn.total_run:0)+'/'+(inn.total_wicket!=null?inn.total_wicket:0)
+      +' ('+(inn.overs_played!=null?inn.overs_played:0)+' ov)';
+    var xtr='<div class="sc-xtr"><span><span class="lbl">Extras</span>'+(ex.total||0)
+      +' <small>'+esc(ex.summary||"")+'</small></span>'
+      +'<span><span class="lbl">Total</span>'+total+'</span></div>';
+    var ytb=(sc.to_be_bat||[]).map(function(p){ return p.name; }).join(", ");
+    var ytbHtml= ytb? '<div class="sc-ytb"><b>Yet to bat:</b> '+esc(ytb)+'</div>':'';
+    var bowlHead='<div class="sc-th"><span class="pn">Bowling</span><span class="sc-c w">O</span>'
+      +'<span class="sc-c">M</span><span class="sc-c">R</span><span class="sc-c">W</span>'
+      +'<span class="sc-c w">Eco</span></div>';
+    var bowlRows=(sc.bowling||[]).map(function(pl){
+      return '<div class="sc-tr"><span class="pn">'+fitName(pl.name)+'</span>'
+        +'<span class="sc-c w">'+(pl.overs!=null?pl.overs:0)+'</span><span class="sc-c">'+(pl.maidens||0)+'</span>'
+        +'<span class="sc-c">'+(pl.runs||0)+'</span><span class="sc-c">'+(pl.wickets||0)+'</span>'
+        +'<span class="sc-c w">'+esc(pl.economy_rate||"0.00")+'</span></div>';
+    }).join('');
+    var src=logoSrc(bt.team);
+    var logoTag= src? '<img src="'+esc(src)+'" alt="">'
+      : '<div class="ini" style="background:#262c70">'+abbr(bt.team.name,bt.team.short_name)+'</div>';
+    var head='<div class="sc-head"><span class="t">'+esc(full.tournament_name||"")+'</span>'
+      +'<span class="r">'+esc(full.tournament_round_name||"")+'</span></div>';
+    var res= banner? '<div class="sc-note">'+esc(banner)+'</div>':'';
+    var el=$("scorecard");
+    el.classList.add("splash");
+    el.innerHTML='<div class="sc-card">'+head+res
+      +'<div class="sc-sec"><div class="sc-tm">'+logoTag+'<span class="nm">'+esc(bt.team.name)
+      +'</span><span class="tot">'+total+'</span></div>'+batHead+batRows+xtr+ytbHtml+'</div>'
+      +'<div class="sc-sec">'+bowlHead+bowlRows+'</div></div>';
+    el.classList.add("show");
+  }
+
+  // ---- worm graph: cumulative runs per over, wickets from fall_of_wicket ----
+  var WORM_COLORS=["#d63b6e","#0f8d81"];
+  // FOW/ball labels: X.1..X.5 then (X+1).0 all belong to over X+1's group
+  function overOfLabel(o){ return (o%1===0)? o : Math.floor(o)+1; }
+  function wormSeries(full, cm){
+    var series=[];
+    [1,2].forEach(function(innNo){
+      var bt=battingTeamOf(full, innNo);
+      if (!bt) return;
+      var balls=(cm.commentary||[]).filter(function(b){ return b.inning===innNo; })
+        .map(function(b){ return {lab:parseFloat(b.ball)||0, ov:b.current_over||overOfLabel(parseFloat(b.ball)||0),
+                                  r:(b.run||0)+(b.extra_run||0)}; });
+      if (!balls.length) return;
+      // wicket balls are absent from commentary — rebuild them from fall_of_wicket,
+      // whose cumulative score at each wicket is exact
+      var fow=((bt.e.sc.fall_of_wicket||{}).data||[]).slice()
+        .sort(function(a,b){ return a.over-b.over; });
+      fow.forEach(function(w){
+        var before=0;
+        balls.forEach(function(b){ if (b.lab < w.over) before+=b.r; });
+        balls.push({lab:w.over, ov:overOfLabel(w.over), r:Math.max(0,(w.run||0)-before), wkt:true});
+      });
+      var perOver={}, maxOver=0;
+      balls.forEach(function(b){ perOver[b.ov]=(perOver[b.ov]||0)+b.r; if (b.ov>maxOver) maxOver=b.ov; });
+      var pts=[[0,0]], cum=0;
+      for (var o=1;o<=maxOver;o++){ cum+=perOver[o]||0; pts.push([o,cum]); }
+      var wkts=fow.map(function(w){
+        var o=w.over, x=(o%1===0)? o : Math.floor(o)+((o*10)%10)/6;
+        return [x, w.run||0];
+      });
+      series.push({name:bt.team.name, pts:pts, wkts:wkts, total:cum, maxOver:maxOver});
+    });
+    return series;
+  }
+  function renderWorm(full, cm, banner){
+    var series=wormSeries(full, cm);
+    if (!series.length){ return false; }
+    var maxX=Math.max.apply(null, series.map(function(s){ return s.maxOver; }).concat([1]));
+    var maxY=Math.max.apply(null, series.map(function(s){ return s.total; }).concat([10]));
+    var steps=[5,10,20,25,50,100], yStep=steps[steps.length-1];
+    for (var i=0;i<steps.length;i++){ if (maxY/steps[i]<=5){ yStep=steps[i]; break; } }
+    var yTop=Math.ceil(maxY/yStep)*yStep || yStep;
+    var W=1000,H=380,L=52,R=18,T=14,B=38;
+    var X=function(o){ return L+(W-L-R)*o/maxX; };
+    var Y=function(r){ return T+(H-T-B)*(1-r/yTop); };
+    var g='';
+    for (var yv=0;yv<=yTop;yv+=yStep){
+      g+='<line x1="'+L+'" y1="'+Y(yv)+'" x2="'+(W-R)+'" y2="'+Y(yv)+'" stroke="rgba(20,24,29,.18)"'
+        +(yv?' stroke-dasharray="4 5"':'')+' stroke-width="1"/>'
+        +'<text x="'+(L-8)+'" y="'+(Y(yv)+4)+'" text-anchor="end" font-size="13" fill="#7c828c">'+yv+'</text>';
+    }
+    var xStep= maxX>30?5: maxX>16?2:1;
+    for (var xv=xStep;xv<=maxX;xv+=xStep){
+      g+='<text x="'+X(xv)+'" y="'+(H-B+20)+'" text-anchor="middle" font-size="13" fill="#7c828c">'+xv+'</text>';
+    }
+    g+='<text x="'+((L+W-R)/2)+'" y="'+(H-3)+'" text-anchor="middle" font-size="11" fill="#aeb6c2" '
+      +'letter-spacing="1">OVERS</text>'
+      +'<text x="14" y="'+((T+H-B)/2)+'" text-anchor="middle" font-size="11" fill="#aeb6c2" '
+      +'letter-spacing="1" transform="rotate(-90 14 '+((T+H-B)/2)+')">RUNS</text>';
+    var legend='';
+    series.forEach(function(s,idx){
+      var c=WORM_COLORS[idx%WORM_COLORS.length];
+      g+='<polyline fill="none" stroke="'+c+'" stroke-width="3.5" stroke-linejoin="round" '
+        +'stroke-linecap="round" points="'
+        +s.pts.map(function(p){ return X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); }).join(' ')+'"/>';
+      s.wkts.forEach(function(p){
+        g+='<circle cx="'+X(p[0]).toFixed(1)+'" cy="'+Y(p[1]).toFixed(1)
+          +'" r="5" fill="#fff" stroke="'+c+'" stroke-width="2.5"/>';
+      });
+      legend+='<span><i style="background:'+c+'"></i>'+esc(s.name)+'</span>';
+    });
+    var head='<div class="sc-head"><span class="t">'+esc(full.tournament_name||"")+'</span>'
+      +'<span class="r">'+esc(full.tournament_round_name||"")+'</span></div>';
+    var res= banner? '<div class="sc-note">'+esc(banner)+'</div>':'';
+    var el=$("scorecard");
+    el.classList.add("splash");
+    el.innerHTML='<div class="sc-card">'+head+res+'<div class="sc-worm"><div class="lg">'+legend+'</div>'
+      +'<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+g+'</svg></div></div>';
+    el.classList.add("show");
+    return true;
+  }
+
   // Detect a wicket (batting wickets up) or a completed over; returns a reason
   // string once per event, updating baselines. Resets on an innings change.
   function detectTriggers(d){
@@ -415,12 +590,55 @@
     baseWkt=w; baseOver=completed;
     return reason;
   }
-  function triggerCard(reason){
-    cardUntil = Date.now()+cardSecs;   // bar stays visible; splash overlays above it
-    fetch(apiBase+"sc/"+encodeURIComponent(matchId),{cache:"no-store"})
+  function getJson(path){
+    return fetch(apiBase+path,{cache:"no-store"})
       .then(function(r){ return r.json(); })
-      .then(function(j){ if (j&&j.status&&j.data) renderScorecard(j.data, reason, true, true); })
-      .catch(function(){});
+      .then(function(j){ return (j&&j.status&&j.data)? j.data : null; })
+      .catch(function(){ return null; });
+  }
+  var phaseTimers=[];
+  function clearPhases(){ phaseTimers.forEach(clearTimeout); phaseTimers=[]; }
+  // Splash phases — 1st innings: full card the whole time.  2nd innings:
+  // full card 10s, both-teams summary 5s, worm graph for whatever is left
+  // (cardsecs=15 -> no time left, worm skipped).
+  function triggerCard(reason, d){
+    var start=Date.now();
+    cardUntil = start+cardSecs;        // bar stays visible; splash overlays above it
+    clearPhases();
+    var cur=pick(d).cur;
+    Promise.all([
+      getJson("sc/"+encodeURIComponent(matchId)),
+      cur>=2 ? getJson("cm/"+encodeURIComponent(matchId)) : Promise.resolve(null)
+    ]).then(function(res){
+      var full=res[0], cm=res[1];
+      if (!full || Date.now()>=cardUntil) return;
+      if (cur<2){ renderFullCard(full, reason, cur); return; }
+      var fullMs=Math.min(10000, cardSecs);
+      var sumMs=Math.min(5000, cardSecs-fullMs);
+      var wormMs=cardSecs-fullMs-sumMs;
+      if (wormMs<5000 || !cm) wormMs=0;   // too short (or no data) -> summary runs out the clock
+      renderFullCard(full, reason, cur);
+      var at=function(ms,fn){ phaseTimers.push(setTimeout(fn, Math.max(0, start+ms-Date.now()))); };
+      if (sumMs>0) at(fullMs, function(){ renderScorecard(full, reason, true, true); });
+      if (wormMs>0) at(fullMs+sumMs, function(){ renderWorm(full, cm, reason); });
+    });
+  }
+
+  // ?card=full|summary|worm -> freeze that view for styling checks (needs a
+  // match with data; skips the live trigger/rotation logic entirely)
+  var debugCard=(q.get("card")||"").toLowerCase(), debugShown=false;
+  function showDebugCard(d){
+    if (debugShown) return; debugShown=true;
+    cardUntil=Infinity;
+    Promise.all([getJson("sc/"+encodeURIComponent(matchId)), getJson("cm/"+encodeURIComponent(matchId))])
+      .then(function(res){
+        var full=res[0], cm=res[1];
+        if (!full) return;
+        var cur=parseInt(q.get("inn")||"",10) || d.current_inning || 2;
+        if (debugCard==="full") renderFullCard(full, "Preview", cur);
+        else if (debugCard==="worm") renderWorm(full, cm||{}, "Preview");
+        else renderScorecard(full, "Preview", true, true);
+      });
   }
 
   function tick(){
@@ -429,11 +647,12 @@
       .then(function(j){
         if (!(j && j.status && j.data)) { showMsg((j&&j.error&&j.error.message)||"match not live"); return; }
         var d=j.data;
+        if (debugCard){ render(d); showDebugCard(d); return; }
         if (isEnded(d)) { enterScorecard(d); return; }
         var reason = autoCard ? detectTriggers(d) : null;
-        if (reason) triggerCard(reason);
+        if (reason) triggerCard(reason, d);
         render(d);                              // live bar stays visible throughout
-        if (Date.now() >= cardUntil) $("scorecard").classList.remove("show", "splash");
+        if (Date.now() >= cardUntil){ clearPhases(); $("scorecard").classList.remove("show", "splash"); }
       })
       .catch(function(e){ showMsg(String(e)); });
   }

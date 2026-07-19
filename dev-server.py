@@ -29,6 +29,8 @@ PORT = int(os.environ.get("PORT", "8080"))
 API_BASE = "https://api.cricheroes.in/api/v1/scorecard/get-mini-scorecard/"
 # Full per-player scorecard (used for the end-of-match scorecard view).
 SCORECARD_BASE = "https://api.cricheroes.in/api/v1/scorecard/v2/get-scorecard/"
+# Ball-by-ball commentary (used to build the worm graph).
+COMMENTARY_BASE = "https://api.cricheroes.in/api/v1/scorecard/get-commentary/"
 
 # The same headers the official web ticker sends. A real browser User-Agent is
 # what gets us past Cloudflare's bot filter — there is no challenge to solve.
@@ -63,6 +65,8 @@ class Handler(BaseHTTPRequestHandler):
         rest = self.path[len("/api/"):].split("?")[0].strip("/")
         if rest.startswith("sc/"):
             base, match_id = SCORECARD_BASE, rest[len("sc/"):]
+        elif rest.startswith("cm/"):
+            base, match_id = COMMENTARY_BASE, rest[len("cm/"):]
         else:
             base, match_id = API_BASE, rest
         if not match_id.isdigit():
