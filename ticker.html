@@ -399,6 +399,21 @@
       .then(function(j){ if (j&&j.status&&j.data) renderScorecard(j.data, resultText); })
       .catch(function(){});
   }
+  // Shrink the card so it fits between the top of the frame and the live bar
+  // (tall cards — a long batting innings — otherwise clip the header and
+  // overlap the ticker). transform:scale keeps proportions; the flex-centred
+  // layout keeps the scaled card inside the available space.
+  function fitCard(){
+    var el=$("scorecard"), card=el.querySelector(".sc-card");
+    if (!card) return;
+    card.style.transform="";
+    var cs=getComputedStyle(el);
+    var avail=el.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    var h=card.offsetHeight;
+    if (avail>0 && h>avail) card.style.transform="scale("+(avail/h).toFixed(3)+")";
+  }
+  window.addEventListener("resize", fitCard);
+
   function scLine(n, v){ return '<div class="sc-line"><span class="n">'+n+'</span><span class="v">'+v+'</span></div>'; }
   function inningsBlock(team){
     var sc=(team.scorecard&&team.scorecard[0])||{}, inn=(team.innings&&team.innings[0])||{};
@@ -432,6 +447,7 @@
     el.classList.toggle("splash", !!isSplash);
     el.innerHTML='<div class="sc-card">'+head+res+teams.map(inningsBlock).join('')+'</div>';
     el.classList.add("show");
+    fitCard();
   }
 
   // ---- full-innings card: every batter on top, that innings' bowling below ----
@@ -493,6 +509,7 @@
       +'</span><span class="tot">'+total+'</span></div>'+batHead+batRows+xtr+ytbHtml+'</div>'
       +'<div class="sc-sec">'+bowlHead+bowlRows+'</div></div>';
     el.classList.add("show");
+    fitCard();
   }
 
   // ---- worm graph: cumulative runs per over, wickets from fall_of_wicket ----
@@ -574,6 +591,7 @@
     el.innerHTML='<div class="sc-card">'+head+res+'<div class="sc-worm"><div class="lg">'+legend+'</div>'
       +'<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+g+'</svg></div></div>';
     el.classList.add("show");
+    fitCard();
     return true;
   }
 
