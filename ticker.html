@@ -407,6 +407,14 @@
     var el=$("scorecard"), card=el.querySelector(".sc-card");
     if (!card) return;
     card.style.transform="";
+    // reserve only what the live bar actually occupies (the compact
+    // streamlabs/prism bar is shorter than the default 170px CSS guess)
+    el.style.paddingBottom="";
+    if (el.classList.contains("splash") && bar.classList.contains("show")){
+      var bt=bar.getBoundingClientRect().top;
+      if (bt>0 && bt<innerHeight)
+        el.style.paddingBottom=Math.round(innerHeight-bt+18)+"px";
+    }
     var cs=getComputedStyle(el);
     var avail=el.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
     var h=card.offsetHeight;
