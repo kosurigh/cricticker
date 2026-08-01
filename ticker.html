@@ -88,6 +88,8 @@
   .ball.six{ background:var(--ball-six); color:#fff; }
   .ball.wkt{ background:var(--ball-wkt); color:#fff; }
   .ball.dot{ color:var(--ball-dot); }
+  .oyts{ font-size:11px; font-weight:700; color:var(--sub); letter-spacing:.4px;
+         text-transform:uppercase; }
 
   .center{ display:flex; flex-direction:column; align-items:center; justify-content:center;
            flex:none; padding:0 6px; }
@@ -325,6 +327,30 @@
     }).join("") + '</div>';
   }
 
+  // "Toss: Apex Blues opt to field" -> "Apex Blues won the toss and selected bowling"
+  function tossLine(d){
+    var t=String(d.toss_details||"").replace(/^toss:\s*/i,"").trim();
+    if (!t) return "";
+    var m=t.match(/^(.*?)\s+opt(?:ed)?\s+to\s+(field|bowl|bat)/i);
+    if (m) return m[1]+" won the toss and selected "+(/bat/i.test(m[2])?"batting":"bowling");
+    return t;
+  }
+
+  // Bowler names, ignoring case/punctuation and roster suffixes like "(c)"/"(wk)"
+  function normPlayer(s){
+    return norm(String(s||"").replace(/\((?:c|wk|c\s*&\s*wk)\)/gi," "));
+  }
+  // A newly selected bowler hasn't bowled yet when the most recent ball in the
+  // commentary feed ("<bowler> to <batsman>, ...") was bowled by someone else —
+  // the ball strip would still be the previous bowler's over.
+  function overNotStarted(d, bw){
+    if (!bw || !bw.name || (bw.balls||0)!==0) return false;
+    var last=(d.commentary&&d.commentary[0])||{};
+    var m=String(last.commentary||"").match(/^(.*?)\s+to\s+/);
+    if (!m) return false;
+    return normPlayer(m[1])!==normPlayer(bw.name);
+  }
+
   function pick(d){
     var cur = d.current_inning || 1;
     function lastInn(t){ return (t.innings&&t.innings.length)?t.innings[t.innings.length-1]:{}; }
@@ -342,7 +368,11 @@
     $("bat").innerHTML = batRow(sb,true) + batRow(nsb,false);
 
     var bw=(d.bowlers||{}).sb;
-    $("bowl").innerHTML = bowlRow(bw) + ballsHtml(d.recent_over);
+    // toss done but batters/bowler not yet picked in the scoring app
+    var notStarted = !(sb&&sb.name) && !(bw&&bw.name);
+    $("bowl").innerHTML = bowlRow(bw) + (overNotStarted(d, bw)
+      ? '<div class="balls"><span class="oyts">Bowler&#39;s over yet to start</span></div>'
+      : ballsHtml(d.recent_over));
 
     var bi=p.batInn||{};
     var score=(bi.total_run!=null?bi.total_run:0)+'-'+(bi.total_wicket!=null?bi.total_wicket:0);
@@ -352,15 +382,19 @@
       + '<div class="sc"><span class="score">'+score+'</span><span class="ov">'+ov+' ov</span></div>'
       + '<div class="ab b">'+esc(p.bowT.name)+'</div>';
 
-    // tournament + division ABOVE the pill
+    // tournament + division ABOVE the pill (toss result instead, pre-scoring)
     var div = divisionOf(d, p.batT, p.bowT);
-    $("ctop").innerHTML = esc(d.tournament_name||"") + (div!=null ? ' &nbsp;•&nbsp; Division '+div : '');
+    var toss = notStarted ? tossLine(d) : "";
+    $("ctop").innerHTML = toss ? esc(toss)
+      : esc(d.tournament_name||"") + (div!=null ? ' &nbsp;•&nbsp; Division '+div : '');
 
-    // sub-strip BELOW: special event > 2nd-innings chase > first-innings label
+    // sub-strip BELOW: pre-scoring > special event > 2nd-innings chase > label
     var ms=d.match_summary||{};
     var ev=(d.match_event_type||"").trim();
     var sub=$("csub"); sub.className="csub";
-    if (ev && ev.toUpperCase()!=="LIVE"){
+    if (notStarted){
+      sub.innerHTML='Scoring of this match is yet to begin';
+    } else if (ev && ev.toUpperCase()!=="LIVE"){
       sub.innerHTML='<span class="liveDot"></span>'+esc(ev.replace(/-/g," "));
     } else if (p.cur>=2 && (ms.ticker_summary||ms.required_run!=null)){
       sub.className="csub chase";
@@ -671,7 +705,9 @@
     fetch(apiBase+encodeURIComponent(matchId),{cache:"no-store"})
       .then(function(r){ return r.json(); })
       .then(function(j){
-        if (!(j && j.status && j.data)) { showMsg((j&&j.error&&j.error.message)||"match not live"); return; }
+        // No scorecard yet (camera runs before scoring starts): friendly
+        // message only — never the upstream "We faced an issue…" error.
+        if (!(j && j.status && j.data)) { showMsg("Scoring of this match is yet to begin"); return; }
         var d=j.data;
         if (debugCard){ render(d); showDebugCard(d); return; }
         if (isEnded(d)) { enterScorecard(d); return; }
