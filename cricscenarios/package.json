@@ -1,0 +1,10 @@
+{
+  "name": "cricscenarios",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Playoff / promotion / relegation scenario calculator for CricHeroes league tournaments",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

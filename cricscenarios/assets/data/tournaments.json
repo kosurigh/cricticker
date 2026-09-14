@@ -1,0 +1,13 @@
+{
+  "tournaments": [
+    {
+      "id": "2100677",
+      "name": "TCL Mega Smash 2026",
+      "organiser": "Triangle Cricket League",
+      "format": "T20",
+      "divisions": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "cricheroes_url": "https://cricheroes.com/tournament/2100677/point-table",
+      "active": true
+    }
+  ]
+}

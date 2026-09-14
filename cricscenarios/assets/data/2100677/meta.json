@@ -1,0 +1,18 @@
+{
+  "id": "2100677",
+  "name": "TCL Mega Smash 2026",
+  "organiser": "Triangle Cricket League",
+  "divisions": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "rules": {
+    "playoff_spots": 4,
+    "promotion_spots": 3,
+    "relegation_spots": 3,
+    "points_win": 2,
+    "points_tie": 1,
+    "points_no_result": 1,
+    "points_loss": 0,
+    "overs_per_innings": 20,
+    "tiebreak": ["points", "nrr", "h2h", "wins"]
+  },
+  "rules_note": "Top 3 promoted to the division above, bottom 3 relegated to the division below, top 4 into the playoffs. Ordering follows the CricHeroes default of points then net run rate; edit rules.tiebreak here if TCL publishes something different."
+}
