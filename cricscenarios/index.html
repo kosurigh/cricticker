@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cric Scenarios — playoff, promotion and relegation maths</title>
+<meta name="description" content="Live playoff, promotion and relegation probabilities for CricHeroes league tournaments.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%230d1117%27/%3E%3Cpath d=%27M7 25h4v-9H7zm7 0h4V10h-4zm7 0h4V5h-4z%27 fill=%27%233fb950%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <h1>Cric Scenarios</h1>
+    <p class="sub">Who makes the playoffs, who goes up, who goes down — and exactly what has to happen for each.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <h2>Tournaments</h2>
+  <div id="list"><p class="sub">Loading…</p></div>
+
+  <h3>How it works</h3>
+  <p class="note">
+    Every unplayed fixture in a division is simulated tens of thousands of times to get each team's
+    chance of finishing in each place. Margins are drawn from that division's own completed matches,
+    so net run rate moves realistically rather than by assumption. Anything the page states as
+    <em>certain</em> — clinched or eliminated — is proved from the points arithmetic across every
+    possible remaining result, not inferred from the simulation.
+  </p>
+
+  <footer class="foot">
+    Data from <a href="https://cricheroes.com/">CricHeroes</a>. Unofficial and not affiliated with
+    CricHeroes or any league.
+  </footer>
+</div>
+
+<script type="module">
+import { esc } from './assets/js/ui.js';
+
+const list = document.getElementById('list');
+
+fetch('assets/data/tournaments.json', { cache: 'no-cache' })
+  .then((r) => r.json())
+  .then(({ tournaments }) => {
+    if (!tournaments || !tournaments.length) {
+      list.innerHTML = '<p class="sub">No tournaments configured yet.</p>';
+      return;
+    }
+    list.innerHTML = tournaments.map((t) => `
+      <a class="tcard" href="tournament.html?t=${encodeURIComponent(t.id)}">
+        <span>
+          <strong>${esc(t.name)}</strong><br>
+          <span class="sub">${esc(t.organiser || '')} · ${esc(t.format || '')} ·
+            ${(t.divisions || []).length} divisions</span>
+        </span>
+        <span class="badge${t.active ? ' live' : ''}">
+          ${t.active ? '<span class="dot"></span>In progress' : 'Finished'}</span>
+      </a>`).join('');
+  })
+  .catch((e) => {
+    list.innerHTML = `<div class="banner err"><div><strong>Could not load the tournament list</strong>
+      <p>${esc(e.message)}</p></div></div>`;
+  });
+</script>
+</body>
+</html>

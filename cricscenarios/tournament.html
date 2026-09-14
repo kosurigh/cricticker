@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Divisions — Cric Scenarios</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%230d1117%27/%3E%3Cpath d=%27M7 25h4v-9H7zm7 0h4V10h-4zm7 0h4V5h-4z%27 fill=%27%233fb950%27/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="crumbs" id="crumbs"></div>
+    <h1 id="title">Tournament</h1>
+    <p class="sub" id="subtitle"></p>
+  </div>
+</header>
+
+<div class="wrap">
+  <h2>Divisions</h2>
+  <div class="divs" id="divs"><p class="sub">Loading…</p></div>
+
+  <h3>Rules used for this tournament</h3>
+  <div id="rules" class="panelbox"></div>
+
+  <footer class="foot">
+    Data from <a href="https://cricheroes.com/">CricHeroes</a>. Unofficial.
+  </footer>
+</div>
+
+<script type="module">
+import { esc, breadcrumbs, query } from './assets/js/ui.js';
+
+const tid = query().get('t') || '2100677';
+
+document.getElementById('crumbs').innerHTML = breadcrumbs([
+  { label: 'Tournaments', href: 'index.html' },
+  { label: 'Divisions' },
+]);
+
+/**
+ * What is known about each division's snapshot.
+ *
+ * index.json is written by both tools/fetch-tournament.mjs and
+ * tools/make-placeholder.mjs, so the card can say whether the data behind a
+ * division is real or invented without downloading nine snapshots to find out.
+ * Falls back to a HEAD probe when no index has been generated yet.
+ */
+async function snapshotIndex(divisions) {
+  try {
+    const r = await fetch(`assets/data/${tid}/index.json`, { cache: 'no-cache' });
+    if (r.ok) {
+      const body = await r.json();
+      return new Map((body.divisions || []).map((d) => [d.division, d]));
+    }
+  } catch { /* fall through to probing */ }
+
+  const probed = await Promise.all(divisions.map(async (d) => {
+    try {
+      const r = await fetch(`assets/data/${tid}/division-${d}.json`, { method: 'HEAD' });
+      return r.ok ? [d, { division: d }] : null;
+    } catch { return null; }
+  }));
+  return new Map(probed.filter(Boolean));
+}
+
+(async () => {
+  let meta;
+  try {
+    meta = await (await fetch(`assets/data/${tid}/meta.json`, { cache: 'no-cache' })).json();
+  } catch {
+    document.getElementById('divs').innerHTML =
+      `<div class="banner err"><div><strong>Unknown tournament</strong>
+       <p>No <code>assets/data/${esc(tid)}/meta.json</code> in this build.</p></div></div>`;
+    return;
+  }
+
+  document.title = `${meta.name} — Cric Scenarios`;
+  document.getElementById('title').textContent = meta.name;
+  document.getElementById('subtitle').textContent =
+    `${meta.organiser || ''} · ${(meta.divisions || []).length} divisions`;
+
+  const r = meta.rules || {};
+  document.getElementById('rules').innerHTML = `
+    <ul class="reqs">
+      <li><span class="mark ok">▲</span><span>Top <b>${r.promotion_spots}</b> are
+        <strong>promoted</strong> to the division above.</span></li>
+      <li><span class="mark maybe">◆</span><span>Top <b>${r.playoff_spots}</b> reach the
+        <strong>playoffs</strong>.</span></li>
+      <li><span class="mark no">▼</span><span>Bottom <b>${r.relegation_spots}</b> are
+        <strong>relegated</strong> to the division below.</span></li>
+      <li><span class="mark">·</span><span>A win is <b>${r.points_win}</b> points,
+        a tie or no result <b>${r.points_tie}</b>. Places are decided by
+        <b>${(r.tiebreak || []).join(' → ')}</b>.</span></li>
+    </ul>
+    ${meta.rules_note ? `<p class="note">${esc(meta.rules_note)}</p>` : ''}`;
+
+  const divisions = meta.divisions || [];
+  const index = await snapshotIndex(divisions);
+
+  document.getElementById('divs').innerHTML = divisions.map((d) => {
+    const info = index.get(d);
+    let cls = '';
+    let note = 'No snapshot yet';
+    if (info && info.placeholder) {
+      cls = ' sample';
+      note = info.remaining != null ? `Sample data · ${info.remaining} to play` : 'Sample data';
+    } else if (info) {
+      cls = ' ready';
+      note = info.remaining != null ? `${info.remaining} games to play` : 'Data available';
+    }
+    return `
+    <a class="divcard${cls}" href="division.html?t=${encodeURIComponent(tid)}&d=${d}">
+      <div class="n">Division ${d}</div>
+      <div class="d">${esc(note)}</div>
+    </a>`;
+  }).join('');
+
+  if ([...index.values()].some((d) => d.placeholder)) {
+    document.getElementById('divs').insertAdjacentHTML('beforebegin',
+      `<div class="banner"><div><strong>Divisions marked "Sample data" hold invented results</strong>
+       <p>Real team rosters, made-up matches. Every calculation is correct; the matches are not.
+       Replace them all with <code>node tools/fetch-tournament.mjs ${esc(tid)}</code>.</p></div></div>`);
+  }
+})();
+</script>
+</body>
+</html>
