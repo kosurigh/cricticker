@@ -1,0 +1,42 @@
+name: Deploy to GitHub Pages
+
+# Publishes the repository as a static site on GitHub Pages. `enablement: true`
+# turns Pages on the first time this runs, so no repo-settings toggle is needed;
+# after that every push to main redeploys. The whole repo root is published, so
+# the ticker lives at the site root and the Cric Scenarios calculator at
+# /cricscenarios/ (e.g. /cricscenarios/division.html?t=2100677&d=7).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; let an in-flight one finish rather than cancelling it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
