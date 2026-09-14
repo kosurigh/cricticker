@@ -1,0 +1,96 @@
+{
+ "tournament_id": 2100677,
+ "updated_at": "2026-09-14T01:20:52.240Z",
+ "divisions": [
+  {
+   "division": 1,
+   "teams": 14,
+   "matches": 56,
+   "played": 41,
+   "remaining": 15,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.222Z"
+  },
+  {
+   "division": 2,
+   "teams": 14,
+   "matches": 56,
+   "played": 37,
+   "remaining": 19,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.231Z"
+  },
+  {
+   "division": 3,
+   "teams": 14,
+   "matches": 56,
+   "played": 36,
+   "remaining": 20,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.232Z"
+  },
+  {
+   "division": 4,
+   "teams": 13,
+   "matches": 48,
+   "played": 34,
+   "remaining": 14,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.233Z"
+  },
+  {
+   "division": 5,
+   "teams": 14,
+   "matches": 56,
+   "played": 38,
+   "remaining": 18,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.234Z"
+  },
+  {
+   "division": 6,
+   "teams": 14,
+   "matches": 56,
+   "played": 38,
+   "remaining": 18,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.235Z"
+  },
+  {
+   "division": 7,
+   "teams": 14,
+   "matches": 56,
+   "played": 38,
+   "remaining": 18,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.236Z"
+  },
+  {
+   "division": 8,
+   "teams": 14,
+   "matches": 56,
+   "played": 35,
+   "remaining": 21,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.237Z"
+  },
+  {
+   "division": 9,
+   "teams": 14,
+   "matches": 56,
+   "played": 37,
+   "remaining": 19,
+   "source": "placeholder",
+   "placeholder": true,
+   "generated_at": "2026-09-14T01:20:52.239Z"
+  }
+ ]
+}

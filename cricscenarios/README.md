@@ -24,10 +24,12 @@ assets/js/data.js        Snapshot loading + live refresh + cross-check
 assets/js/config.js      Worker URL and the CricHeroes endpoint candidates
 
 tools/fetch-tournament.mjs   Refresh the committed snapshots from CricHeroes
-tools/make-placeholder.mjs   Regenerate the sample Division 7 season
+tools/make-placeholder.mjs   Regenerate the sample seasons (all divisions)
+tools/team-names.mjs         Recover display names from the division map (build-time)
+tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        31 tests over the maths and the parser
+test/                        33 tests over the maths, the parser and the index
 ```
 
 ---
@@ -35,22 +37,18 @@ test/                        31 tests over the maths and the parser
 ## Read this first: the data in the repo right now is **fake**
 
 The session that built this had no network route to `api.cricheroes.in` — the egress
-policy blocked it — so no real TCL data could be fetched. Rather than ship an empty
-page, `assets/data/2100677/division-7.json` holds an **invented but self-consistent
-season**: the real Division 7 team names, with made-up scorecards that produce a real
-points table and real net run rates. Every calculation on the page is correct; the
-matches it is calculating from are not.
+policy blocked it — so no real TCL data could be fetched. Rather than ship empty pages,
+all nine divisions hold an **invented but self-consistent season**: the real team rosters
+from `assets/data/divisions.json`, with made-up scorecards that produce a real points
+table and real net run rates. Every calculation on the page is correct; the matches it is
+calculating from are not.
 
-The page shows a standing **"Sample data"** banner while that file is in place. It
-disappears the moment you replace the file with real data:
+Divisions in that state are labelled **"Sample data"** on the division list and carry a
+standing banner on their own page. One command replaces all nine with the real thing:
 
 ```bash
-node tools/fetch-tournament.mjs 2100677 --division 7
+node tools/fetch-tournament.mjs 2100677
 ```
-
-See [Getting real data in](#getting-real-data-in) below.
-
----
 
 ## Run it locally
 
@@ -68,6 +66,92 @@ node --test test/*.test.js     # run the tests
 
 ---
 
+## Using it
+
+### Once, to get it online
+
+```bash
+# 1. real data
+node tools/fetch-tournament.mjs 2100677
+
+# 2. the proxy that lets the page refresh itself later
+npm i -g wrangler && wrangler login && wrangler deploy
+#    put the URL it prints into WORKER_URL in assets/js/config.js
+
+# 3. publish
+git add -A && git commit -m "Real TCL data" && git push
+```
+
+With GitHub Pages enabled the site is at `https://<you>.github.io/cricscenarios/`, and
+Division 7 is a direct link worth bookmarking:
+
+```
+https://<you>.github.io/cricscenarios/division.html?t=2100677&d=7
+```
+
+Add `&team=<id>` and the link opens on a specific team — clicking a row updates the URL,
+so you can copy the address bar and send someone the exact view you are looking at.
+
+### After every match day
+
+Either press **Refresh from CricHeroes** on the page (needs step 2 above; nothing is
+committed, it just re-reads and recomputes), or re-run the fetcher and commit so everyone
+sees the new numbers without pressing anything:
+
+```bash
+node tools/fetch-tournament.mjs 2100677 && git commit -am "Round N" && git push
+```
+
+### Reading the page
+
+The table is the division as it stands, with three extra columns. Each is that team's
+chance of finishing there once every remaining fixture in the division has been simulated.
+
+| What you see | What it means |
+|---|---|
+| `62.4%` | 62.4% of simulated seasons ended that way |
+| **`Yes`** | Settled. True whatever happens in every remaining game |
+| `—` | Impossible. Not "unlikely" — arithmetically out of reach |
+| `<0.1%` | Possible, but it did not come up often enough to put a number on |
+
+Green rows are the promotion places, blue the rest of the playoff places, red the
+relegation places. **Click any row** to switch the report underneath to that team.
+
+Two controls change the answer, and it is worth understanding both:
+
+- **Coin flip vs Form-weighted.** Coin flip gives every remaining match 50/50 — no opinion
+  about who is better, just the combinatorics of who plays whom. Form-weighted rates teams
+  from results so far. Flip between them: if a number barely moves, it is solid; if it
+  swings a lot, your fate depends on an assumption rather than on arithmetic.
+- **Simulations.** More trials, less jitter. Fast (10k) is enough to browse; Thorough
+  (200k) is what to quote to anyone.
+
+### The report underneath
+
+Three cards — Promotion, Playoffs, Relegation — each answering the same four questions:
+
+1. **What do we need to do?** Your chance after each possible number of wins from your own
+   remaining games.
+2. **Is it in our hands?** Whether winning out settles it outright, or still leaves you
+   waiting on someone else.
+3. **Who else matters?** The remaining fixtures elsewhere ranked by how much they swing
+   your chances, each with the number if it goes your way and the number if it does not.
+4. **How big do the wins need to be?** When net run rate is what decides the last place,
+   the margin needed to clear it — in runs batting first, or overs to spare chasing.
+
+On that last point: **wickets in hand do not affect net run rate.** Chasing, only the
+balls you leave unused count. Winning by 9 wickets off the final ball does nothing for
+your run rate; winning by 2 wickets with 4 overs to spare does a lot.
+
+### If a number looks wrong
+
+The page cross-checks its own table against the one CricHeroes publishes and shows a loud
+red banner on any disagreement. That banner means a match result failed to parse, and
+every projection below it is suspect — fix that before trusting anything else. Raw
+payloads are in `assets/data/2100677/raw/` to work from.
+
+---
+
 ## Getting real data in
 
 There are two paths to real numbers, and they use the same code.
@@ -75,10 +159,15 @@ There are two paths to real numbers, and they use the same code.
 ### 1. Snapshot (committed, what the page loads by default)
 
 ```bash
-node tools/fetch-tournament.mjs 2100677                 # every division
+node tools/fetch-tournament.mjs 2100677                 # all nine divisions
 node tools/fetch-tournament.mjs 2100677 --division 7     # just yours
 node tools/fetch-tournament.mjs 2100677 --dry-run        # fetch and print, write nothing
 ```
+
+The tournament is fetched once and split across divisions using
+`assets/data/divisions.json`, so doing all nine costs no more network than doing one.
+`assets/data/2100677/index.json` records what each division holds and whether it is real
+or placeholder; the division list page reads it so it can label the cards.
 
 Node 18+, run from the project root. It talks to `api.cricheroes.in` directly — no proxy
 needed, because the proxy only exists to satisfy the *browser's* CORS rules. Commit the

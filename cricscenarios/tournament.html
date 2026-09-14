@@ -39,12 +39,30 @@ document.getElementById('crumbs').innerHTML = breadcrumbs([
   { label: 'Divisions' },
 ]);
 
-/** Which divisions already have a committed snapshot to read. */
-async function hasSnapshot(division) {
+/**
+ * What is known about each division's snapshot.
+ *
+ * index.json is written by both tools/fetch-tournament.mjs and
+ * tools/make-placeholder.mjs, so the card can say whether the data behind a
+ * division is real or invented without downloading nine snapshots to find out.
+ * Falls back to a HEAD probe when no index has been generated yet.
+ */
+async function snapshotIndex(divisions) {
   try {
-    const r = await fetch(`assets/data/${tid}/division-${division}.json`, { method: 'HEAD' });
-    return r.ok;
-  } catch { return false; }
+    const r = await fetch(`assets/data/${tid}/index.json`, { cache: 'no-cache' });
+    if (r.ok) {
+      const body = await r.json();
+      return new Map((body.divisions || []).map((d) => [d.division, d]));
+    }
+  } catch { /* fall through to probing */ }
+
+  const probed = await Promise.all(divisions.map(async (d) => {
+    try {
+      const r = await fetch(`assets/data/${tid}/division-${d}.json`, { method: 'HEAD' });
+      return r.ok ? [d, { division: d }] : null;
+    } catch { return null; }
+  }));
+  return new Map(probed.filter(Boolean));
 }
 
 (async () => {
@@ -79,14 +97,32 @@ async function hasSnapshot(division) {
     ${meta.rules_note ? `<p class="note">${esc(meta.rules_note)}</p>` : ''}`;
 
   const divisions = meta.divisions || [];
-  const ready = await Promise.all(divisions.map(hasSnapshot));
+  const index = await snapshotIndex(divisions);
 
-  document.getElementById('divs').innerHTML = divisions.map((d, i) => `
-    <a class="divcard${ready[i] ? ' ready' : ''}"
-       href="division.html?t=${encodeURIComponent(tid)}&d=${d}">
+  document.getElementById('divs').innerHTML = divisions.map((d) => {
+    const info = index.get(d);
+    let cls = '';
+    let note = 'No snapshot yet';
+    if (info && info.placeholder) {
+      cls = ' sample';
+      note = info.remaining != null ? `Sample data · ${info.remaining} to play` : 'Sample data';
+    } else if (info) {
+      cls = ' ready';
+      note = info.remaining != null ? `${info.remaining} games to play` : 'Data available';
+    }
+    return `
+    <a class="divcard${cls}" href="division.html?t=${encodeURIComponent(tid)}&d=${d}">
       <div class="n">Division ${d}</div>
-      <div class="d">${ready[i] ? 'Data available' : 'No snapshot yet'}</div>
-    </a>`).join('');
+      <div class="d">${esc(note)}</div>
+    </a>`;
+  }).join('');
+
+  if ([...index.values()].some((d) => d.placeholder)) {
+    document.getElementById('divs').insertAdjacentHTML('beforebegin',
+      `<div class="banner"><div><strong>Divisions marked "Sample data" hold invented results</strong>
+       <p>Real team rosters, made-up matches. Every calculation is correct; the matches are not.
+       Replace them all with <code>node tools/fetch-tournament.mjs ${esc(tid)}</code>.</p></div></div>`);
+  }
 })();
 </script>
 </body>

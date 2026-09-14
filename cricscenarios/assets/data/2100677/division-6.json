@@ -1,0 +1,1399 @@
+{
+ "tournament_id": 2100677,
+ "tournament_name": "TCL Mega Smash 2026",
+ "division": 6,
+ "generated_at": "2026-09-14T01:20:52.235Z",
+ "source": "placeholder",
+ "placeholder": true,
+ "placeholder_note": "Invented results using this division's real team roster. Built so every screen and calculation can be exercised before live data is wired up. Replace by running: node tools/fetch-tournament.mjs 2100677",
+ "rules": {
+  "playoff_spots": 4,
+  "promotion_spots": 3,
+  "relegation_spots": 3,
+  "points_win": 2,
+  "points_tie": 1,
+  "points_no_result": 1,
+  "points_loss": 0,
+  "overs_per_innings": 20,
+  "tiebreak": [
+   "points",
+   "nrr",
+   "h2h",
+   "wins"
+  ]
+ },
+ "teams": [
+  {
+   "id": 922269536,
+   "name": "Apex Blues",
+   "short": "AB",
+   "logo": null
+  },
+  {
+   "id": 945629660,
+   "name": "Astras HT",
+   "short": "AH",
+   "logo": null
+  },
+  {
+   "id": 914381426,
+   "name": "Cholans HT",
+   "short": "CH",
+   "logo": null
+  },
+  {
+   "id": 964457108,
+   "name": "Dragons XI",
+   "short": "DX",
+   "logo": null
+  },
+  {
+   "id": 961430947,
+   "name": "Fuquay Mavericks",
+   "short": "FM",
+   "logo": null
+  },
+  {
+   "id": 959928027,
+   "name": "Himalayan Kings",
+   "short": "HK",
+   "logo": null
+  },
+  {
+   "id": 980895564,
+   "name": "Holly Springs Hurricanes",
+   "short": "HSH",
+   "logo": null
+  },
+  {
+   "id": 976161482,
+   "name": "Limited Edition",
+   "short": "LE",
+   "logo": null
+  },
+  {
+   "id": 938134227,
+   "name": "MIB",
+   "short": "MIB",
+   "logo": null
+  },
+  {
+   "id": 976271137,
+   "name": "Mammoths",
+   "short": "MAM",
+   "logo": null
+  },
+  {
+   "id": 969033630,
+   "name": "Rock Stars",
+   "short": "RS",
+   "logo": null
+  },
+  {
+   "id": 999848920,
+   "name": "Star Blasters",
+   "short": "SB",
+   "logo": null
+  },
+  {
+   "id": 930851920,
+   "name": "Starks",
+   "short": "STA",
+   "logo": null
+  },
+  {
+   "id": 994224085,
+   "name": "White Oak Warriors",
+   "short": "WOW",
+   "logo": null
+  }
+ ],
+ "matches": [
+  {
+   "id": 6700000,
+   "date": "2026-08-08T14:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 922269536,
+   "away": 994224085,
+   "status": "completed",
+   "resultText": "White Oak Warriors won by 89 runs",
+   "result": {
+    "winner": 994224085,
+    "type": "runs",
+    "margin": 89,
+    "innings": [
+     {
+      "team": 994224085,
+      "runs": 134,
+      "wickets": 3,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 45,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700001,
+   "date": "2026-08-08T14:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 930851920,
+   "status": "completed",
+   "resultText": "Starks won by 10 runs",
+   "result": {
+    "winner": 930851920,
+    "type": "runs",
+    "margin": 10,
+    "innings": [
+     {
+      "team": 930851920,
+      "runs": 195,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 945629660,
+      "runs": 185,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700002,
+   "date": "2026-08-08T15:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 914381426,
+   "away": 999848920,
+   "status": "completed",
+   "resultText": "Cholans HT won by 4 wickets",
+   "result": {
+    "winner": 914381426,
+    "type": "wickets",
+    "margin": 4,
+    "innings": [
+     {
+      "team": 999848920,
+      "runs": 170,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 914381426,
+      "runs": 174,
+      "wickets": 6,
+      "overs": 16.5,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700003,
+   "date": "2026-08-08T15:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 964457108,
+   "away": 969033630,
+   "status": "completed",
+   "resultText": "Rock Stars won by 43 runs",
+   "result": {
+    "winner": 969033630,
+    "type": "runs",
+    "margin": 43,
+    "innings": [
+     {
+      "team": 969033630,
+      "runs": 195,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 964457108,
+      "runs": 152,
+      "wickets": 10,
+      "overs": 14.6,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700004,
+   "date": "2026-08-08T16:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 961430947,
+   "away": 976271137,
+   "status": "completed",
+   "resultText": "Fuquay Mavericks won by 6 wickets",
+   "result": {
+    "winner": 961430947,
+    "type": "wickets",
+    "margin": 6,
+    "innings": [
+     {
+      "team": 976271137,
+      "runs": 150,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 961430947,
+      "runs": 154,
+      "wickets": 4,
+      "overs": 19,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700005,
+   "date": "2026-08-08T16:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 959928027,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "Himalayan Kings won by 6 wickets",
+   "result": {
+    "winner": 959928027,
+    "type": "wickets",
+    "margin": 6,
+    "innings": [
+     {
+      "team": 938134227,
+      "runs": 138,
+      "wickets": 4,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 959928027,
+      "runs": 141,
+      "wickets": 4,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700006,
+   "date": "2026-08-08T17:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 980895564,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "Holly Springs Hurricanes won by 17 runs",
+   "result": {
+    "winner": 980895564,
+    "type": "runs",
+    "margin": 17,
+    "innings": [
+     {
+      "team": 980895564,
+      "runs": 190,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 173,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700007,
+   "date": "2026-08-15T14:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 922269536,
+   "away": 930851920,
+   "status": "completed",
+   "resultText": "Apex Blues won by 8 wickets",
+   "result": {
+    "winner": 922269536,
+    "type": "wickets",
+    "margin": 8,
+    "innings": [
+     {
+      "team": 930851920,
+      "runs": 152,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 154,
+      "wickets": 2,
+      "overs": 14.5,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700008,
+   "date": "2026-08-15T14:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 999848920,
+   "status": "completed",
+   "resultText": "Star Blasters won by 7 wickets",
+   "result": {
+    "winner": 999848920,
+    "type": "wickets",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 994224085,
+      "runs": 127,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 999848920,
+      "runs": 128,
+      "wickets": 3,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700009,
+   "date": "2026-08-15T15:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 969033630,
+   "status": "completed",
+   "resultText": "Rock Stars won by 7 runs",
+   "result": {
+    "winner": 969033630,
+    "type": "runs",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 969033630,
+      "runs": 177,
+      "wickets": 4,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 945629660,
+      "runs": 170,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700010,
+   "date": "2026-08-15T15:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 914381426,
+   "away": 976271137,
+   "status": "completed",
+   "resultText": "Cholans HT won by 37 runs",
+   "result": {
+    "winner": 914381426,
+    "type": "runs",
+    "margin": 37,
+    "innings": [
+     {
+      "team": 914381426,
+      "runs": 180,
+      "wickets": 3,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976271137,
+      "runs": 143,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700011,
+   "date": "2026-08-15T16:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 964457108,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "Dragons XI won by 7 runs",
+   "result": {
+    "winner": 964457108,
+    "type": "runs",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 964457108,
+      "runs": 160,
+      "wickets": 5,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 938134227,
+      "runs": 153,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700012,
+   "date": "2026-08-15T16:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 961430947,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "Fuquay Mavericks won by 13 runs",
+   "result": {
+    "winner": 961430947,
+    "type": "runs",
+    "margin": 13,
+    "innings": [
+     {
+      "team": 961430947,
+      "runs": 152,
+      "wickets": 4,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 139,
+      "wickets": 10,
+      "overs": 17.7,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700013,
+   "date": "2026-08-15T17:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 959928027,
+   "away": 980895564,
+   "status": "completed",
+   "resultText": "Holly Springs Hurricanes won by 20 runs",
+   "result": {
+    "winner": 980895564,
+    "type": "runs",
+    "margin": 20,
+    "innings": [
+     {
+      "team": 980895564,
+      "runs": 165,
+      "wickets": 5,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 959928027,
+      "runs": 145,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700014,
+   "date": "2026-08-22T14:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 922269536,
+   "away": 999848920,
+   "status": "completed",
+   "resultText": "Star Blasters won by 26 runs",
+   "result": {
+    "winner": 999848920,
+    "type": "runs",
+    "margin": 26,
+    "innings": [
+     {
+      "team": 999848920,
+      "runs": 131,
+      "wickets": 3,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 105,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700015,
+   "date": "2026-08-22T14:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 969033630,
+   "status": "completed",
+   "resultText": "Rock Stars won by 4 wickets",
+   "result": {
+    "winner": 969033630,
+    "type": "wickets",
+    "margin": 4,
+    "innings": [
+     {
+      "team": 930851920,
+      "runs": 145,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 969033630,
+      "runs": 148,
+      "wickets": 6,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700016,
+   "date": "2026-08-22T15:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 976271137,
+   "status": "completed",
+   "resultText": "Mammoths won by 4 wickets",
+   "result": {
+    "winner": 976271137,
+    "type": "wickets",
+    "margin": 4,
+    "innings": [
+     {
+      "team": 994224085,
+      "runs": 166,
+      "wickets": 5,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976271137,
+      "runs": 168,
+      "wickets": 6,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700017,
+   "date": "2026-08-22T15:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "MIB won by 30 runs",
+   "result": {
+    "winner": 938134227,
+    "type": "runs",
+    "margin": 30,
+    "innings": [
+     {
+      "team": 938134227,
+      "runs": 151,
+      "wickets": 4,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 945629660,
+      "runs": 121,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700018,
+   "date": "2026-08-22T16:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 914381426,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "Cholans HT won by 13 runs",
+   "result": {
+    "winner": 914381426,
+    "type": "runs",
+    "margin": 13,
+    "innings": [
+     {
+      "team": 914381426,
+      "runs": 197,
+      "wickets": 5,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 184,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700019,
+   "date": "2026-08-22T16:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 964457108,
+   "away": 980895564,
+   "status": "completed",
+   "resultText": "Holly Springs Hurricanes won by 6 runs",
+   "result": {
+    "winner": 980895564,
+    "type": "runs",
+    "margin": 6,
+    "innings": [
+     {
+      "team": 980895564,
+      "runs": 166,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 964457108,
+      "runs": 160,
+      "wickets": 10,
+      "overs": 14.9,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700020,
+   "date": "2026-08-22T17:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 961430947,
+   "away": 959928027,
+   "status": "completed",
+   "resultText": "Himalayan Kings won by 4 wickets",
+   "result": {
+    "winner": 959928027,
+    "type": "wickets",
+    "margin": 4,
+    "innings": [
+     {
+      "team": 961430947,
+      "runs": 126,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 959928027,
+      "runs": 130,
+      "wickets": 6,
+      "overs": 19.1,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700021,
+   "date": "2026-08-29T14:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 922269536,
+   "away": 969033630,
+   "status": "completed",
+   "resultText": "Rock Stars won by 22 runs",
+   "result": {
+    "winner": 969033630,
+    "type": "runs",
+    "margin": 22,
+    "innings": [
+     {
+      "team": 969033630,
+      "runs": 195,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 173,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700022,
+   "date": "2026-08-29T14:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 999848920,
+   "away": 976271137,
+   "status": "completed",
+   "resultText": "Star Blasters won by 8 wickets",
+   "result": {
+    "winner": 999848920,
+    "type": "wickets",
+    "margin": 8,
+    "innings": [
+     {
+      "team": 976271137,
+      "runs": 142,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 999848920,
+      "runs": 145,
+      "wickets": 2,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700023,
+   "date": "2026-08-29T15:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "MIB won by 8 wickets",
+   "result": {
+    "winner": 938134227,
+    "type": "wickets",
+    "margin": 8,
+    "innings": [
+     {
+      "team": 930851920,
+      "runs": 142,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 938134227,
+      "runs": 144,
+      "wickets": 2,
+      "overs": 18.2,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700024,
+   "date": "2026-08-29T15:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "White Oak Warriors won by 7 runs",
+   "result": {
+    "winner": 994224085,
+    "type": "runs",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 994224085,
+      "runs": 163,
+      "wickets": 5,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 156,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700025,
+   "date": "2026-08-29T16:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 980895564,
+   "status": "completed",
+   "resultText": "Holly Springs Hurricanes won by 82 runs",
+   "result": {
+    "winner": 980895564,
+    "type": "runs",
+    "margin": 82,
+    "innings": [
+     {
+      "team": 980895564,
+      "runs": 157,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 945629660,
+      "runs": 75,
+      "wickets": 10,
+      "overs": 17.8,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700026,
+   "date": "2026-08-29T16:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 914381426,
+   "away": 959928027,
+   "status": "completed",
+   "resultText": "Himalayan Kings won by 14 runs",
+   "result": {
+    "winner": 959928027,
+    "type": "runs",
+    "margin": 14,
+    "innings": [
+     {
+      "team": 959928027,
+      "runs": 139,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 914381426,
+      "runs": 125,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700027,
+   "date": "2026-08-29T17:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 964457108,
+   "away": 961430947,
+   "status": "completed",
+   "resultText": "Fuquay Mavericks won by 30 runs",
+   "result": {
+    "winner": 961430947,
+    "type": "runs",
+    "margin": 30,
+    "innings": [
+     {
+      "team": 961430947,
+      "runs": 183,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 964457108,
+      "runs": 153,
+      "wickets": 10,
+      "overs": 17.4,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700028,
+   "date": "2026-09-05T14:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 922269536,
+   "away": 976271137,
+   "status": "completed",
+   "resultText": "Apex Blues won by 5 wickets",
+   "result": {
+    "winner": 922269536,
+    "type": "wickets",
+    "margin": 5,
+    "innings": [
+     {
+      "team": 976271137,
+      "runs": 156,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 158,
+      "wickets": 5,
+      "overs": 18.2,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700029,
+   "date": "2026-09-05T14:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 969033630,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "Rock Stars won by 44 runs",
+   "result": {
+    "winner": 969033630,
+    "type": "runs",
+    "margin": 44,
+    "innings": [
+     {
+      "team": 969033630,
+      "runs": 141,
+      "wickets": 3,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 938134227,
+      "runs": 97,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700030,
+   "date": "2026-09-05T15:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 999848920,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "Limited Edition won by 4 wickets",
+   "result": {
+    "winner": 976161482,
+    "type": "wickets",
+    "margin": 4,
+    "innings": [
+     {
+      "team": 999848920,
+      "runs": 140,
+      "wickets": 4,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 144,
+      "wickets": 6,
+      "overs": 14.5,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700031,
+   "date": "2026-09-05T15:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 980895564,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700032,
+   "date": "2026-09-05T16:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 959928027,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700033,
+   "date": "2026-09-05T16:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 961430947,
+   "status": "completed",
+   "resultText": "Fuquay Mavericks won by 7 wickets",
+   "result": {
+    "winner": 961430947,
+    "type": "wickets",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 945629660,
+      "runs": 173,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 961430947,
+      "runs": 174,
+      "wickets": 3,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700034,
+   "date": "2026-09-05T17:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 914381426,
+   "away": 964457108,
+   "status": "completed",
+   "resultText": "Dragons XI won by 30 runs",
+   "result": {
+    "winner": 964457108,
+    "type": "runs",
+    "margin": 30,
+    "innings": [
+     {
+      "team": 964457108,
+      "runs": 103,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 914381426,
+      "runs": 73,
+      "wickets": 10,
+      "overs": 18.2,
+      "allOut": true
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700035,
+   "date": "2026-09-12T14:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 922269536,
+   "away": 938134227,
+   "status": "completed",
+   "resultText": "MIB won by 23 runs",
+   "result": {
+    "winner": 938134227,
+    "type": "runs",
+    "margin": 23,
+    "innings": [
+     {
+      "team": 938134227,
+      "runs": 188,
+      "wickets": 3,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 922269536,
+      "runs": 165,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700036,
+   "date": "2026-09-12T14:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 976271137,
+   "away": 976161482,
+   "status": "completed",
+   "resultText": "Limited Edition won by 7 wickets",
+   "result": {
+    "winner": 976161482,
+    "type": "wickets",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 976271137,
+      "runs": 178,
+      "wickets": 7,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 976161482,
+      "runs": 182,
+      "wickets": 3,
+      "overs": 19.1,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700037,
+   "date": "2026-09-12T15:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 969033630,
+   "away": 980895564,
+   "status": "completed",
+   "resultText": "Holly Springs Hurricanes won by 24 runs",
+   "result": {
+    "winner": 980895564,
+    "type": "runs",
+    "margin": 24,
+    "innings": [
+     {
+      "team": 980895564,
+      "runs": 169,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 969033630,
+      "runs": 145,
+      "wickets": 9,
+      "overs": 20,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700038,
+   "date": "2026-09-12T15:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 999848920,
+   "away": 959928027,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700039,
+   "date": "2026-09-12T16:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 961430947,
+   "status": "completed",
+   "resultText": "Fuquay Mavericks won by 5 wickets",
+   "result": {
+    "winner": 961430947,
+    "type": "wickets",
+    "margin": 5,
+    "innings": [
+     {
+      "team": 930851920,
+      "runs": 176,
+      "wickets": 6,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 961430947,
+      "runs": 178,
+      "wickets": 5,
+      "overs": 19.3,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700040,
+   "date": "2026-09-12T16:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 964457108,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700041,
+   "date": "2026-09-12T17:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 945629660,
+   "away": 914381426,
+   "status": "completed",
+   "resultText": "Cholans HT won by 7 wickets",
+   "result": {
+    "winner": 914381426,
+    "type": "wickets",
+    "margin": 7,
+    "innings": [
+     {
+      "team": 945629660,
+      "runs": 142,
+      "wickets": 8,
+      "overs": 20,
+      "allOut": false
+     },
+     {
+      "team": 914381426,
+      "runs": 143,
+      "wickets": 3,
+      "overs": 17.2,
+      "allOut": false
+     }
+    ]
+   }
+  },
+  {
+   "id": 6700042,
+   "date": "2026-09-19T14:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 922269536,
+   "away": 976161482,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700043,
+   "date": "2026-09-19T14:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 938134227,
+   "away": 980895564,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700044,
+   "date": "2026-09-19T15:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 976271137,
+   "away": 959928027,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700045,
+   "date": "2026-09-19T15:30:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 969033630,
+   "away": 961430947,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700046,
+   "date": "2026-09-19T16:00:00.000Z",
+   "venue": "RTP Park",
+   "home": 999848920,
+   "away": 964457108,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700047,
+   "date": "2026-09-19T16:30:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 914381426,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700048,
+   "date": "2026-09-19T17:00:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 994224085,
+   "away": 945629660,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700049,
+   "date": "2026-09-26T14:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 922269536,
+   "away": 980895564,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700050,
+   "date": "2026-09-26T14:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 976161482,
+   "away": 959928027,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700051,
+   "date": "2026-09-26T15:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 938134227,
+   "away": 961430947,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700052,
+   "date": "2026-09-26T15:30:00.000Z",
+   "venue": "Cary Ground 1",
+   "home": 976271137,
+   "away": 964457108,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700053,
+   "date": "2026-09-26T16:00:00.000Z",
+   "venue": "Holly Springs Oval",
+   "home": 969033630,
+   "away": 914381426,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700054,
+   "date": "2026-09-26T16:30:00.000Z",
+   "venue": "RTP Park",
+   "home": 999848920,
+   "away": 945629660,
+   "status": "upcoming"
+  },
+  {
+   "id": 6700055,
+   "date": "2026-09-26T17:00:00.000Z",
+   "venue": "Morrisville Turf",
+   "home": 930851920,
+   "away": 994224085,
+   "status": "upcoming"
+  }
+ ],
+ "published": [],
+ "warnings": []
+}

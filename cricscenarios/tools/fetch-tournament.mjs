@@ -25,6 +25,7 @@ import { ENDPOINTS } from '../assets/js/config.js';
 import { buildSnapshot } from '../assets/js/chnorm.js';
 import { filterToDivision } from '../assets/js/data.js';
 import { standingsFor, DEFAULT_RULES, netRunRate } from '../assets/js/engine.js';
+import { writeIndex } from './snapshot-index.mjs';
 
 const API = 'https://api.cricheroes.in';
 const HEADERS = {
@@ -141,6 +142,7 @@ async function main() {
   const meta = existsSync(metaPath) ? JSON.parse(await readFile(metaPath, 'utf8')) : {};
   const rules = { ...DEFAULT_RULES, ...(meta.rules || {}) };
 
+  const written = [];
   const divisions = args.division != null ? [args.division]
     : (divisionMap ? [...new Set(Object.values(divisionMap.byId || {}))].sort((a, b) => a - b) : [null]);
 
@@ -180,12 +182,28 @@ async function main() {
     } else {
       await mkdir(dataDir, { recursive: true });
       await writeFile(file, JSON.stringify(body, null, 1));
+      written.push({
+        division,
+        teams: sub.teams.length,
+        matches: sub.matches.length,
+        played: sub.matches.length - left,
+        remaining: left,
+        source: 'cricheroes',
+        placeholder: false,
+        generated_at: body.generated_at,
+      });
       console.log(`  Division ${division}: ${sub.teams.length} teams, ${left} to play -> ` +
         path.relative(ROOT, file));
     }
   }
 
-  if (!args.dryRun) console.log('\nDone. Commit the updated files to publish them.');
+  if (!args.dryRun) {
+    // Refresh the index the division-list page reads, merging rather than
+    // replacing so a single --division run leaves the others intact.
+    await writeIndex(dataDir, Number(args.id), written);
+    console.log(`\nUpdated index.json for ${written.length} division(s).`);
+    console.log('Done. Commit the updated files to publish them.');
+  }
 }
 
 main().catch((e) => {

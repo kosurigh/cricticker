@@ -246,3 +246,9 @@ footer.foot { border-top: 1px solid var(--line); margin-top: 36px; padding-top: 
   .team img, .team .ini { width: 20px; height: 20px; }
   .team .nm { font-size: 13px; }
 }
+
+/* A division whose snapshot is invented rather than fetched. Worth a different
+   colour from "has data": the cards look identical otherwise, and the
+   difference is the whole question of whether to trust the numbers. */
+.divcard.sample { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.divcard.sample .d { color: var(--warn); }
