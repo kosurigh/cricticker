@@ -10,7 +10,7 @@
   "points": "/api/v1/tournament/get-tournament-standing/2100677"
  },
  "rules": {
-  "playoff_spots": 4,
+  "playoff_spots": 6,
   "promotion_spots": 3,
   "relegation_spots": 3,
   "points_win": 2,

@@ -339,7 +339,7 @@ Per tournament, in `assets/data/<id>/meta.json`:
 
 ```json
 "rules": {
-  "playoff_spots": 4, "promotion_spots": 3, "relegation_spots": 3,
+  "playoff_spots": 6, "promotion_spots": 3, "relegation_spots": 3,
   "points_win": 2, "points_tie": 1, "points_no_result": 1, "points_loss": 0,
   "overs_per_innings": 18,
   "tiebreak": ["points", "nrr", "h2h", "wins"]
