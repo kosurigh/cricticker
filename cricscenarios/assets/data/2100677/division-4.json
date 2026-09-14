@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 4,
- "generated_at": "2026-09-14T01:20:52.233Z",
+ "generated_at": "2026-09-14T01:25:36.133Z",
  "source": "placeholder",
  "placeholder": true,
  "placeholder_note": "Invented results using this division's real team roster. Built so every screen and calculation can be exercised before live data is wired up. Replace by running: node tools/fetch-tournament.mjs 2100677",

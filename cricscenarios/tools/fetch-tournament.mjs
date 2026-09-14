@@ -6,7 +6,9 @@
  *   node tools/fetch-tournament.mjs 2100677 --division 7
  *   node tools/fetch-tournament.mjs 2100677 --dry-run  # fetch, print, write nothing
  *
- * Run from the project root. Node 18+ (it uses the built-in fetch).
+ * Node 18+ (it uses the built-in fetch); no npm install, the project has no
+ * dependencies. Runnable from any directory — paths resolve from this file's
+ * own location, not the working directory.
  *
  * Unlike the browser, this talks to api.cricheroes.in directly — no Worker
  * needed — because the only reason that proxy exists is the browser's CORS

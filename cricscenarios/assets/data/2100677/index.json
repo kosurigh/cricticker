@@ -1,6 +1,6 @@
 {
  "tournament_id": 2100677,
- "updated_at": "2026-09-14T01:20:52.240Z",
+ "updated_at": "2026-09-14T01:25:36.142Z",
  "divisions": [
   {
    "division": 1,
@@ -10,7 +10,7 @@
    "remaining": 15,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.222Z"
+   "generated_at": "2026-09-14T01:25:36.120Z"
   },
   {
    "division": 2,
@@ -20,7 +20,7 @@
    "remaining": 19,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.231Z"
+   "generated_at": "2026-09-14T01:25:36.130Z"
   },
   {
    "division": 3,
@@ -30,7 +30,7 @@
    "remaining": 20,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.232Z"
+   "generated_at": "2026-09-14T01:25:36.132Z"
   },
   {
    "division": 4,
@@ -40,7 +40,7 @@
    "remaining": 14,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.233Z"
+   "generated_at": "2026-09-14T01:25:36.133Z"
   },
   {
    "division": 5,
@@ -50,7 +50,7 @@
    "remaining": 18,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.234Z"
+   "generated_at": "2026-09-14T01:25:36.135Z"
   },
   {
    "division": 6,
@@ -60,7 +60,7 @@
    "remaining": 18,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.235Z"
+   "generated_at": "2026-09-14T01:25:36.136Z"
   },
   {
    "division": 7,
@@ -70,7 +70,7 @@
    "remaining": 18,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.236Z"
+   "generated_at": "2026-09-14T01:25:36.137Z"
   },
   {
    "division": 8,
@@ -80,7 +80,7 @@
    "remaining": 21,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.237Z"
+   "generated_at": "2026-09-14T01:25:36.139Z"
   },
   {
    "division": 9,
@@ -90,7 +90,7 @@
    "remaining": 19,
    "source": "placeholder",
    "placeholder": true,
-   "generated_at": "2026-09-14T01:20:52.239Z"
+   "generated_at": "2026-09-14T01:25:36.140Z"
   }
  ]
 }

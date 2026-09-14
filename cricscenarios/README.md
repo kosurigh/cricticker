@@ -169,9 +169,13 @@ The tournament is fetched once and split across divisions using
 `assets/data/2100677/index.json` records what each division holds and whether it is real
 or placeholder; the division list page reads it so it can label the cards.
 
-Node 18+, run from the project root. It talks to `api.cricheroes.in` directly — no proxy
-needed, because the proxy only exists to satisfy the *browser's* CORS rules. Commit the
-files it writes and the published page picks them up.
+Node 18+, and no `npm install` — the project has no dependencies. It can be run from any
+directory: the script resolves paths from its own location, so it always writes into
+`cricscenarios/assets/data/`, whatever your shell is sitting in.
+
+It talks to `api.cricheroes.in` directly — no proxy needed, because the proxy only exists
+to satisfy the *browser's* CORS rules. Commit the files it writes and the published page
+picks them up.
 
 Every raw response is also written to `assets/data/2100677/raw/` before anything is
 parsed. If a field ever fails to map, that directory is the evidence to fix it from.
