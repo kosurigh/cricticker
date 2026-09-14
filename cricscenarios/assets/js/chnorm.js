@@ -49,9 +49,27 @@ export const ALIASES = {
   awayOvers: ['team_b_overs', 'team_2_overs'],
   winnerId: ['winning_team_id', 'winner_team_id', 'win_team_id', 'winnerId'],
   resultText: ['match_result', 'result', 'summary', 'match_summary', 'status_note'],
+  // The margin lives in its own field on the per-team fixture endpoint:
+  // `match_result` only ever says "resulted" / "tie" / "abandoned", while
+  // `win_by` carries "43 runs", "6 wickets", "walkover", "rain out".
+  marginText: ['win_by', 'won_by', 'win_by_text', 'winning_margin'],
   status: ['match_status', 'status', 'match_state'],
   date: ['match_start_time', 'start_datetime', 'match_date', 'start_time', 'date'],
   venue: ['ground_name', 'ground', 'venue', 'city_name'],
+  // Overs allotted per side for this fixture. TCL runs 14-, 15-, 16- and
+  // 18-over games in the same tournament, and net run rate charges a side
+  // bowled out its *match* quota, so this cannot be a tournament constant.
+  matchOvers: ['overs', 'match_overs', 'total_overs', 'no_of_overs'],
+  // Structured innings, far better than the summary string: it carries the
+  // overs actually faced, the innings number and any D/L revision.
+  homeInnings: ['team_a_innings', 'team_1_innings', 'teamAInnings'],
+  awayInnings: ['team_b_innings', 'team_2_innings', 'teamBInnings'],
+  inningsRuns: ['total_run', 'total_runs', 'runs', 'score'],
+  inningsWickets: ['total_wicket', 'total_wickets', 'wickets'],
+  inningsOvers: ['overs_played', 'overs', 'over'],
+  inningsNumber: ['inning', 'innings', 'inning_number'],
+  revisedOvers: ['revised_overs'],
+  revisedTarget: ['revised_target'],
   // Teams
   teamId: ['team_id', 'id'],
   teamName: ['team_name', 'name'],
@@ -62,7 +80,12 @@ export const ALIASES = {
   ptWon: ['win', 'won', 'wins', 'W'],
   ptLost: ['loss', 'lost', 'losses', 'L'],
   ptPoints: ['points', 'point', 'pts', 'total_points'],
-  ptNrr: ['nrr', 'net_run_rate', 'netRunRate', 'run_rate'],
+  ptNrr: ['net_rr', 'nrr', 'net_run_rate', 'netRunRate', 'run_rate'],
+  ptTied: ['tied', 'tie', 'ties'],
+  ptNoResult: ['no_result', 'noResult', 'nr', 'no_results'],
+  // "926/119.3" — runs scored off overs faced, as CricHeroes counted them.
+  ptFor: ['for', 'runs_for', 'For'],
+  ptAgainst: ['against', 'runs_against', 'Against'],
 };
 
 /** Everything CricHeroes has ever meant by "this match is over". */
@@ -107,16 +130,70 @@ export function parseSummary(text, oversHint) {
   };
 }
 
-/** "won by 23 runs" / "won by 5 wickets" / "match tied". */
+/**
+ * "won by 23 runs" / "won by 5 wickets" / "match tied" / "walkover".
+ *
+ * The "won by" is optional because the per-team fixture endpoint states the
+ * margin bare, in its own field: `win_by: "43 runs"`. D/L results append their
+ * workings ("5 runs (DLS method - match reduced to 16.0 overs, target 124
+ * runs)"); the leading margin is the one that counts, and it is the one the
+ * scan reaches first.
+ */
 export function parseResultText(text) {
   const s = String(text ?? '').toLowerCase();
-  if (/tied/.test(s)) return { type: 'tie', margin: 0 };
-  if (/abandon|cancel|no result|washed/.test(s)) return { type: 'no_result', margin: null };
-  const runs = s.match(/by\s+(\d+)\s+run/);
-  if (runs) return { type: 'runs', margin: Number(runs[1]) };
-  const wkts = s.match(/by\s+(\d+)\s+wicket/);
+  if (/\btied?\b/.test(s)) return { type: 'tie', margin: 0 };
+  if (/abandon|cancel|no result|washed|rain out/.test(s)) return { type: 'no_result', margin: null };
+  // A conceded match: a win with no cricket behind it.
+  if (/walkover|forfeit|conceded|awarded/.test(s)) return { type: 'walkover', margin: null };
+  const runs = s.match(/(?:by\s+)?(\d+)\s+runs?\b/);
+  const wkts = s.match(/(?:by\s+)?(\d+)\s+wickets?\b/);
+  // Whichever is stated first is this match's margin; the other, if present,
+  // belongs to the D/L workings.
+  if (runs && (!wkts || runs.index <= wkts.index)) return { type: 'runs', margin: Number(runs[1]) };
   if (wkts) return { type: 'wickets', margin: Number(wkts[1]) };
   return { type: null, margin: null };
+}
+
+/**
+ * Read one side's innings out of the structured `team_a_innings` array.
+ *
+ * Better than the summary string in three ways that all matter for net run
+ * rate: it states the overs actually faced, it numbers the innings (so who
+ * batted second is known rather than guessed), and it carries the D/L revision.
+ *
+ * The D/L case is the subtle one. When a match is cut short, CricHeroes does
+ * not credit the side batting first with what it actually scored — it credits
+ * it with the *par score*, one run below the target the chasing side was set,
+ * over the revised overs. A side that made 133 off 18 before rain, with the
+ * chase reset to 108 off 14, goes into the table as 107 off 14. Reproducing
+ * that is the difference between agreeing with the published table and not.
+ */
+export function parseInnings(list, matchOvers) {
+  const rows = Array.isArray(list) ? list : (list ? [list] : []);
+  const first = rows.find((r) => r && pick(r, ALIASES.inningsRuns) != null);
+  if (!first) return null;
+
+  const revisedOvers = num(pick(first, ALIASES.revisedOvers)) || 0;
+  const revisedTarget = num(pick(first, ALIASES.revisedTarget)) || 0;
+  const quotaOvers = revisedOvers > 0 ? revisedOvers : num(matchOvers);
+  const inning = num(pick(first, ALIASES.inningsNumber));
+  const wickets = num(pick(first, ALIASES.inningsWickets));
+
+  // Par score for the side that batted before the interruption.
+  if (inning === 1 && revisedTarget > 0 && quotaOvers != null) {
+    return {
+      runs: revisedTarget - 1, wickets, overs: quotaOvers,
+      allOut: false, inning, quotaOvers, revised: true,
+    };
+  }
+  return {
+    runs: num(pick(first, ALIASES.inningsRuns)),
+    wickets,
+    overs: num(pick(first, ALIASES.inningsOvers)),
+    allOut: wickets !== null && wickets >= 10,
+    inning,
+    quotaOvers: quotaOvers === null ? undefined : quotaOvers,
+  };
 }
 
 /* ----------------------------------------------------- finding the array */
@@ -162,6 +239,30 @@ export function findRecords(root, test, depth = 0) {
     return best;
   }
   return [];
+}
+
+/**
+ * Every record anywhere in the payload that passes `test`, in document order.
+ *
+ * `findRecords` returns the single biggest matching array, which is what you
+ * want for a fixture list. A points table is the opposite case: CricHeroes
+ * returns one array *per group*, so this tournament's nine divisions arrive as
+ * nine sibling arrays and taking the biggest would silently keep only one.
+ */
+export function collectRecords(root, test, depth = 0, seen = new Set()) {
+  if (depth > 8 || root == null || typeof root !== 'object') return [];
+  if (seen.has(root)) return [];
+  seen.add(root);
+  const out = [];
+  if (Array.isArray(root)) {
+    for (const item of root) {
+      if (test(item)) out.push(item);
+      else out.push(...collectRecords(item, test, depth + 1, seen));
+    }
+    return out;
+  }
+  for (const key of Object.keys(root)) out.push(...collectRecords(root[key], test, depth + 1, seen));
+  return out;
 }
 
 /* ------------------------------------------------------------ normalisers */
@@ -212,8 +313,12 @@ export function normaliseMatches(raw) {
     const away = teamKey(pick(r, ALIASES.awayId), pick(r, ALIASES.awayName));
     if (home == null || away == null || home === away) continue;
 
-    const resultText = pick(r, ALIASES.resultText);
+    // `match_result` classifies the match, `win_by` states the margin; neither
+    // is much use without the other, so the pair travels together from here on.
+    const resultText = [pick(r, ALIASES.resultText), pick(r, ALIASES.marginText)]
+      .filter((v) => v != null && v !== '').join(' — ') || null;
     const status = normaliseStatus(pick(r, ALIASES.status), resultText);
+    const matchOvers = num(pick(r, ALIASES.matchOvers));
     const match = {
       id: id ?? `${home}-${away}-${matches.length}`,
       date: pick(r, ALIASES.date),
@@ -221,8 +326,9 @@ export function normaliseMatches(raw) {
       home,
       away,
       status: status === 'live' ? 'upcoming' : status,
-      resultText: resultText ? String(resultText) : null,
+      resultText,
     };
+    if (matchOvers != null) match.overs = matchOvers;
 
     if (status === 'abandoned') {
       match.status = 'completed';
@@ -232,13 +338,33 @@ export function normaliseMatches(raw) {
     }
     if (status !== 'completed') { matches.push(match); continue; }
 
-    const hs = parseSummary(pick(r, ALIASES.homeSummary), pick(r, ALIASES.homeOvers));
-    const as = parseSummary(pick(r, ALIASES.awaySummary), pick(r, ALIASES.awayOvers));
+    // Structured innings where the endpoint provides them, summary strings
+    // where it does not.
+    const hi = parseInnings(pick(r, ALIASES.homeInnings), matchOvers);
+    const ai = parseInnings(pick(r, ALIASES.awayInnings), matchOvers);
+    const withQuota = (s) => (s && matchOvers != null ? { ...s, quotaOvers: matchOvers } : s);
+    const hs = hi || withQuota(parseSummary(pick(r, ALIASES.homeSummary), pick(r, ALIASES.homeOvers)));
+    const as = ai || withQuota(parseSummary(pick(r, ALIASES.awaySummary), pick(r, ALIASES.awayOvers)));
     const parsed = parseResultText(resultText);
     let winner = num(pick(r, ALIASES.winnerId));
     if (winner != null && winner !== home && winner !== away) winner = null;
     if (winner == null && parsed.type && parsed.type !== 'tie' && hs && as) {
       winner = hs.runs > as.runs ? home : (as.runs > hs.runs ? away : null);
+    }
+
+    // A conceded match. CricHeroes charges the side that did not turn up with
+    // nought off the full quota and leaves the winner's figures untouched —
+    // hence one innings here, not two.
+    if (parsed.type === 'walkover' && winner != null && !hs && !as) {
+      const loser = winner === home ? away : home;
+      match.result = {
+        type: 'walkover', winner, margin: null,
+        innings: matchOvers != null
+          ? [{ team: loser, runs: 0, wickets: null, overs: matchOvers, allOut: false, quotaOvers: matchOvers, conceded: true }]
+          : [],
+      };
+      matches.push(match);
+      continue;
     }
 
     if (!hs || !as) {
@@ -255,8 +381,12 @@ export function normaliseMatches(raw) {
     // Whoever posted the higher total with 20 overs used batted first in the
     // common case; where a chase was won, the winner's innings is the shorter.
     const homeFirst = decideBattingOrder(hs, as, winner, home, away, parsed);
-    const first = homeFirst ? { team: home, ...hs } : { team: away, ...as };
-    const second = homeFirst ? { team: away, ...as } : { team: home, ...hs };
+    const innings = (team, s) => {
+      const { inning, revised, ...rest } = s;
+      return { team, ...rest };
+    };
+    const first = homeFirst ? innings(home, hs) : innings(away, as);
+    const second = homeFirst ? innings(away, as) : innings(home, hs);
 
     match.result = {
       type: parsed.type === 'tie' ? 'tie' : (parsed.type || (winner != null ? 'runs' : 'no_result')),
@@ -279,6 +409,9 @@ export function normaliseMatches(raw) {
  * batted second, a side that wins by runs batted first.
  */
 function decideBattingOrder(hs, as, winner, home, away, parsed) {
+  // Where the payload numbers the innings there is nothing to work out.
+  if (hs.inning === 1 || as.inning === 2) return true;
+  if (hs.inning === 2 || as.inning === 1) return false;
   if (parsed.type === 'wickets' && winner != null) return winner !== home;
   if (parsed.type === 'runs' && winner != null) return winner === home;
   // Fall back to overs used: the side batting second often uses fewer.
@@ -299,18 +432,42 @@ export function synthId(name) {
   return 900000000 + (h >>> 0) % 99999999;
 }
 
-/** Published points table, used only to cross-check our own computation. */
+/** "926/119.3" -> { runs: 926, overs: 119.3 }; anything else -> null. */
+export function parseForAgainst(text) {
+  const m = String(text ?? '').match(/^\s*(-?\d+)\s*\/\s*(\d+(?:\.\d+)?)\s*$/);
+  if (!m) return null;
+  return { runs: Number(m[1]), overs: Number(m[2]) };
+}
+
+/**
+ * The published points table.
+ *
+ * Worth carrying in full rather than just as a cross-check. CricHeroes states
+ * each side's runs-for and runs-against with the overs it counted them over,
+ * which is the only way to see where its arithmetic and ours part company —
+ * and its `points` include any penalty the organiser applied, which no
+ * endpoint exposes on its own.
+ */
 export function normalisePointsTable(raw) {
-  const records = findRecords(raw, looksLikeStanding);
-  return records.map((r) => ({
-    teamId: num(pick(r, ALIASES.teamId)),
-    name: String(pick(r, ALIASES.teamName, '')),
-    played: num(pick(r, ALIASES.ptPlayed)),
-    won: num(pick(r, ALIASES.ptWon)),
-    lost: num(pick(r, ALIASES.ptLost)),
-    points: num(pick(r, ALIASES.ptPoints)),
-    nrr: num(pick(r, ALIASES.ptNrr)),
-  })).filter((r) => r.name);
+  const records = collectRecords(raw, looksLikeStanding);
+  return records.map((r) => {
+    const forRuns = parseForAgainst(pick(r, ALIASES.ptFor));
+    const against = parseForAgainst(pick(r, ALIASES.ptAgainst));
+    const row = {
+      teamId: num(pick(r, ALIASES.teamId)),
+      name: String(pick(r, ALIASES.teamName, '')),
+      played: num(pick(r, ALIASES.ptPlayed)),
+      won: num(pick(r, ALIASES.ptWon)),
+      lost: num(pick(r, ALIASES.ptLost)),
+      tied: num(pick(r, ALIASES.ptTied)),
+      noResult: num(pick(r, ALIASES.ptNoResult)),
+      points: num(pick(r, ALIASES.ptPoints)),
+      nrr: num(pick(r, ALIASES.ptNrr)),
+    };
+    if (forRuns) { row.runsFor = forRuns.runs; row.oversFor = forRuns.overs; }
+    if (against) { row.runsAgainst = against.runs; row.oversAgainst = against.overs; }
+    return row;
+  }).filter((r) => r.name);
 }
 
 /** Normalise a whole tournament payload bundle into a snapshot body. */

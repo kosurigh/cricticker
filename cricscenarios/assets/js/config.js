@@ -25,11 +25,23 @@ export function proxyBase() {
 }
 
 export const ENDPOINTS = {
+  // Tried in order. CricHeroes retired every whole-tournament fixture route it
+  // used to serve — all four of the paths below answer 404 today — so the
+  // fixture list is assembled from `teamMatches` instead (see fixtures.js).
+  // They stay here because they cost one request to try and, if CricHeroes ever
+  // brings one back, it is the cheaper path by two orders of magnitude.
   matches: [
     '/api/v1/tournament/get-tournament-matches/{id}?page=1',
     '/api/v1/tournament/get-matches/{id}',
     '/api/v1/tournament/matches/{id}',
     '/api/v1/match/get-tournament-matches/{id}',
+  ],
+  // Per-team fixture list, paginated. `{id}` is a *team* id, not a tournament
+  // id, and every page carries `page.next` until the team's history runs out.
+  // Fanning this out over the tournament's teams and keeping the records whose
+  // tournament_id matches reproduces the fixture list exactly.
+  teamMatches: [
+    '/api/v1/team/get-team-match/{id}',
   ],
   teams: [
     '/api/v1/tournament/get-tournament-teams/{id}',
@@ -37,6 +49,7 @@ export const ENDPOINTS = {
     '/api/v1/tournament/teams/{id}',
   ],
   pointsTable: [
+    '/api/v1/tournament/get-tournament-standing/{id}',
     '/api/v1/tournament/get-point-table/{id}',
     '/api/v1/tournament/get-tournament-point-table/{id}',
     '/api/v1/tournament/point-table/{id}',

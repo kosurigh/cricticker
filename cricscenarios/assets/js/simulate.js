@@ -128,12 +128,15 @@ export function averageFirstInnings(shapes) {
 /**
  * Freeze everything the hot loop needs into flat arrays.
  */
-export function prepare(teams, matches, rules = DEFAULT_RULES) {
+export function prepare(teams, matches, rules = DEFAULT_RULES, baseline = null) {
   const ids = teams.map((t) => t.id);
   const index = new Map(ids.map((id, i) => [id, i]));
   const n = ids.length;
 
-  const rows = buildTable(teams, matches, rules);
+  // With a published baseline the played matches are already counted in it;
+  // every trial then starts from CricHeroes' own table and adds only the
+  // fixtures still to come.
+  const rows = buildTable(teams, matches, rules, baseline);
   const base = {
     points: new Float64Array(n),
     runsFor: new Float64Array(n),
@@ -172,7 +175,7 @@ export function prepare(teams, matches, rules = DEFAULT_RULES) {
   const strengths = bradleyTerry(n, played);
 
   return {
-    ids, index, n, base, remaining, shapes, strengths, rules, teams, matches,
+    ids, index, n, base, remaining, shapes, strengths, rules, teams, matches, baseline,
     avgFirstInnings: averageFirstInnings(shapes),
   };
 }

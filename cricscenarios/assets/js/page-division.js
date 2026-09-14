@@ -16,7 +16,7 @@ import {
 } from './data.js';
 import { prepare, createRun } from './simulate.js';
 import { summarise, buildReport, GOALS } from './scenarios.js';
-import { netRunRate } from './engine.js';
+import { netRunRate, standingsFor } from './engine.js';
 import { SIM_PRESETS, proxyBase } from './config.js';
 
 const q = query();
@@ -156,7 +156,7 @@ async function refreshLive() {
 function rebuild() {
   renderMeta();
   renderWarnings();
-  state.ctx = prepare(state.data.teams, state.data.matches, state.data.rules);
+  state.ctx = prepare(state.data.teams, state.data.matches, state.data.rules, state.data.baseline);
 
   if (!state.ctx.remaining.length) {
     state.results = null;
@@ -226,16 +226,38 @@ function renderWarnings() {
       `${esc(d.placeholder_note || '')} Every number below is computed correctly — from made-up matches.`));
   }
 
-  const issues = crossCheck(
-    state.data.standings.map((r) => ({
-      ...r, name: (d.teams.find((t) => t.id === r.teamId) || {}).name, nrr: netRunRate(r),
-    })),
-    d.published);
-  if (issues.length) {
+  // Where the table is seeded from the published one, comparing the two would
+  // only ever agree with itself. The check that means something is the fixture
+  // list scored independently: it is what the projections are built on, and a
+  // result that stopped parsing shows up here first.
+  const independent = standingsFor(d.teams, d.matches, d.rules).map((r) => ({
+    ...r, name: (d.teams.find((t) => t.id === r.teamId) || {}).name, nrr: netRunRate(r),
+  }));
+  const issues = crossCheck(independent, d.published);
+  if (issues.length && !d.baseline) {
     out.push(banner('error', 'Our table disagrees with the one CricHeroes publishes',
       `${issues.slice(0, 6).map(esc).join('<br>')}<br><br>` +
       'Usually a match result that did not parse, or different points rules. ' +
       'Projections below are only as good as this table.'));
+  }
+
+  // Seeded, but the fixtures we hold do not account for the same results. That
+  // is a parse failure however good the table looks, because the projections
+  // run on the fixtures.
+  if (d.baseline) {
+    const byId = new Map(d.published.map((p) => [p.teamId, p]));
+    const wrong = independent.filter((r) => {
+      const p = byId.get(r.teamId);
+      return p && (p.played !== r.played || p.won !== r.won || p.lost !== r.lost);
+    });
+    if (wrong.length) {
+      out.push(banner('error', 'The fixtures we hold do not match the results CricHeroes publishes',
+        `${wrong.slice(0, 6).map((r) => esc(`${r.name}: we see ${r.played} played / ` +
+          `${r.won} won, CricHeroes shows ${byId.get(r.teamId).played} / ` +
+          `${byId.get(r.teamId).won}.`)).join('<br>')}<br><br>` +
+        'The table above is CricHeroes\' own and is still right, but the projections below ' +
+        'are simulated from the fixtures and are not.'));
+    }
   }
 
   for (const w of (d.warnings || [])) out.push(banner('warn', 'Note', esc(w)));

@@ -63,7 +63,12 @@ export function emptyRow(teamId) {
  * flatter your run rate.
  */
 export function countingBalls(inn, rules) {
-  const quota = rules.overs_per_innings * BALLS_PER_OVER;
+  // `quotaOvers` is this fixture's own allocation. TCL runs 14-, 15-, 16- and
+  // 18-over games inside one tournament, so the rules-level figure is only a
+  // fallback for innings that did not record one (and for simulated ones).
+  const quota = inn.quotaOvers != null
+    ? oversToBalls(inn.quotaOvers)
+    : rules.overs_per_innings * BALLS_PER_OVER;
   if (inn.allOut) return quota;
   const b = inn.balls != null ? inn.balls : oversToBalls(inn.overs);
   return Math.min(b || 0, quota);
@@ -91,6 +96,10 @@ export function applyMatch(rows, match, rules) {
     if (!bat || !bowl) continue;
     const balls = countingBalls(inn, rules);
     bat.runsFor += inn.runs; bat.ballsFor += balls;
+    // A conceded match is charged to the side that forfeited and to nobody
+    // else: the other side never took the field, so crediting it with an
+    // innings' worth of maidens would flatter its run rate for not playing.
+    if (inn.conceded) continue;
     bowl.runsAgainst += inn.runs; bowl.ballsAgainst += balls;
   }
 
@@ -116,11 +125,61 @@ export function netRunRate(row) {
   return scored - conceded;
 }
 
-/** Build fresh rows for every team and fold in every completed match. */
-export function buildTable(teams, matches, rules) {
+/**
+ * Turn the published points table into starting rows.
+ *
+ * Why start from CricHeroes' own numbers rather than our recomputation of
+ * them: two things in the published table cannot be derived from the fixture
+ * list at all. Organisers apply points penalties that no endpoint exposes
+ * (five teams in this tournament sit below their win/loss record), and
+ * CricHeroes' own net run rate parts company with the wicket column on sixteen
+ * innings — it knows how many batters each side had and we do not. Recomputing
+ * gets most rows right and a few wrong, and a table that disagrees with the one
+ * everybody else is reading is worse than useless for arguing about who goes up.
+ *
+ * So: the played matches come from CricHeroes, and this project's arithmetic
+ * is applied to what has *not* been played. Returns null unless the published
+ * table covers every team with the figures needed, which keeps a partial or
+ * stale payload from silently replacing a good computation.
+ */
+export function baselineFromPublished(published, teams) {
+  if (!published || !published.length || !teams || !teams.length) return null;
+  const byId = new Map(published.filter((p) => p.teamId != null).map((p) => [p.teamId, p]));
   const rows = {};
-  for (const t of teams) rows[t.id] = emptyRow(t.id);
+  for (const t of teams) {
+    const p = byId.get(t.id);
+    if (!p || p.points == null || p.runsFor == null || p.runsAgainst == null) return null;
+    rows[t.id] = {
+      ...emptyRow(t.id),
+      played: p.played ?? 0,
+      won: p.won ?? 0,
+      lost: p.lost ?? 0,
+      tied: p.tied ?? 0,
+      noResult: p.noResult ?? 0,
+      points: p.points,
+      runsFor: p.runsFor,
+      ballsFor: oversToBalls(p.oversFor),
+      runsAgainst: p.runsAgainst,
+      ballsAgainst: oversToBalls(p.oversAgainst),
+    };
+  }
+  return rows;
+}
+
+/**
+ * Build rows for every team and fold in the matches.
+ *
+ * With a `baseline` the completed matches are already accounted for in it, so
+ * only the rest are folded in — which is exactly what the simulator needs when
+ * it hands over a set of invented results for the games still to come.
+ */
+export function buildTable(teams, matches, rules, baseline = null) {
+  const rows = {};
+  for (const t of teams) {
+    rows[t.id] = baseline && baseline[t.id] ? { ...baseline[t.id] } : emptyRow(t.id);
+  }
   for (const m of matches) {
+    if (baseline && m.status === 'completed') continue;
     if (m.status === 'completed' && m.result) applyMatch(rows, m, rules);
   }
   return rows;
@@ -187,8 +246,8 @@ export function sortStandings(rows, matches, rules) {
   return list;
 }
 
-export function standingsFor(teams, matches, rules) {
-  return sortStandings(buildTable(teams, matches, rules), matches, rules);
+export function standingsFor(teams, matches, rules, baseline = null) {
+  return sortStandings(buildTable(teams, matches, rules, baseline), matches, rules);
 }
 
 /* ------------------------------------------------------------------ *
@@ -211,8 +270,8 @@ export function remainingPerTeam(teams, matches) {
   return left;
 }
 
-export function pointsBounds(teams, matches, rules) {
-  const rows = buildTable(teams, matches, rules);
+export function pointsBounds(teams, matches, rules, baseline = null) {
+  const rows = buildTable(teams, matches, rules, baseline);
   const left = remainingPerTeam(teams, matches);
   const out = {};
   for (const t of teams) {
@@ -234,8 +293,8 @@ export function pointsBounds(teams, matches, rules) {
  * points sends the placing to net run rate, which points bounds say nothing
  * about — so a tie has to be treated as a place we might lose.
  */
-export function certificates(teamId, teams, matches, rules) {
-  const b = pointsBounds(teams, matches, rules);
+export function certificates(teamId, teams, matches, rules, baseline = null) {
+  const b = pointsBounds(teams, matches, rules, baseline);
   const me = b[teamId];
   const others = teams.filter((t) => t.id !== teamId);
 

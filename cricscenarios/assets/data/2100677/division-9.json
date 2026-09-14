@@ -2,10 +2,13 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 9,
- "generated_at": "2026-09-14T01:25:36.140Z",
- "source": "placeholder",
- "placeholder": true,
- "placeholder_note": "Invented results using this division's real team roster. Built so every screen and calculation can be exercised before live data is wired up. Replace by running: node tools/fetch-tournament.mjs 2100677",
+ "generated_at": "2026-09-14T02:02:21.367Z",
+ "source": "cricheroes",
+ "endpoints": {
+  "matches": "/api/v1/team/get-team-match/{id}",
+  "teams": "/api/v1/tournament/get-tournament-teams/2100677",
+  "points": "/api/v1/tournament/get-tournament-standing/2100677"
+ },
  "rules": {
   "playoff_spots": 4,
   "promotion_spots": 3,
@@ -14,7 +17,7 @@
   "points_tie": 1,
   "points_no_result": 1,
   "points_loss": 0,
-  "overs_per_innings": 20,
+  "overs_per_innings": 18,
   "tiebreak": [
    "points",
    "nrr",
@@ -24,1354 +27,2605 @@
  },
  "teams": [
   {
-   "id": 961718072,
+   "id": 12602266,
    "name": "Alphas",
-   "short": "ALP",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/AL.png"
   },
   {
-   "id": 993092797,
+   "id": 12605545,
    "name": "Bhaukal Army",
-   "short": "BA",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/team_logo/1773072258410_b36ScOqae4zp.jpg"
   },
   {
-   "id": 922243261,
+   "id": 12476340,
    "name": "Chennai Super Kings",
-   "short": "CSK",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/CS.png"
   },
   {
-   "id": 917371495,
+   "id": 12478018,
    "name": "Green Hawks",
-   "short": "GH",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/GH.png"
   },
   {
-   "id": 961655906,
+   "id": 12602245,
    "name": "Hyderabad Hunters",
-   "short": "HH",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/team_logo/1773118029716_zzhTHwkrgURS.jpeg"
   },
   {
-   "id": 947274938,
+   "id": 12480043,
    "name": "Immortals",
-   "short": "IMM",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/IM.png"
   },
   {
-   "id": 923556757,
+   "id": 12476425,
    "name": "Invincible X1",
-   "short": "IX",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/IX.png"
   },
   {
-   "id": 980967192,
+   "id": 12476356,
    "name": "Mighty Conquerors",
-   "short": "MC",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/MC.png"
   },
   {
-   "id": 996091164,
+   "id": 12602239,
    "name": "Revengers HT",
-   "short": "RH",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/RH.png"
   },
   {
-   "id": 900806230,
+   "id": 12602256,
    "name": "Rockers",
-   "short": "ROC",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/team_logo/1772894147447_EnGwGAPU2jbq.jpeg"
   },
   {
-   "id": 965527243,
-   "name": "Royal Bengal Tigers HT",
-   "short": "RBTH",
-   "logo": null
+   "id": 12489612,
+   "name": "Royal Bengal Tigers - HT",
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/RB.png"
   },
   {
-   "id": 954308197,
-   "name": "Royal Bulls",
-   "short": "RB",
-   "logo": null
+   "id": 12480151,
+   "name": "ROYAL BULLS",
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/RB.png"
   },
   {
-   "id": 925752437,
+   "id": 12602198,
    "name": "The Bouys",
-   "short": "TB",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/default/teamintital/TB.png"
   },
   {
-   "id": 914172525,
+   "id": 12490312,
    "name": "The Boys HT",
-   "short": "TBH",
-   "logo": null
+   "short": null,
+   "logo": "https://media.cricheroes.in/team_logo/1772933223347_PJQiJw23aAav.jpeg"
   }
  ],
  "matches": [
   {
-   "id": 9700000,
-   "date": "2026-08-08T14:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 961718072,
-   "away": 914172525,
-   "status": "completed",
-   "resultText": "The Boys HT won by 16 runs",
-   "result": {
-    "winner": 914172525,
-    "type": "runs",
-    "margin": 16,
-    "innings": [
-     {
-      "team": 914172525,
-      "runs": 129,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 961718072,
-      "runs": 113,
-      "wickets": 10,
-      "overs": 15.9,
-      "allOut": true
-     }
-    ]
-   }
+   "id": 26355231,
+   "date": "2026-09-20T14:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12605545,
+   "away": 12476425,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
   },
   {
-   "id": 9700001,
-   "date": "2026-08-08T14:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 925752437,
+   "id": 26355255,
+   "date": "2026-10-03T16:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12605545,
+   "away": 12480151,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355263,
+   "date": "2026-10-11T16:00:00.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12605545,
+   "away": 12489612,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355242,
+   "date": "2026-10-17T16:00:00.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12605545,
+   "away": 12602256,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355194,
+   "date": "2026-09-13T23:09:57.000Z",
+   "venue": "RTP 3",
+   "home": 12605545,
+   "away": 12490312,
    "status": "completed",
-   "resultText": "Bhaukal Army won by 15 runs",
+   "resultText": "resulted — 18 runs",
+   "overs": 18,
    "result": {
-    "winner": 993092797,
     "type": "runs",
-    "margin": 15,
+    "winner": 12605545,
+    "margin": 18,
     "innings": [
      {
-      "team": 993092797,
-      "runs": 127,
-      "wickets": 3,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 925752437,
+      "team": 12605545,
       "runs": 112,
-      "wickets": 9,
-      "overs": 20,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700002,
-   "date": "2026-08-08T15:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 922243261,
-   "away": 954308197,
-   "status": "completed",
-   "resultText": "Chennai Super Kings won by 4 wickets",
-   "result": {
-    "winner": 922243261,
-    "type": "wickets",
-    "margin": 4,
-    "innings": [
-     {
-      "team": 954308197,
-      "runs": 168,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
+      "wickets": 10,
+      "overs": 17.2,
+      "allOut": true,
+      "quotaOvers": 18
      },
      {
-      "team": 922243261,
-      "runs": 170,
-      "wickets": 6,
-      "overs": 18.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700003,
-   "date": "2026-08-08T15:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 917371495,
-   "away": 965527243,
-   "status": "completed",
-   "resultText": "Green Hawks won by 19 runs",
-   "result": {
-    "winner": 917371495,
-    "type": "runs",
-    "margin": 19,
-    "innings": [
-     {
-      "team": 917371495,
-      "runs": 153,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 965527243,
-      "runs": 134,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700004,
-   "date": "2026-08-08T16:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 961655906,
-   "away": 900806230,
-   "status": "completed",
-   "resultText": "Rockers won by 13 runs",
-   "result": {
-    "winner": 900806230,
-    "type": "runs",
-    "margin": 13,
-    "innings": [
-     {
-      "team": 900806230,
-      "runs": 150,
+      "team": 12490312,
+      "runs": 94,
       "wickets": 4,
-      "overs": 20,
-      "allOut": false
-     },
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355200,
+   "date": "2026-09-12T17:05:18.000Z",
+   "venue": "RTP 3",
+   "home": 12605545,
+   "away": 12476356,
+   "status": "completed",
+   "resultText": "abandoned — abandoned",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
+  },
+  {
+   "id": 26355188,
+   "date": "2026-08-30T16:02:20.000Z",
+   "venue": "RTP 4",
+   "home": 12602266,
+   "away": 12605545,
+   "status": "completed",
+   "resultText": "resulted — 59 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602266,
+    "margin": 59,
+    "innings": [
      {
-      "team": 961655906,
-      "runs": 137,
+      "team": 12602266,
+      "runs": 96,
       "wickets": 10,
-      "overs": 15.9,
-      "allOut": true
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700005,
-   "date": "2026-08-08T16:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 947274938,
-   "away": 996091164,
-   "status": "completed",
-   "resultText": "Revengers HT won by 7 wickets",
-   "result": {
-    "winner": 996091164,
-    "type": "wickets",
-    "margin": 7,
-    "innings": [
-     {
-      "team": 947274938,
-      "runs": 119,
-      "wickets": 6,
-      "overs": 20,
-      "allOut": false
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
      },
      {
-      "team": 996091164,
-      "runs": 123,
-      "wickets": 3,
-      "overs": 19.3,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700006,
-   "date": "2026-08-08T17:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 923556757,
-   "away": 980967192,
-   "status": "completed",
-   "resultText": "Mighty Conquerors won by 5 wickets",
-   "result": {
-    "winner": 980967192,
-    "type": "wickets",
-    "margin": 5,
-    "innings": [
-     {
-      "team": 923556757,
-      "runs": 164,
-      "wickets": 6,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 980967192,
-      "runs": 168,
-      "wickets": 5,
-      "overs": 17.4,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700007,
-   "date": "2026-08-15T14:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 961718072,
-   "away": 925752437,
-   "status": "completed",
-   "resultText": "Alphas won by 7 wickets",
-   "result": {
-    "winner": 961718072,
-    "type": "wickets",
-    "margin": 7,
-    "innings": [
-     {
-      "team": 925752437,
-      "runs": 148,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 961718072,
-      "runs": 150,
-      "wickets": 3,
-      "overs": 17.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700008,
-   "date": "2026-08-15T14:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 954308197,
-   "status": "completed",
-   "resultText": "Royal Bulls won by 7 wickets",
-   "result": {
-    "winner": 954308197,
-    "type": "wickets",
-    "margin": 7,
-    "innings": [
-     {
-      "team": 914172525,
-      "runs": 154,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 954308197,
-      "runs": 157,
-      "wickets": 3,
-      "overs": 19,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700009,
-   "date": "2026-08-15T15:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 965527243,
-   "status": "completed",
-   "resultText": "Bhaukal Army won by 8 wickets",
-   "result": {
-    "winner": 993092797,
-    "type": "wickets",
-    "margin": 8,
-    "innings": [
-     {
-      "team": 965527243,
-      "runs": 147,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 993092797,
-      "runs": 149,
-      "wickets": 2,
-      "overs": 18.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700010,
-   "date": "2026-08-15T15:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 922243261,
-   "away": 900806230,
-   "status": "completed",
-   "resultText": "Chennai Super Kings won by 20 runs",
-   "result": {
-    "winner": 922243261,
-    "type": "runs",
-    "margin": 20,
-    "innings": [
-     {
-      "team": 922243261,
-      "runs": 177,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 900806230,
-      "runs": 157,
+      "team": 12605545,
+      "runs": 37,
       "wickets": 10,
-      "overs": 14.8,
-      "allOut": true
+      "overs": 13.5,
+      "allOut": true,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700011,
-   "date": "2026-08-15T16:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 917371495,
-   "away": 996091164,
+   "id": 26355209,
+   "date": "2026-08-23T14:52:54.000Z",
+   "venue": "RTP 1",
+   "home": 12605545,
+   "away": 12602198,
    "status": "completed",
-   "resultText": "Green Hawks won by 8 wickets",
+   "resultText": "resulted — 8 wickets",
+   "overs": 18,
    "result": {
-    "winner": 917371495,
     "type": "wickets",
+    "winner": 12602198,
     "margin": 8,
     "innings": [
      {
-      "team": 996091164,
-      "runs": 154,
-      "wickets": 6,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 917371495,
-      "runs": 158,
-      "wickets": 2,
-      "overs": 18.4,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700012,
-   "date": "2026-08-15T16:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 961655906,
-   "away": 980967192,
-   "status": "completed",
-   "resultText": "Hyderabad Hunters won by 32 runs",
-   "result": {
-    "winner": 961655906,
-    "type": "runs",
-    "margin": 32,
-    "innings": [
-     {
-      "team": 961655906,
-      "runs": 121,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 980967192,
-      "runs": 89,
-      "wickets": 10,
-      "overs": 15.6,
-      "allOut": true
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700013,
-   "date": "2026-08-15T17:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 947274938,
-   "away": 923556757,
-   "status": "completed",
-   "resultText": "Immortals won by 8 runs",
-   "result": {
-    "winner": 947274938,
-    "type": "runs",
-    "margin": 8,
-    "innings": [
-     {
-      "team": 947274938,
-      "runs": 135,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 923556757,
-      "runs": 127,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700014,
-   "date": "2026-08-22T14:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 961718072,
-   "away": 954308197,
-   "status": "completed",
-   "resultText": "Alphas won by 7 runs",
-   "result": {
-    "winner": 961718072,
-    "type": "runs",
-    "margin": 7,
-    "innings": [
-     {
-      "team": 961718072,
-      "runs": 172,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 954308197,
-      "runs": 165,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700015,
-   "date": "2026-08-22T14:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 965527243,
-   "status": "completed",
-   "resultText": "The Bouys won by 8 wickets",
-   "result": {
-    "winner": 925752437,
-    "type": "wickets",
-    "margin": 8,
-    "innings": [
-     {
-      "team": 965527243,
-      "runs": 124,
+      "team": 12605545,
+      "runs": 102,
       "wickets": 9,
-      "overs": 20,
-      "allOut": false
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 925752437,
-      "runs": 127,
+      "team": 12602198,
+      "runs": 106,
       "wickets": 2,
-      "overs": 19.3,
-      "allOut": false
+      "overs": 11.3,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700016,
-   "date": "2026-08-22T15:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 900806230,
+   "id": 26355225,
+   "date": "2026-08-15T12:11:23.000Z",
+   "venue": "River Forest Park",
+   "home": 12605545,
+   "away": 12480043,
    "status": "completed",
-   "resultText": "Rockers won by 6 wickets",
+   "resultText": "resulted — 6 wickets",
+   "overs": 18,
    "result": {
-    "winner": 900806230,
     "type": "wickets",
+    "winner": 12480043,
     "margin": 6,
     "innings": [
      {
-      "team": 914172525,
-      "runs": 164,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 900806230,
-      "runs": 165,
-      "wickets": 4,
-      "overs": 18.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700017,
-   "date": "2026-08-22T15:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 996091164,
-   "status": "completed",
-   "resultText": "Bhaukal Army won by 4 wickets",
-   "result": {
-    "winner": 993092797,
-    "type": "wickets",
-    "margin": 4,
-    "innings": [
-     {
-      "team": 996091164,
-      "runs": 170,
+      "team": 12605545,
+      "runs": 96,
       "wickets": 9,
-      "overs": 20,
-      "allOut": false
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 993092797,
-      "runs": 171,
-      "wickets": 6,
-      "overs": 19.3,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700018,
-   "date": "2026-08-22T16:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 922243261,
-   "away": 980967192,
-   "status": "completed",
-   "resultText": "Mighty Conquerors won by 29 runs",
-   "result": {
-    "winner": 980967192,
-    "type": "runs",
-    "margin": 29,
-    "innings": [
-     {
-      "team": 980967192,
-      "runs": 172,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 922243261,
-      "runs": 143,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700019,
-   "date": "2026-08-22T16:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 917371495,
-   "away": 923556757,
-   "status": "completed",
-   "resultText": "Invincible X1 won by 7 wickets",
-   "result": {
-    "winner": 923556757,
-    "type": "wickets",
-    "margin": 7,
-    "innings": [
-     {
-      "team": 917371495,
-      "runs": 87,
+      "team": 12480043,
+      "runs": 101,
       "wickets": 4,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 923556757,
-      "runs": 90,
-      "wickets": 3,
-      "overs": 17.3,
-      "allOut": false
+      "overs": 15,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700020,
-   "date": "2026-08-22T17:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 961655906,
-   "away": 947274938,
+   "id": 26355227,
+   "date": "2026-08-08T21:08:35.000Z",
+   "venue": "River Forest Park",
+   "home": 12602239,
+   "away": 12605545,
    "status": "completed",
-   "resultText": "Hyderabad Hunters won by 24 runs",
+   "resultText": "resulted — 49 runs",
+   "overs": 18,
    "result": {
-    "winner": 961655906,
     "type": "runs",
-    "margin": 24,
+    "winner": 12602239,
+    "margin": 49,
     "innings": [
      {
-      "team": 961655906,
-      "runs": 180,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
+      "team": 12602239,
+      "runs": 103,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 947274938,
-      "runs": 156,
+      "team": 12605545,
+      "runs": 54,
       "wickets": 10,
-      "overs": 14.1,
-      "allOut": true
+      "overs": 16.1,
+      "allOut": true,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700021,
-   "date": "2026-08-29T14:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 961718072,
-   "away": 965527243,
+   "id": 26355237,
+   "date": "2026-08-02T21:06:59.000Z",
+   "venue": "Century Fields 2",
+   "home": 12605545,
+   "away": 12602245,
    "status": "completed",
-   "resultText": "Royal Bengal Tigers HT won by 20 runs",
+   "resultText": "Resulted — 3 wickets",
+   "overs": 18,
    "result": {
-    "winner": 965527243,
+    "type": "wickets",
+    "winner": 12602245,
+    "margin": 3,
+    "innings": [
+     {
+      "team": 12605545,
+      "runs": 92,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602245,
+      "runs": 93,
+      "wickets": 7,
+      "overs": 15.2,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26161887,
+   "date": "2026-07-18T18:08:37.000Z",
+   "venue": "RTP 4",
+   "home": 12605545,
+   "away": 12476340,
+   "status": "completed",
+   "resultText": "Resulted — 6 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476340,
+    "margin": 6,
+    "innings": [
+     {
+      "team": 12605545,
+      "runs": 77,
+      "wickets": 10,
+      "overs": 16.4,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476340,
+      "runs": 79,
+      "wickets": 4,
+      "overs": 11.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 25801423,
+   "date": "2026-06-28T16:06:18.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12478018,
+   "away": 12605545,
+   "status": "completed",
+   "resultText": "Resulted — 61 runs",
+   "overs": 18,
+   "result": {
     "type": "runs",
+    "winner": 12478018,
+    "margin": 61,
+    "innings": [
+     {
+      "team": 12478018,
+      "runs": 132,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12605545,
+      "runs": 71,
+      "wickets": 10,
+      "overs": 15.5,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355233,
+   "date": "2026-09-19T17:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12602266,
+   "away": 12602239,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355229,
+   "date": "2026-09-20T17:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12602266,
+   "away": 12476356,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355260,
+   "date": "2026-09-26T16:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12602266,
+   "away": 12480151,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355261,
+   "date": "2026-10-11T22:00:00.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12602266,
+   "away": 12476340,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355195,
+   "date": "2026-09-13T20:02:29.000Z",
+   "venue": "RTP 3",
+   "home": 12602266,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "resulted — 31 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602266,
+    "margin": 31,
+    "innings": [
+     {
+      "team": 12602266,
+      "runs": 122,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602198,
+      "runs": 91,
+      "wickets": 10,
+      "overs": 17.3,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355192,
+   "date": "2026-08-29T16:00:00.000Z",
+   "venue": "RTP 4",
+   "home": 12602266,
+   "away": 12489612,
+   "status": "completed",
+   "resultText": "resulted — 17 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602266,
+    "margin": 17,
+    "innings": [
+     {
+      "team": 12602266,
+      "runs": 101,
+      "wickets": 5,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489612,
+      "runs": 84,
+      "wickets": 9,
+      "overs": 16.4,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355215,
+   "date": "2026-08-22T11:48:35.000Z",
+   "venue": "RTP 1",
+   "home": 12476425,
+   "away": 12602266,
+   "status": "completed",
+   "resultText": "resulted — 5 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12602266,
+    "margin": 5,
+    "innings": [
+     {
+      "team": 12476425,
+      "runs": 70,
+      "wickets": 10,
+      "overs": 17.2,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602266,
+      "runs": 71,
+      "wickets": 5,
+      "overs": 12.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355222,
+   "date": "2026-08-15T21:03:49.000Z",
+   "venue": "River Forest Park",
+   "home": 12602266,
+   "away": 12602245,
+   "status": "completed",
+   "resultText": "resulted — 20 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602266,
     "margin": 20,
     "innings": [
      {
-      "team": 965527243,
-      "runs": 144,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
+      "team": 12602266,
+      "runs": 128,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 961718072,
-      "runs": 124,
-      "wickets": 9,
-      "overs": 20,
-      "allOut": false
+      "team": 12602245,
+      "runs": 108,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700022,
-   "date": "2026-08-29T14:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 954308197,
-   "away": 900806230,
+   "id": 26355226,
+   "date": "2026-08-09T21:00:00.000Z",
+   "venue": "River Forest Park",
+   "home": 12602266,
+   "away": 12602256,
    "status": "completed",
-   "resultText": "Rockers won by 8 wickets",
+   "resultText": "resulted — 6 wickets",
+   "overs": 18,
    "result": {
-    "winner": 900806230,
     "type": "wickets",
-    "margin": 8,
+    "winner": 12602256,
+    "margin": 6,
     "innings": [
      {
-      "team": 954308197,
-      "runs": 163,
-      "wickets": 9,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 900806230,
-      "runs": 165,
-      "wickets": 2,
-      "overs": 18.3,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700023,
-   "date": "2026-08-29T15:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 996091164,
-   "status": "completed",
-   "resultText": "The Bouys won by 15 runs",
-   "result": {
-    "winner": 925752437,
-    "type": "runs",
-    "margin": 15,
-    "innings": [
-     {
-      "team": 925752437,
-      "runs": 165,
+      "team": 12602266,
+      "runs": 138,
       "wickets": 6,
-      "overs": 20,
-      "allOut": false
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 996091164,
-      "runs": 150,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
+      "team": 12602256,
+      "runs": 139,
+      "wickets": 4,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700024,
-   "date": "2026-08-29T15:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 980967192,
+   "id": 26161881,
+   "date": "2026-07-26T21:00:00.000Z",
+   "venue": "River Forest Park",
+   "home": 12602266,
+   "away": 12478018,
    "status": "completed",
-   "resultText": "Mighty Conquerors won by 27 runs",
+   "resultText": "Resulted — 6 wickets",
+   "overs": 18,
    "result": {
-    "winner": 980967192,
+    "type": "wickets",
+    "winner": 12478018,
+    "margin": 6,
+    "innings": [
+     {
+      "team": 12602266,
+      "runs": 131,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478018,
+      "runs": 132,
+      "wickets": 4,
+      "overs": 15.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26161888,
+   "date": "2026-07-18T15:05:41.000Z",
+   "venue": "RTP 4",
+   "home": 12602266,
+   "away": 12480043,
+   "status": "completed",
+   "resultText": "Resulted — 23 runs",
+   "overs": 18,
+   "result": {
     "type": "runs",
+    "winner": 12602266,
+    "margin": 23,
+    "innings": [
+     {
+      "team": 12602266,
+      "runs": 119,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480043,
+      "runs": 96,
+      "wickets": 3,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 25801427,
+   "date": "2026-06-27T17:04:04.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12490312,
+   "away": 12602266,
+   "status": "completed",
+   "resultText": "Resulted — 7 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12602266,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 124,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602266,
+      "runs": 126,
+      "wickets": 3,
+      "overs": 15.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355234,
+   "date": "2026-09-19T14:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12476425,
+   "away": 12476340,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355258,
+   "date": "2026-09-27T13:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12490312,
+   "away": 12476340,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355216,
+   "date": "2026-10-10T13:30:00.000Z",
+   "venue": "River Forest Park",
+   "home": 12489612,
+   "away": 12476340,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355239,
+   "date": "2026-10-18T16:00:00.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12602198,
+   "away": 12476340,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355189,
+   "date": "2026-08-30T13:00:00.000Z",
+   "venue": "RTP 4",
+   "home": 12476340,
+   "away": 12602245,
+   "status": "completed",
+   "resultText": "resulted — 27 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476340,
     "margin": 27,
     "innings": [
      {
-      "team": 980967192,
-      "runs": 129,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
+      "team": 12476340,
+      "runs": 124,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 914172525,
-      "runs": 102,
+      "team": 12602245,
+      "runs": 97,
       "wickets": 10,
-      "overs": 17.2,
-      "allOut": true
+      "overs": 17.5,
+      "allOut": true,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700025,
-   "date": "2026-08-29T16:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 923556757,
+   "id": 26355193,
+   "date": "2026-08-29T13:03:50.000Z",
+   "venue": "RTP 4",
+   "home": 12602256,
+   "away": 12476340,
    "status": "completed",
-   "resultText": "Bhaukal Army won by 7 wickets",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
    "result": {
-    "winner": 993092797,
     "type": "wickets",
+    "winner": 12476340,
     "margin": 7,
     "innings": [
      {
-      "team": 923556757,
-      "runs": 155,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 993092797,
-      "runs": 159,
-      "wickets": 3,
+      "team": 12602256,
+      "runs": 77,
+      "wickets": 10,
       "overs": 17.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700026,
-   "date": "2026-08-29T16:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 922243261,
-   "away": 947274938,
-   "status": "completed",
-   "resultText": "Chennai Super Kings won by 6 wickets",
-   "result": {
-    "winner": 922243261,
-    "type": "wickets",
-    "margin": 6,
-    "innings": [
-     {
-      "team": 947274938,
-      "runs": 142,
-      "wickets": 4,
-      "overs": 20,
-      "allOut": false
+      "allOut": true,
+      "quotaOvers": 18
      },
      {
-      "team": 922243261,
-      "runs": 144,
-      "wickets": 4,
-      "overs": 19.1,
-      "allOut": false
+      "team": 12476340,
+      "runs": 78,
+      "wickets": 3,
+      "overs": 11.4,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700027,
-   "date": "2026-08-29T17:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 917371495,
-   "away": 961655906,
+   "id": 26355212,
+   "date": "2026-08-22T17:45:00.000Z",
+   "venue": "RTP 1",
+   "home": 12476340,
+   "away": 12480151,
    "status": "completed",
-   "resultText": "Green Hawks won by 5 wickets",
+   "resultText": "resulted — 5 wickets",
+   "overs": 18,
    "result": {
-    "winner": 917371495,
     "type": "wickets",
+    "winner": 12480151,
     "margin": 5,
     "innings": [
      {
-      "team": 961655906,
-      "runs": 157,
-      "wickets": 4,
-      "overs": 20,
-      "allOut": false
+      "team": 12476340,
+      "runs": 99,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 917371495,
+      "team": 12480151,
+      "runs": 100,
+      "wickets": 5,
+      "overs": 9.4,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355220,
+   "date": "2026-08-16T12:00:00.000Z",
+   "venue": "River Forest Park",
+   "home": 12476340,
+   "away": 12478018,
+   "status": "completed",
+   "resultText": "resulted — 60 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476340,
+    "margin": 60,
+    "innings": [
+     {
+      "team": 12476340,
+      "runs": 149,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478018,
+      "runs": 89,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355243,
+   "date": "2026-08-09T20:35:10.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12480043,
+   "away": 12476340,
+   "status": "completed",
+   "resultText": "resulted — 20 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480043,
+    "margin": 20,
+    "innings": [
+     {
+      "team": 12480043,
+      "runs": 115,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476340,
+      "runs": 95,
+      "wickets": 9,
+      "overs": 16.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355267,
+   "date": "2026-08-02T19:00:27.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12602239,
+   "away": 12476340,
+   "status": "completed",
+   "resultText": "Resulted — 3 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476340,
+    "margin": 3,
+    "innings": [
+     {
+      "team": 12602239,
+      "runs": 76,
+      "wickets": 10,
+      "overs": 14.2,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476340,
+      "runs": 77,
+      "wickets": 7,
+      "overs": 12.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26053702,
+   "date": "2026-07-12T15:00:00.000Z",
+   "venue": "River Forest Park",
+   "home": 12476340,
+   "away": 12476356,
+   "status": "completed",
+   "resultText": "Resulted — 28 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476340,
+    "margin": 28,
+    "innings": [
+     {
+      "team": 12476340,
       "runs": 158,
       "wickets": 5,
-      "overs": 18.3,
-      "allOut": false
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476356,
+      "runs": 130,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700028,
-   "date": "2026-09-05T14:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 961718072,
-   "away": 900806230,
+   "id": 26355251,
+   "date": "2026-10-04T13:45:00.000Z",
+   "venue": "Bethesda - Upper",
+   "home": 12478018,
+   "away": 12476425,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355241,
+   "date": "2026-10-17T19:30:00.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12490312,
+   "away": 12478018,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355197,
+   "date": "2026-09-13T14:03:56.000Z",
+   "venue": "RTP 3",
+   "home": 12602245,
+   "away": 12478018,
    "status": "completed",
-   "resultText": "Alphas won by 4 wickets",
+   "resultText": "resulted — 3 wickets",
+   "overs": 18,
    "result": {
-    "winner": 961718072,
     "type": "wickets",
-    "margin": 4,
+    "winner": 12478018,
+    "margin": 3,
     "innings": [
      {
-      "team": 900806230,
-      "runs": 166,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
+      "team": 12602245,
+      "runs": 107,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 961718072,
-      "runs": 168,
-      "wickets": 6,
-      "overs": 16.4,
-      "allOut": false
+      "team": 12478018,
+      "runs": 113,
+      "wickets": 7,
+      "overs": 16.5,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700029,
-   "date": "2026-09-05T14:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 965527243,
-   "away": 996091164,
-   "status": "upcoming"
-  },
-  {
-   "id": 9700030,
-   "date": "2026-09-05T15:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 954308197,
-   "away": 980967192,
+   "id": 26355201,
+   "date": "2026-09-12T14:03:23.000Z",
+   "venue": "RTP 3",
+   "home": 12602239,
+   "away": 12478018,
    "status": "completed",
-   "resultText": "Royal Bulls won by 25 runs",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
    "result": {
-    "winner": 954308197,
-    "type": "runs",
-    "margin": 25,
-    "innings": [
-     {
-      "team": 954308197,
-      "runs": 169,
-      "wickets": 4,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 980967192,
-      "runs": 144,
-      "wickets": 10,
-      "overs": 15.8,
-      "allOut": true
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700031,
-   "date": "2026-09-05T15:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 923556757,
-   "status": "upcoming"
-  },
-  {
-   "id": 9700032,
-   "date": "2026-09-05T16:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 947274938,
-   "status": "completed",
-   "resultText": "The Boys HT won by 35 runs",
-   "result": {
-    "winner": 914172525,
-    "type": "runs",
-    "margin": 35,
-    "innings": [
-     {
-      "team": 914172525,
-      "runs": 122,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 947274938,
-      "runs": 87,
-      "wickets": 10,
-      "overs": 17.9,
-      "allOut": true
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700033,
-   "date": "2026-09-05T16:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 961655906,
-   "status": "completed",
-   "resultText": "Bhaukal Army won by 8 wickets",
-   "result": {
-    "winner": 993092797,
     "type": "wickets",
-    "margin": 8,
-    "innings": [
-     {
-      "team": 961655906,
-      "runs": 196,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 993092797,
-      "runs": 199,
-      "wickets": 2,
-      "overs": 17.5,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700034,
-   "date": "2026-09-05T17:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 922243261,
-   "away": 917371495,
-   "status": "completed",
-   "resultText": "Green Hawks won by 7 wickets",
-   "result": {
-    "winner": 917371495,
-    "type": "wickets",
+    "winner": 12478018,
     "margin": 7,
     "innings": [
      {
-      "team": 922243261,
-      "runs": 173,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 917371495,
-      "runs": 176,
-      "wickets": 3,
-      "overs": 19.2,
-      "allOut": false
-     }
-    ]
-   }
-  },
-  {
-   "id": 9700035,
-   "date": "2026-09-12T14:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 961718072,
-   "away": 996091164,
-   "status": "upcoming"
-  },
-  {
-   "id": 9700036,
-   "date": "2026-09-12T14:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 900806230,
-   "away": 980967192,
-   "status": "upcoming"
-  },
-  {
-   "id": 9700037,
-   "date": "2026-09-12T15:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 965527243,
-   "away": 923556757,
-   "status": "completed",
-   "resultText": "Royal Bengal Tigers HT won by 32 runs",
-   "result": {
-    "winner": 965527243,
-    "type": "runs",
-    "margin": 32,
-    "innings": [
-     {
-      "team": 965527243,
-      "runs": 163,
-      "wickets": 4,
-      "overs": 20,
-      "allOut": false
-     },
-     {
-      "team": 923556757,
-      "runs": 131,
+      "team": 12602239,
+      "runs": 78,
       "wickets": 9,
-      "overs": 20,
-      "allOut": false
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478018,
+      "runs": 82,
+      "wickets": 3,
+      "overs": 13.1,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700038,
-   "date": "2026-09-12T15:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 954308197,
-   "away": 947274938,
+   "id": 26355191,
+   "date": "2026-08-29T19:04:30.000Z",
+   "venue": "RTP 4",
+   "home": 12480043,
+   "away": 12478018,
    "status": "completed",
-   "resultText": "Immortals won by 10 runs",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
    "result": {
-    "winner": 947274938,
-    "type": "runs",
-    "margin": 10,
+    "type": "wickets",
+    "winner": 12478018,
+    "margin": 7,
     "innings": [
      {
-      "team": 947274938,
+      "team": 12480043,
       "runs": 102,
-      "wickets": 7,
-      "overs": 20,
-      "allOut": false
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 954308197,
-      "runs": 92,
+      "team": 12478018,
+      "runs": 103,
+      "wickets": 3,
+      "overs": 16.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355213,
+   "date": "2026-08-22T14:46:37.000Z",
+   "venue": "RTP 1",
+   "home": 12478018,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "resulted — 3 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12602198,
+    "margin": 3,
+    "innings": [
+     {
+      "team": 12478018,
+      "runs": 41,
+      "wickets": 10,
+      "overs": 16.4,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602198,
+      "runs": 42,
+      "wickets": 7,
+      "overs": 9,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355247,
+   "date": "2026-08-08T17:03:52.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12478018,
+   "away": 12476356,
+   "status": "completed",
+   "resultText": "resulted — 3 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476356,
+    "margin": 3,
+    "innings": [
+     {
+      "team": 12478018,
+      "runs": 93,
+      "wickets": 9,
+      "overs": 17,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476356,
+      "runs": 94,
+      "wickets": 7,
+      "overs": 15.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355265,
+   "date": "2026-08-02T22:03:34.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12478018,
+   "away": 12602256,
+   "status": "completed",
+   "resultText": "Resulted — Tournament Rules",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602256,
+    "margin": null,
+    "innings": [
+     {
+      "team": 12478018,
+      "runs": 117,
+      "wickets": 10,
+      "overs": 17,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602256,
+      "runs": 69,
+      "wickets": 4,
+      "overs": 10.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26161889,
+   "date": "2026-07-18T12:06:08.000Z",
+   "venue": "RTP 4",
+   "home": 12489612,
+   "away": 12478018,
+   "status": "completed",
+   "resultText": "Resulted — 9 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12478018,
+    "margin": 9,
+    "innings": [
+     {
+      "team": 12489612,
+      "runs": 37,
+      "wickets": 10,
+      "overs": 12.4,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478018,
+      "runs": 38,
+      "wickets": 1,
+      "overs": 6.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26053704,
+   "date": "2026-07-11T15:05:52.000Z",
+   "venue": "River Forest Park",
+   "home": 12480151,
+   "away": 12478018,
+   "status": "completed",
+   "resultText": "Resulted — 16 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480151,
+    "margin": 16,
+    "innings": [
+     {
+      "team": 12480151,
+      "runs": 110,
+      "wickets": 10,
+      "overs": 17,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478018,
+      "runs": 94,
+      "wickets": 10,
+      "overs": 17.4,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355232,
+   "date": "2026-09-19T20:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12602245,
+   "away": 12480043,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355256,
+   "date": "2026-09-27T19:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12602245,
+   "away": 12476425,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355250,
+   "date": "2026-10-04T16:45:00.000Z",
+   "venue": "Bethesda - Upper",
+   "home": 12602245,
+   "away": 12476356,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355264,
+   "date": "2026-10-11T13:00:00.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12602245,
+   "away": 12480151,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355240,
+   "date": "2026-10-18T12:30:00.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12602245,
+   "away": 12489612,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355211,
+   "date": "2026-08-22T20:49:03.000Z",
+   "venue": "RTP 1",
+   "home": 12602245,
+   "away": 12490312,
+   "status": "completed",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12490312,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12602245,
+      "runs": 73,
       "wickets": 10,
       "overs": 16,
-      "allOut": true
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12490312,
+      "runs": 74,
+      "wickets": 3,
+      "overs": 7.3,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700039,
-   "date": "2026-09-12T16:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 961655906,
+   "id": 26355217,
+   "date": "2026-08-16T21:06:50.000Z",
+   "venue": "River Forest Park",
+   "home": 12602245,
+   "away": 12602256,
    "status": "completed",
-   "resultText": "The Bouys won by 6 wickets",
+   "resultText": "resulted — 4 wickets",
+   "overs": 18,
    "result": {
-    "winner": 925752437,
     "type": "wickets",
+    "winner": 12602256,
+    "margin": 4,
+    "innings": [
+     {
+      "team": 12602245,
+      "runs": 103,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602256,
+      "runs": 105,
+      "wickets": 6,
+      "overs": 15,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26161886,
+   "date": "2026-07-19T12:03:49.000Z",
+   "venue": "RTP 4",
+   "home": 12602198,
+   "away": 12602245,
+   "status": "completed",
+   "resultText": "Resulted — 37 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602198,
+    "margin": 37,
+    "innings": [
+     {
+      "team": 12602198,
+      "runs": 73,
+      "wickets": 10,
+      "overs": 15.3,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602245,
+      "runs": 36,
+      "wickets": 10,
+      "overs": 13,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 25801424,
+   "date": "2026-06-28T20:30:03.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12602239,
+   "away": 12602245,
+   "status": "completed",
+   "resultText": "Abandoned — Called Off due to rain",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
+  },
+  {
+   "id": 26355185,
+   "date": "2026-09-27T13:00:00.000Z",
+   "venue": "RTP 4",
+   "home": 12602198,
+   "away": 12480043,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355252,
+   "date": "2026-10-03T16:45:00.000Z",
+   "venue": "Bethesda - Upper",
+   "home": 12602256,
+   "away": 12480043,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355198,
+   "date": "2026-09-12T22:58:15.000Z",
+   "venue": "RTP 3",
+   "home": 12480043,
+   "away": 12480151,
+   "status": "completed",
+   "resultText": "resulted — 4 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12480151,
+    "margin": 4,
+    "innings": [
+     {
+      "team": 12480043,
+      "runs": 51,
+      "wickets": 10,
+      "overs": 17.2,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480151,
+      "runs": 54,
+      "wickets": 6,
+      "overs": 11.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355208,
+   "date": "2026-08-23T17:51:29.000Z",
+   "venue": "RTP 1",
+   "home": 12480043,
+   "away": 12602239,
+   "status": "completed",
+   "resultText": "resulted — 47 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480043,
+    "margin": 47,
+    "innings": [
+     {
+      "team": 12480043,
+      "runs": 142,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602239,
+      "runs": 95,
+      "wickets": 10,
+      "overs": 15.5,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355219,
+   "date": "2026-08-16T15:03:36.000Z",
+   "venue": "River Forest Park",
+   "home": 12480043,
+   "away": 12490312,
+   "status": "completed",
+   "resultText": "resulted — 9 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12490312,
+    "margin": 9,
+    "innings": [
+     {
+      "team": 12480043,
+      "runs": 78,
+      "wickets": 10,
+      "overs": 17.5,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12490312,
+      "runs": 80,
+      "wickets": 1,
+      "overs": 11.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355268,
+   "date": "2026-08-02T16:02:26.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12476356,
+   "away": 12480043,
+   "status": "completed",
+   "resultText": "Resulted — 97 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476356,
+    "margin": 97,
+    "innings": [
+     {
+      "team": 12476356,
+      "runs": 162,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480043,
+      "runs": 65,
+      "wickets": 10,
+      "overs": 15.4,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26053705,
+   "date": "2026-07-11T12:05:22.000Z",
+   "venue": "River Forest Park",
+   "home": 12476425,
+   "away": 12480043,
+   "status": "completed",
+   "resultText": "Resulted — 42 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476425,
+    "margin": 42,
+    "innings": [
+     {
+      "team": 12476425,
+      "runs": 102,
+      "wickets": 10,
+      "overs": 16.5,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480043,
+      "runs": 60,
+      "wickets": 10,
+      "overs": 15.2,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 25801426,
+   "date": "2026-06-28T12:01:19.000Z",
+   "venue": "RTP 1",
+   "home": 12480043,
+   "away": 12489612,
+   "status": "completed",
+   "resultText": "Resulted — 6 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12489612,
     "margin": 6,
     "innings": [
      {
-      "team": 961655906,
-      "runs": 135,
-      "wickets": 5,
-      "overs": 20,
-      "allOut": false
+      "team": 12480043,
+      "runs": 99,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 925752437,
-      "runs": 139,
+      "team": 12489612,
+      "runs": 102,
       "wickets": 4,
-      "overs": 19.1,
-      "allOut": false
+      "overs": 14,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700040,
-   "date": "2026-09-12T16:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 917371495,
+   "id": 26355254,
+   "date": "2026-10-10T19:30:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12602239,
+   "away": 12476425,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355190,
+   "date": "2026-08-29T22:02:10.000Z",
+   "venue": "RTP 4",
+   "home": 12476425,
+   "away": 12476356,
    "status": "completed",
-   "resultText": "The Boys HT won by 8 wickets",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
    "result": {
-    "winner": 914172525,
     "type": "wickets",
-    "margin": 8,
+    "winner": 12476356,
+    "margin": 7,
     "innings": [
      {
-      "team": 917371495,
-      "runs": 186,
-      "wickets": 8,
-      "overs": 20,
-      "allOut": false
+      "team": 12476425,
+      "runs": 62,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
      },
      {
-      "team": 914172525,
-      "runs": 187,
-      "wickets": 2,
-      "overs": 19.3,
-      "allOut": false
+      "team": 12476356,
+      "runs": 67,
+      "wickets": 3,
+      "overs": 8.3,
+      "allOut": false,
+      "quotaOvers": 18
      }
     ]
    }
   },
   {
-   "id": 9700041,
-   "date": "2026-09-12T17:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 993092797,
-   "away": 922243261,
-   "status": "upcoming"
+   "id": 26355210,
+   "date": "2026-08-23T11:51:21.000Z",
+   "venue": "RTP 1",
+   "home": 12602256,
+   "away": 12476425,
+   "status": "completed",
+   "resultText": "resulted — 60 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602256,
+    "margin": 60,
+    "innings": [
+     {
+      "team": 12602256,
+      "runs": 150,
+      "wickets": 4,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476425,
+      "runs": 90,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700042,
-   "date": "2026-09-19T14:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 961718072,
-   "away": 980967192,
-   "status": "upcoming"
+   "id": 26355202,
+   "date": "2026-08-15T14:02:26.000Z",
+   "venue": "RTP 3",
+   "home": 12476425,
+   "away": 12489612,
+   "status": "completed",
+   "resultText": "resulted — 2 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476425,
+    "margin": 2,
+    "innings": [
+     {
+      "team": 12476425,
+      "runs": 99,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489612,
+      "runs": 97,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700043,
-   "date": "2026-09-19T14:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 996091164,
-   "away": 923556757,
-   "status": "upcoming"
+   "id": 26355235,
+   "date": "2026-08-08T21:05:56.000Z",
+   "venue": "Century Fields 3",
+   "home": 12490312,
+   "away": 12476425,
+   "status": "completed",
+   "resultText": "resulted — 13 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12490312,
+    "margin": 13,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 128,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476425,
+      "runs": 115,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700044,
-   "date": "2026-09-19T15:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 900806230,
-   "away": 947274938,
-   "status": "upcoming"
+   "id": 26161883,
+   "date": "2026-07-25T15:44:37.000Z",
+   "venue": "River Forest Park",
+   "home": 12476425,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "Resulted — 14 runs",
+   "overs": 14,
+   "result": {
+    "type": "runs",
+    "winner": 12476425,
+    "margin": 14,
+    "innings": [
+     {
+      "team": 12476425,
+      "runs": 73,
+      "wickets": 7,
+      "overs": 14,
+      "allOut": false,
+      "quotaOvers": 14
+     },
+     {
+      "team": 12602198,
+      "runs": 59,
+      "wickets": 9,
+      "overs": 14,
+      "allOut": false,
+      "quotaOvers": 14
+     }
+    ]
+   }
   },
   {
-   "id": 9700045,
-   "date": "2026-09-19T15:30:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 965527243,
-   "away": 961655906,
-   "status": "upcoming"
+   "id": 25801425,
+   "date": "2026-06-28T15:05:37.000Z",
+   "venue": "RTP 1",
+   "home": 12480151,
+   "away": 12476425,
+   "status": "completed",
+   "resultText": "Resulted — 74 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480151,
+    "margin": 74,
+    "innings": [
+     {
+      "team": 12480151,
+      "runs": 175,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476425,
+      "runs": 101,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700046,
-   "date": "2026-09-19T16:00:00.000Z",
-   "venue": "RTP Park",
-   "home": 954308197,
-   "away": 917371495,
-   "status": "upcoming"
+   "id": 26355259,
+   "date": "2026-09-26T19:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12602239,
+   "away": 12476356,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
   },
   {
-   "id": 9700047,
-   "date": "2026-09-19T16:30:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 922243261,
-   "status": "upcoming"
+   "id": 26355238,
+   "date": "2026-10-18T19:30:00.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12602256,
+   "away": 12476356,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
   },
   {
-   "id": 9700048,
-   "date": "2026-09-19T17:00:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 914172525,
-   "away": 993092797,
-   "status": "upcoming"
+   "id": 26355203,
+   "date": "2026-08-23T20:43:18.000Z",
+   "venue": "RTP 1",
+   "home": 12476356,
+   "away": 12489612,
+   "status": "completed",
+   "resultText": "resulted — 119 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476356,
+    "margin": 119,
+    "innings": [
+     {
+      "team": 12476356,
+      "runs": 170,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489612,
+      "runs": 51,
+      "wickets": 10,
+      "overs": 11.3,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700049,
-   "date": "2026-09-26T14:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 961718072,
-   "away": 923556757,
-   "status": "upcoming"
+   "id": 26355245,
+   "date": "2026-08-09T17:05:03.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12476356,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "resulted — 4 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12602198,
+    "margin": 4,
+    "innings": [
+     {
+      "team": 12476356,
+      "runs": 110,
+      "wickets": 10,
+      "overs": 16.2,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602198,
+      "runs": 111,
+      "wickets": 6,
+      "overs": 16.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700050,
-   "date": "2026-09-26T14:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 980967192,
-   "away": 947274938,
-   "status": "upcoming"
+   "id": 26161882,
+   "date": "2026-07-25T21:02:08.000Z",
+   "venue": "River Forest Park",
+   "home": 12476356,
+   "away": 12480151,
+   "status": "completed",
+   "resultText": "Resulted — 1 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12476356,
+    "margin": 1,
+    "innings": [
+     {
+      "team": 12476356,
+      "runs": 118,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480151,
+      "runs": 117,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700051,
-   "date": "2026-09-26T15:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 996091164,
-   "away": 961655906,
-   "status": "upcoming"
+   "id": 26161885,
+   "date": "2026-07-19T15:03:05.000Z",
+   "venue": "RTP 4",
+   "home": 12490312,
+   "away": 12476356,
+   "status": "completed",
+   "resultText": "Resulted — 19 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12490312,
+    "margin": 19,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 108,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476356,
+      "runs": 89,
+      "wickets": 10,
+      "overs": 17.3,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700052,
-   "date": "2026-09-26T15:30:00.000Z",
-   "venue": "Cary Ground 1",
-   "home": 900806230,
-   "away": 917371495,
-   "status": "upcoming"
+   "id": 26355249,
+   "date": "2026-10-04T19:45:00.000Z",
+   "venue": "Bethesda - Upper",
+   "home": 12602239,
+   "away": 12602198,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
   },
   {
-   "id": 9700053,
-   "date": "2026-09-26T16:00:00.000Z",
-   "venue": "Holly Springs Oval",
-   "home": 965527243,
-   "away": 922243261,
-   "status": "upcoming"
+   "id": 26355196,
+   "date": "2026-09-13T17:05:12.000Z",
+   "venue": "RTP 3",
+   "home": 12602256,
+   "away": 12602239,
+   "status": "completed",
+   "resultText": "resulted — 93 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602256,
+    "margin": 93,
+    "innings": [
+     {
+      "team": 12602256,
+      "runs": 149,
+      "wickets": 5,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602239,
+      "runs": 56,
+      "wickets": 10,
+      "overs": 14.2,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700054,
-   "date": "2026-09-26T16:30:00.000Z",
-   "venue": "RTP Park",
-   "home": 954308197,
-   "away": 993092797,
-   "status": "upcoming"
+   "id": 26355186,
+   "date": "2026-08-30T22:07:31.000Z",
+   "venue": "RTP 4",
+   "home": 12489612,
+   "away": 12602239,
+   "status": "completed",
+   "resultText": "resulted — 28 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12489612,
+    "margin": 28,
+    "innings": [
+     {
+      "team": 12489612,
+      "runs": 91,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602239,
+      "runs": 63,
+      "wickets": 10,
+      "overs": 16.4,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
-   "id": 9700055,
-   "date": "2026-09-26T17:00:00.000Z",
-   "venue": "Morrisville Turf",
-   "home": 925752437,
-   "away": 914172525,
-   "status": "upcoming"
+   "id": 26355223,
+   "date": "2026-08-15T15:02:20.000Z",
+   "venue": "River Forest Park",
+   "home": 12490312,
+   "away": 12602239,
+   "status": "completed",
+   "resultText": "resulted — 91 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12490312,
+    "margin": 91,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 137,
+      "wickets": 4,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602239,
+      "runs": 46,
+      "wickets": 10,
+      "overs": 17.5,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26161884,
+   "date": "2026-07-19T18:10:56.000Z",
+   "venue": "RTP 4",
+   "home": 12602239,
+   "away": 12480151,
+   "status": "completed",
+   "resultText": "Resulted — 9 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12480151,
+    "margin": 9,
+    "innings": [
+     {
+      "team": 12602239,
+      "runs": 50,
+      "wickets": 10,
+      "overs": 16,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480151,
+      "runs": 51,
+      "wickets": 1,
+      "overs": 9.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355257,
+   "date": "2026-09-27T16:45:00.000Z",
+   "venue": "Bethesda - Lower",
+   "home": 12602256,
+   "away": 12489612,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355253,
+   "date": "2026-10-03T13:45:00.000Z",
+   "venue": "Bethesda - Upper",
+   "home": 12490312,
+   "away": 12489612,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26355246,
+   "date": "2026-08-09T13:31:48.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12489612,
+   "away": 12480151,
+   "status": "completed",
+   "resultText": "resulted — 5 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12480151,
+    "margin": 5,
+    "innings": [
+     {
+      "team": 12489612,
+      "runs": 82,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480151,
+      "runs": 86,
+      "wickets": 5,
+      "overs": 13.4,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355269,
+   "date": "2026-08-02T13:01:07.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12602198,
+   "away": 12489612,
+   "status": "completed",
+   "resultText": "Resulted — 106 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602198,
+    "margin": 106,
+    "innings": [
+     {
+      "team": 12602198,
+      "runs": 184,
+      "wickets": 5,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489612,
+      "runs": 78,
+      "wickets": 10,
+      "overs": 15.5,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355187,
+   "date": "2026-08-30T19:01:32.000Z",
+   "venue": "RTP 4",
+   "home": 12490312,
+   "away": 12480151,
+   "status": "completed",
+   "resultText": "resulted — 63 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12490312,
+    "margin": 63,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 107,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480151,
+      "runs": 44,
+      "wickets": 10,
+      "overs": 10.3,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355218,
+   "date": "2026-08-16T18:01:33.000Z",
+   "venue": "River Forest Park",
+   "home": 12480151,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "resulted — 49 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480151,
+    "margin": 49,
+    "innings": [
+     {
+      "team": 12480151,
+      "runs": 126,
+      "wickets": 10,
+      "overs": 16.4,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602198,
+      "runs": 77,
+      "wickets": 10,
+      "overs": 14.3,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355248,
+   "date": "2026-08-08T13:31:28.000Z",
+   "venue": "C. R. Wood Park",
+   "home": 12480151,
+   "away": 12602256,
+   "status": "completed",
+   "resultText": "resulted — 7 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480151,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12480151,
+      "runs": 141,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602256,
+      "runs": 134,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355228,
+   "date": "2026-09-20T20:00:00.000Z",
+   "venue": "Century Fields 3",
+   "home": 12602256,
+   "away": 12602198,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
+  },
+  {
+   "id": 26161880,
+   "date": "2026-07-26T17:04:04.000Z",
+   "venue": "RTP 3",
+   "home": 12490312,
+   "away": 12602256,
+   "status": "completed",
+   "resultText": "Resulted — 51 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12490312,
+    "margin": 51,
+    "innings": [
+     {
+      "team": 12490312,
+      "runs": 124,
+      "wickets": 6,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602256,
+      "runs": 73,
+      "wickets": 10,
+      "overs": 16,
+      "allOut": true,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26355262,
+   "date": "2026-10-11T19:00:00.000Z",
+   "venue": "Apex Jaycee Park",
+   "home": 12602198,
+   "away": 12490312,
+   "status": "upcoming",
+   "resultText": "[object Object]",
+   "overs": 18
   }
  ],
- "published": [],
+ "published": [
+  {
+   "teamId": 12480151,
+   "name": "ROYAL BULLS",
+   "played": 10,
+   "won": 8,
+   "lost": 2,
+   "tied": 0,
+   "noResult": 0,
+   "points": 16,
+   "nrr": 1.533,
+   "runsFor": 1004,
+   "oversFor": 152,
+   "runsAgainst": 913,
+   "oversAgainst": 180
+  },
+  {
+   "teamId": 12490312,
+   "name": "The Boys HT",
+   "played": 9,
+   "won": 7,
+   "lost": 2,
+   "tied": 0,
+   "noResult": 0,
+   "points": 14,
+   "nrr": 1.976,
+   "runsFor": 976,
+   "oversFor": 145.2,
+   "runsAgainst": 756,
+   "oversAgainst": 159.3
+  },
+  {
+   "teamId": 12602266,
+   "name": "Alphas",
+   "played": 9,
+   "won": 7,
+   "lost": 2,
+   "tied": 0,
+   "noResult": 0,
+   "points": 14,
+   "nrr": 1.119,
+   "runsFor": 1032,
+   "oversFor": 154,
+   "runsAgainst": 881,
+   "oversAgainst": 157.5
+  },
+  {
+   "teamId": 12476340,
+   "name": "Chennai Super Kings",
+   "played": 8,
+   "won": 6,
+   "lost": 2,
+   "tied": 0,
+   "noResult": 0,
+   "points": 12,
+   "nrr": 1.29,
+   "runsFor": 859,
+   "oversFor": 124.3,
+   "runsAgainst": 761,
+   "oversAgainst": 135.4
+  },
+  {
+   "teamId": 12478018,
+   "name": "Green Hawks",
+   "played": 11,
+   "won": 6,
+   "lost": 5,
+   "tied": 0,
+   "noResult": 0,
+   "points": 12,
+   "nrr": 0.382,
+   "runsFor": 1034,
+   "oversFor": 175.3,
+   "runsAgainst": 990,
+   "oversAgainst": 179.4
+  },
+  {
+   "teamId": 12476356,
+   "name": "Mighty Conquerors",
+   "played": 9,
+   "won": 5,
+   "lost": 3,
+   "tied": 0,
+   "noResult": 1,
+   "points": 11,
+   "nrr": 1.747,
+   "runsFor": 940,
+   "oversFor": 132.2,
+   "runsAgainst": 765,
+   "oversAgainst": 142.5
+  },
+  {
+   "teamId": 12602198,
+   "name": "The Bouys",
+   "played": 8,
+   "won": 5,
+   "lost": 3,
+   "tied": 0,
+   "noResult": 0,
+   "points": 10,
+   "nrr": 1.11,
+   "runsFor": 743,
+   "oversFor": 123.2,
+   "runsAgainst": 688,
+   "oversAgainst": 140
+  },
+  {
+   "teamId": 12602256,
+   "name": "Rockers",
+   "played": 8,
+   "won": 5,
+   "lost": 3,
+   "tied": 0,
+   "noResult": 0,
+   "points": 10,
+   "nrr": 0.542,
+   "runsFor": 896,
+   "oversFor": 133.5,
+   "runsAgainst": 847,
+   "oversAgainst": 137.4
+  },
+  {
+   "teamId": 12480043,
+   "name": "Immortals",
+   "played": 10,
+   "won": 3,
+   "lost": 7,
+   "tied": 0,
+   "noResult": 0,
+   "points": 6,
+   "nrr": -1.164,
+   "runsFor": 909,
+   "oversFor": 177,
+   "runsAgainst": 1008,
+   "oversAgainst": 160
+  },
+  {
+   "teamId": 12476425,
+   "name": "Invincible X1",
+   "played": 8,
+   "won": 3,
+   "lost": 5,
+   "tied": 0,
+   "noResult": 0,
+   "points": 6,
+   "nrr": -1.37,
+   "runsFor": 712,
+   "oversFor": 140,
+   "runsAgainst": 807,
+   "oversAgainst": 125
+  },
+  {
+   "teamId": 12602245,
+   "name": "Hyderabad Hunters",
+   "played": 8,
+   "won": 1,
+   "lost": 6,
+   "tied": 0,
+   "noResult": 1,
+   "points": 3,
+   "nrr": -1.366,
+   "runsFor": 617,
+   "oversFor": 123.2,
+   "runsAgainst": 709,
+   "oversAgainst": 111.2
+  },
+  {
+   "teamId": 12605545,
+   "name": "Bhaukal Army",
+   "played": 9,
+   "won": 1,
+   "lost": 7,
+   "tied": 0,
+   "noResult": 1,
+   "points": 3,
+   "nrr": -1.964,
+   "runsFor": 641,
+   "oversFor": 144,
+   "runsAgainst": 804,
+   "oversAgainst": 125.2
+  },
+  {
+   "teamId": 12489612,
+   "name": "Royal Bengal Tigers - HT",
+   "played": 8,
+   "won": 2,
+   "lost": 6,
+   "tied": 0,
+   "noResult": 0,
+   "points": 3,
+   "nrr": -2.085,
+   "runsFor": 622,
+   "oversFor": 138.4,
+   "runsAgainst": 840,
+   "oversAgainst": 127.5
+  },
+  {
+   "teamId": 12602239,
+   "name": "Revengers HT",
+   "played": 9,
+   "won": 1,
+   "lost": 7,
+   "tied": 0,
+   "noResult": 1,
+   "points": 3,
+   "nrr": -2.318,
+   "runsFor": 567,
+   "oversFor": 144,
+   "runsAgainst": 783,
+   "oversAgainst": 125.1
+  }
+ ],
  "warnings": []
 }

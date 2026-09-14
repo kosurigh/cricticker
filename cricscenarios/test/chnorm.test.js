@@ -7,8 +7,10 @@
  * wherever it is nested, read scores out of summary strings, get the all-out
  * flag right, and never invent a result that was not in the payload.
  *
- * When a real payload is captured (tools/fetch-tournament.mjs writes one to
- * assets/data/<id>/raw/), add it here as a case rather than replacing these.
+ * Captured payloads now live at the bottom of this file, taken from what the
+ * live endpoint actually returns; keep adding to them there rather than
+ * replacing the reconstructions, which pin behaviour the captures do not
+ * happen to exercise.
  */
 
 import test from 'node:test';
@@ -220,4 +222,138 @@ test('buildSnapshot merges declared team names over the ones seen in fixtures', 
   assert.equal(gng.short, 'GNG');
   assert.equal(snap.matches.length, 4);
   assert.equal(snap.published.length, 0);
+});
+
+/* ------------------------------------------------------------------ *
+ * Captured payloads.
+ *
+ * Everything below is real: the records are trimmed copies of what
+ * /api/v1/team/get-team-match/<teamId> returned for TCL Mega Smash 2026
+ * (tournament 2100677) on 14 September 2026, and the expectations are what
+ * CricHeroes' own published points table does with them.
+ *
+ * That endpoint is now the only way to read a fixture list — every
+ * whole-tournament route answers 404 — and it states results quite differently
+ * from the shapes above: `match_result` only classifies the match ("resulted",
+ * "tie", "abandoned") while `win_by` carries the margin, and the scores arrive
+ * as structured innings rather than summary strings.
+ * ------------------------------------------------------------------ */
+
+/** A won match, exactly as the per-team fixture endpoint serves it. */
+const TEAM_MATCH = {
+  match_id: 26355020, status: 'past', match_result: 'resulted', win_by: '69 runs',
+  winning_team_id: '12489581', overs: 18,
+  team_a_id: 12489581, team_a: 'R3', team_a_summary: '93/8',
+  team_b_id: 12489643, team_b: 'RTP Tigers', team_b_summary: '24/10',
+  team_a_innings: [{ team_id: 12489581, inning: 1, total_run: 93, total_wicket: 8, overs_played: '18.0', revised_target: 0, revised_overs: 0 }],
+  team_b_innings: [{ team_id: 12489643, inning: 2, total_run: 24, total_wicket: 10, overs_played: '8.5', revised_target: 0, revised_overs: 0 }],
+};
+
+test('the margin is read from win_by when match_result only classifies', () => {
+  assert.deepEqual(parseResultText('resulted — 43 runs'), { type: 'runs', margin: 43 });
+  assert.deepEqual(parseResultText('resulted — 6 wickets'), { type: 'wickets', margin: 6 });
+  assert.deepEqual(parseResultText('tie — tie'), { type: 'tie', margin: 0 });
+  assert.deepEqual(parseResultText('resulted — walkover'), { type: 'walkover', margin: null });
+  assert.deepEqual(parseResultText('abandoned — rain out'), { type: 'no_result', margin: null });
+  // D/L spells out its workings; the leading margin is this match's.
+  assert.deepEqual(
+    parseResultText('resulted — 5 runs (dls method - match reduced to 16.0 overs, target 124 runs)'),
+    { type: 'runs', margin: 5 });
+  // …and "reduced to 16 overs, target 124 runs" must not be mistaken for one.
+  assert.deepEqual(
+    parseResultText('resulted — 3 wickets (dls method - match reduced to 16.0 overs, target 124 runs)'),
+    { type: 'wickets', margin: 3 });
+});
+
+test('structured innings are preferred over the summary string', () => {
+  const { matches } = normaliseMatches({ data: [TEAM_MATCH] });
+  const m = matches[0];
+  assert.equal(m.status, 'completed');
+  assert.equal(m.result.winner, 12489581);
+  assert.equal(m.result.margin, 69);
+  assert.equal(m.overs, 18, 'the fixture carries its own overs allocation');
+  // Innings 1 first, from the payload's own numbering, not a heuristic.
+  assert.equal(m.result.innings[0].team, 12489581);
+  assert.deepEqual(
+    m.result.innings.map((i) => [i.runs, i.overs, i.allOut, i.quotaOvers]),
+    [[93, 18, false, 18], [24, 8.5, true, 18]]);
+});
+
+test('a fixture is charged its own overs, not the tournament default', () => {
+  const { matches, teams } = normaliseMatches({ data: [TEAM_MATCH] });
+  const rows = buildTable(teams, matches, { ...DEFAULT_RULES, overs_per_innings: 20 });
+  // RTP Tigers were all out for 24 in 8.5 of an *18*-over innings, so they are
+  // charged 18 overs — 108 balls — and not the 20 the rules would suggest.
+  assert.equal(rows[12489643].ballsFor, 108);
+  assert.equal(rows[12489581].ballsAgainst, 108);
+  assert.equal(rows[12489581].ballsFor, 108, 'R3 batted its full 18');
+});
+
+test('a rain-reduced match counts the par score over the revised overs', () => {
+  // NC Knights 142/5 off 18; rain; All Stars XI set 124 off 16 and got 129/5.
+  // CricHeroes credits the side batting first with 123 — one short of the
+  // target it set — off 16 overs, not the 142 off 18 it actually made.
+  const { matches, teams } = normaliseMatches({
+    data: [{
+      match_id: 26354443, status: 'past', match_result: 'resulted',
+      win_by: '5 runs (dls method - match reduced to 16.0 overs, target 124 runs)',
+      winning_team_id: '12476257', overs: 18,
+      team_a_id: 12480162, team_a: 'NC Knights', team_a_summary: '142/5',
+      team_b_id: 12476257, team_b: 'All Stars XI', team_b_summary: '129/5',
+      team_a_innings: [{ team_id: 12480162, inning: 1, total_run: 142, total_wicket: 5, overs_played: '18.0', revised_target: 124, revised_overs: 16 }],
+      team_b_innings: [{ team_id: 12476257, inning: 2, total_run: 129, total_wicket: 5, overs_played: '16.0', revised_target: 124, revised_overs: 16 }],
+    }],
+  });
+  const [first, second] = matches[0].result.innings;
+  assert.deepEqual([first.team, first.runs, first.overs], [12480162, 123, 16]);
+  assert.deepEqual([second.team, second.runs, second.overs], [12476257, 129, 16]);
+  const rows = buildTable(teams, matches, DEFAULT_RULES);
+  assert.equal(rows[12480162].runsFor, 123);
+  assert.equal(rows[12480162].ballsFor, 96, '16 overs, not 18');
+});
+
+test('a conceded match is charged to the side that forfeited and to nobody else', () => {
+  const { matches, teams } = normaliseMatches({
+    data: [{
+      match_id: 26354552, status: 'past', match_result: 'resulted', win_by: 'walkover',
+      winning_team_id: '12480126', overs: 18,
+      team_a_id: 12489623, team_a: 'RTP Chargers', team_a_summary: '',
+      team_b_id: 12480126, team_b: 'Mutants', team_b_summary: '',
+      team_a_innings: [], team_b_innings: [],
+    }],
+  });
+  assert.equal(matches[0].result.type, 'walkover');
+  assert.equal(matches[0].result.winner, 12480126);
+  assert.equal(matches[0].result.innings.length, 1);
+
+  const rows = buildTable(teams, matches, DEFAULT_RULES);
+  assert.equal(rows[12480126].points, 2, 'the walkover is still a win');
+  assert.equal(rows[12489623].points, 0);
+  // The forfeiting side carries nought off the full quota…
+  assert.deepEqual([rows[12489623].runsFor, rows[12489623].ballsFor], [0, 108]);
+  // …and the winner's own run rate is untouched: it never took the field.
+  assert.deepEqual([rows[12480126].ballsFor, rows[12480126].ballsAgainst], [0, 0]);
+});
+
+test('a grouped standings payload yields every division, with runs and overs', () => {
+  // get-tournament-standing returns one array per group; taking the biggest
+  // would keep one division and silently drop the other eight.
+  const table = normalisePointsTable({
+    status: true,
+    data: [
+      { group: 'Group 1 (League Matches)', standing: [
+        { team_id: 12480228, team_name: 'Panthers', matches: 9, won: 6, lost: 2, tied: 0, no_result: 1, points: 13, net_rr: '1.329', for: '926/119.3', against: '886/138' },
+      ] },
+      { group: 'Group 7 (League Matches)', standing: [
+        { team_id: 12489581, team_name: 'R3', matches: 8, won: 6, lost: 0, tied: 0, no_result: 2, points: 14, net_rr: '1.164', for: '485/89', against: '385/89.5' },
+      ] },
+    ],
+  });
+  assert.equal(table.length, 2, 'both groups, not just the first');
+  const panthers = table.find((r) => r.name === 'Panthers');
+  assert.equal(panthers.points, 13);
+  assert.equal(panthers.nrr, 1.329);
+  assert.equal(panthers.noResult, 1);
+  assert.deepEqual([panthers.runsFor, panthers.oversFor], [926, 119.3]);
+  assert.deepEqual([panthers.runsAgainst, panthers.oversAgainst], [886, 138]);
 });

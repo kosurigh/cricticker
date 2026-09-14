@@ -14,6 +14,7 @@ import assert from 'node:assert/strict';
 import {
   oversToBalls, ballsToOvers, ballsToDecimalOvers, netRunRate, buildTable,
   standingsFor, certificates, countingBalls, DEFAULT_RULES, headToHead,
+  baselineFromPublished,
 } from '../assets/js/engine.js';
 import {
   prepare, simulate, bradleyTerry, matchShapes, winProbability,
@@ -364,4 +365,95 @@ test('a division with no completed matches still simulates', () => {
   assert.ok(ctx.shapes.length >= 3, 'falls back to generic T20 shapes');
   const res = simulate(ctx, { trials: 500, model: 'coinflip', focusId: 1, seed: 1 });
   assert.equal(res.trials, 500);
+});
+
+/* ------------------------------------------------------------------ *
+ * Seeding from the published table.
+ *
+ * The played half of a real table comes from CricHeroes rather than from our
+ * own recomputation of it, because two things in it cannot be derived from the
+ * fixture list at all: organiser points penalties, and innings CricHeroes
+ * counts as all out below ten wickets because it knows the squad sizes. What
+ * must stay true is that the simulator then adds *only* the unplayed fixtures
+ * on top — double-counting a played match would be invisible and ruinous.
+ * ------------------------------------------------------------------ */
+
+const PUBLISHED = [
+  // Alpha carries a two-point penalty: three wins would be six, not four.
+  { teamId: 1, name: 'Alpha', played: 4, won: 3, lost: 1, tied: 0, noResult: 0, points: 4, nrr: 0.5, runsFor: 600, oversFor: 80, runsAgainst: 560, oversAgainst: 80 },
+  { teamId: 2, name: 'Bravo', played: 4, won: 2, lost: 2, tied: 0, noResult: 0, points: 4, nrr: 0, runsFor: 560, oversFor: 80, runsAgainst: 560, oversAgainst: 80 },
+  { teamId: 3, name: 'Charlie', played: 4, won: 2, lost: 1, tied: 0, noResult: 1, points: 5, nrr: 0.25, runsFor: 580, oversFor: 80, runsAgainst: 560, oversAgainst: 80 },
+  { teamId: 4, name: 'Delta', played: 4, won: 1, lost: 3, tied: 0, noResult: 0, points: 2, nrr: -0.75, runsFor: 500, oversFor: 80, runsAgainst: 560, oversAgainst: 80 },
+];
+
+test('a published table seeds the rows it covers', () => {
+  const base = baselineFromPublished(PUBLISHED, TEAMS);
+  assert.equal(base[1].points, 4, 'the penalty is carried, not recomputed');
+  assert.equal(base[1].won, 3);
+  assert.equal(base[1].runsFor, 600);
+  assert.equal(base[1].ballsFor, 480, '80 overs');
+  assert.equal(netRunRate(base[1]).toFixed(3), '0.500');
+});
+
+test('a published table that misses a team is refused rather than half-used', () => {
+  assert.equal(baselineFromPublished(PUBLISHED.slice(1), TEAMS), null);
+  assert.equal(baselineFromPublished([], TEAMS), null);
+  assert.equal(baselineFromPublished(null, TEAMS), null);
+  // Present but without the run figures net run rate needs.
+  assert.equal(baselineFromPublished(
+    PUBLISHED.map(({ runsFor, ...rest }) => rest), TEAMS), null);
+});
+
+test('with a baseline, only the unplayed fixtures are folded in', () => {
+  const matches = [
+    // Already in the published figures — must not be counted a second time.
+    done(1, 1, 2, { team: 1, runs: 150, overs: 20 }, { team: 2, runs: 140, overs: 20 }, 1, 'runs', 10),
+    { id: 2, home: 1, away: 3, status: 'upcoming' },
+  ];
+  const seeded = buildTable(TEAMS, matches, RULES, baselineFromPublished(PUBLISHED, TEAMS));
+  assert.equal(seeded[1].played, 4, 'the completed match is already in the baseline');
+  assert.equal(seeded[1].points, 4);
+  assert.equal(seeded[1].runsFor, 600);
+
+  // The same fixtures with no baseline are scored from scratch, as before.
+  const scratch = buildTable(TEAMS, matches, RULES);
+  assert.equal(scratch[1].played, 1);
+  assert.equal(scratch[1].points, 2);
+  assert.equal(scratch[1].runsFor, 150);
+});
+
+test('a simulated result lands on top of the published figures', () => {
+  const matches = [
+    done(1, 1, 2, { team: 1, runs: 150, overs: 20 }, { team: 2, runs: 140, overs: 20 }, 1, 'runs', 10),
+    { id: 2, home: 1, away: 3, status: 'upcoming' },
+  ];
+  const baseline = baselineFromPublished(PUBLISHED, TEAMS);
+  const ctx = prepare(TEAMS, matches, RULES, baseline);
+  assert.equal(ctx.remaining.length, 1);
+  const alpha = ctx.ids.indexOf(1);
+  assert.equal(ctx.base.points[alpha], 4, 'every trial starts from the published points');
+  assert.equal(ctx.base.runsFor[alpha], 600);
+});
+
+test('certainties are computed from the published points, penalties and all', () => {
+  const matches = [{ id: 2, home: 1, away: 3, status: 'upcoming' }];
+  const baseline = baselineFromPublished(PUBLISHED, TEAMS);
+  const rules = { ...RULES, promotion_spots: 1, relegation_spots: 1, playoff_spots: 2 };
+  const cert = certificates(1, TEAMS, matches, rules, baseline);
+  // Alpha on 4 with one to play can reach 6; Charlie on 5 can reach 5 without
+  // playing again, so Alpha is not yet guaranteed anything but is not out.
+  assert.equal(cert.promotion.eliminated, false);
+  assert.equal(cert.promotion.clinched, false);
+  // Read without the baseline the same call would start Alpha from nought and
+  // give a different answer entirely — which is the bug this pins down.
+  assert.notDeepEqual(cert, certificates(1, TEAMS, matches, rules));
+});
+
+test('an innings carries its own overs quota when the fixture sets one', () => {
+  const eighteen = { runs: 80, overs: 12.3, allOut: true, quotaOvers: 18 };
+  assert.equal(countingBalls(eighteen, RULES), 108, 'all out charges 18, not the rules 20');
+  const chased = { runs: 81, overs: 12.3, allOut: false, quotaOvers: 18 };
+  assert.equal(countingBalls(chased, RULES), 75, '12.3 overs is 75 balls');
+  // No quota on the innings — fall back to the tournament rules, as before.
+  assert.equal(countingBalls({ runs: 80, overs: 12.3, allOut: true }, RULES), 120);
 });

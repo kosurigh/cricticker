@@ -10,8 +10,9 @@
  */
 
 import { ENDPOINTS, proxyBase } from './config.js';
-import { buildSnapshot } from './chnorm.js';
-import { DEFAULT_RULES, standingsFor } from './engine.js';
+import { buildSnapshot, normaliseTeams } from './chnorm.js';
+import { collectFixtures } from './fixtures.js';
+import { DEFAULT_RULES, standingsFor, baselineFromPublished } from './engine.js';
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -46,17 +47,25 @@ export async function loadSnapshot(tid, division) {
   return hydrate(snap);
 }
 
-/** Fill in the derived bits a snapshot does not store. */
+/**
+ * Fill in the derived bits a snapshot does not store.
+ *
+ * Where the published table covers the division it seeds the standings, so the
+ * played half of the table is CricHeroes' own arithmetic (penalties and all)
+ * and only the unplayed half is ours. See engine.baselineFromPublished.
+ */
 export function hydrate(snap) {
   const rules = { ...DEFAULT_RULES, ...(snap.rules || {}) };
   const teams = snap.teams || [];
   const matches = snap.matches || [];
+  const baseline = baselineFromPublished(snap.published, teams);
   return {
     ...snap,
     rules,
     teams,
     matches,
-    standings: standingsFor(teams, matches, rules),
+    baseline,
+    standings: standingsFor(teams, matches, rules, baseline),
     warnings: snap.warnings || [],
   };
 }
@@ -88,8 +97,11 @@ async function tryEndpoints(base, paths, tid, validate) {
  * Pull a division straight from CricHeroes through the proxy.
  *
  * `divisionMap` is what keeps this honest: a TCL tournament is one CricHeroes
- * tournament containing every division, so the fixture list comes back with all
- * ~125 teams in it and has to be filtered down to the division in question.
+ * tournament containing every division, so nothing that comes back is scoped to
+ * the division on its own and everything has to be filtered down to it. It is
+ * also what makes the refresh affordable — the fixture list has to be assembled
+ * team by team now, and the map says which fourteen of the hundred and
+ * twenty-six teams this division needs.
  */
 export async function fetchLive(tid, division, { divisionMap, rules, meta } = {}) {
   const base = proxyBase();
@@ -100,18 +112,49 @@ export async function fetchLive(tid, division, { divisionMap, rules, meta } = {}
     try { return !!b && JSON.stringify(b).length > 40; } catch { return false; }
   };
 
-  const matchesRes = await tryEndpoints(base, ENDPOINTS.matches, tid, hasRecords);
-  if (!matchesRes.body) {
-    throw new Error('Could not read the fixture list from CricHeroes.\n' +
-      (matchesRes.tried || []).join('\n'));
-  }
   const teamsRes = await tryEndpoints(base, ENDPOINTS.teams, tid, hasRecords);
   const pointsRes = await tryEndpoints(base, ENDPOINTS.pointsTable, tid, hasRecords);
   if (!teamsRes.body) warnings.push('Team list endpoint unavailable; names taken from the fixture list.');
   if (!pointsRes.body) warnings.push('Published points table unavailable; no cross-check performed.');
 
+  let matchesRaw = null;
+  let matchesPath = null;
+  const whole = await tryEndpoints(base, ENDPOINTS.matches, tid, hasRecords);
+  if (whole.body) {
+    matchesRaw = whole.body;
+    matchesPath = whole.path;
+  } else {
+    // No whole-tournament fixture route answers any more, so the list is built
+    // from the division's own teams. Only their matches are needed here: every
+    // fixture in a division has a division team on both sides.
+    if (!teamsRes.body) {
+      throw new Error('Could not read the fixture list from CricHeroes.\n' +
+        (whole.tried || []).join('\n'));
+    }
+    const divisionTeams = filterToDivision(
+      { teams: normaliseTeams(teamsRes.body), matches: [] }, division, divisionMap).teams;
+    if (!divisionTeams.length) {
+      throw new Error(`No Division ${division} teams found in the CricHeroes response.`);
+    }
+    const got = await collectFixtures({
+      get: (path) => getJson(`${base}/ch?path=${encodeURIComponent(path)}`, { cache: 'no-store' }),
+      teamIds: divisionTeams.map((t) => t.id),
+      tournamentId: tid,
+      template: ENDPOINTS.teamMatches[0],
+    });
+    if (!got.matches.length) {
+      throw new Error('Could not read the fixture list from CricHeroes.\n' +
+        (whole.tried || []).concat(got.failures).join('\n'));
+    }
+    if (got.failures.length) {
+      warnings.push(`${got.failures.length} team fixture list(s) failed to load; the table may be short of matches.`);
+    }
+    matchesRaw = { data: got.matches };
+    matchesPath = ENDPOINTS.teamMatches[0];
+  }
+
   const snap = buildSnapshot({
-    matchesRaw: matchesRes.body,
+    matchesRaw,
     teamsRaw: teamsRes.body,
     pointsRaw: pointsRes.body,
   });
@@ -129,8 +172,9 @@ export async function fetchLive(tid, division, { divisionMap, rules, meta } = {}
     rules: rules || meta?.rules || DEFAULT_RULES,
     teams: filtered.teams,
     matches: filtered.matches,
-    published: snap.published,
+    published: snap.published.filter((p) => filtered.teams.some((t) => t.id === p.teamId)),
     source: 'live',
+    endpoints: { matches: matchesPath, teams: teamsRes.path, points: pointsRes.path },
     fetchedAt: new Date().toISOString(),
     warnings,
   });

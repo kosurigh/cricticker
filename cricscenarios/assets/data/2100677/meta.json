@@ -11,8 +11,9 @@
     "points_tie": 1,
     "points_no_result": 1,
     "points_loss": 0,
-    "overs_per_innings": 20,
+    "overs_per_innings": 18,
     "tiebreak": ["points", "nrr", "h2h", "wins"]
   },
-  "rules_note": "Top 3 promoted to the division above, bottom 3 relegated to the division below, top 4 into the playoffs. Ordering follows the CricHeroes default of points then net run rate; edit rules.tiebreak here if TCL publishes something different."
+  "rules_note": "Top 3 promoted to the division above, bottom 3 relegated to the division below, top 4 into the playoffs. Points (2 win / 1 tie / 1 no result / 0 loss) reproduce every published row exactly, and every remaining fixture is 18 overs a side. Ordering: the published table is consistent with points then net run rate — of the 44 adjacent pairs level on points across the nine divisions, all 44 are ordered by descending NRR and none against it, with no exact NRR tie anywhere — so the first two keys are confirmed against live data. Head-to-head and wins are never exercised by the current table and remain the assumed CricHeroes default; edit rules.tiebreak here if TCL publishes something different.",
+  "table_note": "The played half of each table is seeded from the points table CricHeroes publishes, and this project's arithmetic is applied only to the fixtures still to come. Two things in the published table cannot be derived from the fixture list: organiser points penalties, which no endpoint exposes (RTP ThunderBolts, Greensboro Cricket Club HT, PATRIOTS, Carolina Wildcats and Royal Bengal Tigers - HT all sit below their win/loss record), and a handful of innings CricHeroes counts as all out at eight or nine wickets, knowing squad sizes we cannot see. See engine.baselineFromPublished."
 }

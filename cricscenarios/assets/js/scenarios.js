@@ -25,12 +25,12 @@ const pct = (num, den) => (den > 0 ? num / den : 0);
 
 /** Probability table for every team, plus the certainty flags. */
 export function summarise(ctx, results) {
-  const { teams, rules, matches } = ctx;
-  const rows = buildTable(teams, matches, rules);
+  const { teams, rules, matches, baseline = null } = ctx;
+  const rows = buildTable(teams, matches, rules, baseline);
   const trials = results.trials;
 
   return teams.map((t, i) => {
-    const cert = certificates(t.id, teams, matches, rules);
+    const cert = certificates(t.id, teams, matches, rules, baseline);
     const positions = [];
     for (let p = 0; p < results.n; p++) {
       positions.push(pct(results.posCounts[i * results.n + p], trials));
