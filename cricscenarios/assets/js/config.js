@@ -13,7 +13,7 @@
  */
 
 /** Replace with your deployed Worker, e.g. "https://cricscenarios.you.workers.dev". */
-export const WORKER_URL = '';
+export const WORKER_URL = 'https://cricscenarios.tclnc.workers.dev';
 
 /** Running from dev-server.py? Use its built-in proxy instead. */
 export function proxyBase() {
