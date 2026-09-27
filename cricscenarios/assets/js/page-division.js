@@ -31,8 +31,8 @@ const state = {
   results: null,
   summary: null,
   focusId: null,
-  model: 'coinflip',
-  trials: 50000,
+  model: 'form',
+  trials: 200000,
   running: false,
 };
 
@@ -65,7 +65,16 @@ async function init() {
 
   pickDefaultFocus();
   buildControls();
-  rebuild();
+
+  // Prefer a live pull from CricHeroes over the committed snapshot: visiting a
+  // team's URL should show today's table without a manual refresh. Falls back
+  // to the snapshot (inside refreshLive) if the proxy is unreachable, and skips
+  // straight to the snapshot when no proxy is configured at all.
+  if (proxyBase()) {
+    refreshLive();
+  } else {
+    rebuild();
+  }
 }
 
 /** Default to Guts N Glory where present — this was built for them. */
@@ -129,8 +138,8 @@ function buildControls() {
 
 async function refreshLive() {
   const btn = $('refresh');
-  btn.disabled = true;
-  btn.textContent = 'Fetching…';
+  if (btn) { btn.disabled = true; btn.textContent = 'Fetching…'; }
+  setStatus('<span class="spin"></span> fetching live data…');
   try {
     state.data = await fetchLive(TID, DIV, {
       divisionMap: state.divisionMap,
@@ -145,9 +154,12 @@ async function refreshLive() {
       `${esc(e.message).replace(/\n/g, '<br>')}<br><br>The page is still showing the committed snapshot. ` +
       'If CricHeroes has renamed an endpoint, add the new path to <code>ENDPOINTS</code> in ' +
       '<code>assets/js/config.js</code>.') + $('warnings').innerHTML;
+    // Make sure the committed snapshot is rendered — otherwise a failed live
+    // pull on first load would leave the table stuck on "Loading…".
+    rebuild();
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Refresh from CricHeroes';
+    const b = $('refresh');
+    if (b) { b.disabled = false; b.textContent = 'Refresh from CricHeroes'; }
   }
 }
 
