@@ -35,7 +35,7 @@ tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
 tools/check-all-teams.mjs    Run and check the report for every team in every division
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        74 tests over the maths, the parser, the index
+test/                        77 tests over the maths, the parser, the index
                              and the committed snapshots
 ```
 
@@ -167,6 +167,19 @@ the division's median winning margin, and the card says so. A dead heat on net r
 not counted as a win, because the later tiebreaks (head-to-head, wins) are not modelled
 there. The runs-for / overs-faced / runs-against / overs-bowled figures are CricHeroes'
 own, from the published points table's *For* and *Against* columns.
+
+**If they lose — how badly before net run rate drops them below a rival.** For every team
+with a game left, and every rival a defeat would leave it level with on points in a race
+that is still open (playoffs, promotion or the relegation places), the card works out the
+defeat exactly, in the right cricket direction: *bowling first*, the opponent bats first
+and makes S and the team loses by r runs (charged the full 18 overs, bowled out or not);
+*batting first*, the team makes S and the opponent chases S + 1 within so many overs. It
+gives the table for the division's typical scores, the smallest opponent total at which a
+defeat by runs can do it at all (bowled out for 0), and the worst case (bowled out for 0,
+then chased off 1 ball). When it takes an opponent total that fewer than one first innings
+in ten reaches here, it says *no realistic defeat drops X below Y*. Nothing is capped:
+margins run from 1 run to bowled out for 0, and chases from 18 overs down to 1 ball. A
+dead heat on net run rate counts as no longer above (later tiebreaks are not modelled).
 
 Below that, the odds:
 

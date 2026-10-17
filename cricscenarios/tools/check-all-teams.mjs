@@ -111,6 +111,34 @@ export function checkTeam(data, ctx, results, summary, team) {
         if (Math.abs(sum - 1) > 1e-6) bad(`margins ${goal} ${c.label}: line probabilities sum to ${sum}`);
       }
     }
+    // "If they lose" lines: only for teams with a game left, only against a
+    // rival they can be level with, and the margins re-derived independently.
+    for (const l of a.losses) {
+      results.lossLines = (results.lossLines || []).concat([{ team: team.name, rival: l.rival, realistic: l.realistic, anyDefeat: l.anyDefeat, assumed: l.assumed }]);
+      if (!games) bad('loss line for a team with no games left');
+      if (l.rival === team.id) bad('loss line against itself');
+      if (!t.includes('If they lose')) bad('loss lines computed but not shown');
+      if (!l.assumed) {
+        const T = ctx.index.get(team.id), Rv = ctx.index.get(l.rival), O = ctx.index.get(l.opponent);
+        const B = ctx.base, Q = a.set.quota;
+        const n = (rf, bf, ra, ba) => rf / (bf / 6) - ra / (ba / 6);
+        const rNrr = (S, oppRuns, oppBalls, myRuns, myBalls) => (Rv === O
+          ? n(B.runsFor[Rv] + oppRuns, B.ballsFor[Rv] + oppBalls, B.runsAgainst[Rv] + myRuns, B.ballsAgainst[Rv] + myBalls)
+          : n(B.runsFor[Rv], B.ballsFor[Rv], B.runsAgainst[Rv], B.ballsAgainst[Rv]));
+        const below = (myRuns, myBalls, oppRuns, oppBalls) => n(B.runsFor[T] + myRuns, B.ballsFor[T] + myBalls, B.runsAgainst[T] + oppRuns, B.ballsAgainst[T] + oppBalls)
+          - rNrr(0, oppRuns, oppBalls, myRuns, myBalls) <= 1e-12;
+        for (const { S, r } of l.runs) {
+          let want = null;
+          for (let k = 1; k <= S; k++) if (below(S - k, Q, S, Q)) { want = k; break; }
+          if (want !== r) bad(`loss v ${l.rival}: runs at ${S} = ${r}, brute force ${want}`);
+        }
+        for (const { S, b } of l.chase) {
+          let want = null;
+          for (let k = Q; k >= 1; k--) if (below(S, Q, S + 1, k)) { want = k; break; }
+          if (want !== b) bad(`loss v ${l.rival}: chase at ${S} = ${b}, brute force ${want}`);
+        }
+      }
+    }
   }
   return problems;
 }
@@ -133,6 +161,7 @@ export async function checkAll({ tid = '2100677', trials = 200000, divisions = n
       firstSummary = firstSummary || summary;
       div.problems.push(...checkTeam(data, ctx, run.results, summary, team));
       const r = summary.find((s) => s.team.id === team.id);
+      div.loss = (div.loss || []).concat(run.results.lossLines || []);
       div.rows.push({ team: team.name, points: r.row.points, left: r.remaining, ...r.p });
     }
     const n = data.teams.length;
@@ -162,6 +191,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       console.log(`   ${r.team.padEnd(30)} ${String(r.points).padStart(3)} pts  ${r.left} left  ` +
         `playoff ${f(r.playoff)}%  promo ${f(r.promotion)}%  releg ${f(r.relegation)}%`);
     }
+    const L = d.loss || [];
+    console.log(`   "If they lose" lines: ${new Set(L.map((x) => x.team)).size} team(s), ${L.length} line(s) over ${new Set(L.map((x) => `${x.team}|${x.rival}`)).size} rival pair(s); ` +
+      `${L.filter((x) => x.realistic && !x.anyDefeat).length} where a realistic margin decides, ${L.filter((x) => !x.realistic).length} no realistic defeat, ${L.filter((x) => x.anyDefeat).length} any defeat`);
     d.problems.forEach((p) => console.log(`   ! ${p}`));
   }
   console.log(`\n${teams} teams checked, ${problems} problem(s).`);
