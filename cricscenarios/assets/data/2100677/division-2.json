@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 2,
- "generated_at": "2026-10-17T15:08:18.895Z",
+ "generated_at": "2026-10-17T22:55:12.046Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -488,8 +488,8 @@
    "id": 26354532,
    "date": "2026-10-17T22:00:00.000Z",
    "venue": "RTP 4",
-   "home": 12489755,
-   "away": 12480081,
+   "home": 12480081,
+   "away": 12489755,
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
@@ -1142,13 +1142,36 @@
   },
   {
    "id": 26354576,
-   "date": "2026-10-17T16:30:00.000Z",
+   "date": "2026-10-17T16:41:25.000Z",
    "venue": "Bethesda - Upper",
-   "home": 12489782,
-   "away": 12478009,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "home": 12478009,
+   "away": 12489782,
+   "status": "completed",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12489782,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12478009,
+      "runs": 104,
+      "wickets": 10,
+      "overs": 17.1,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489782,
+      "runs": 106,
+      "wickets": 3,
+      "overs": 15.2,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354580,
@@ -2874,17 +2897,17 @@
   {
    "teamId": 12478009,
    "name": "Garudas HT",
-   "played": 12,
+   "played": 13,
    "won": 9,
-   "lost": 3,
+   "lost": 4,
    "tied": 0,
    "noResult": 0,
    "points": 18,
-   "nrr": 1.438,
-   "runsFor": 1372,
-   "oversFor": 193.2,
-   "runsAgainst": 1209,
-   "oversAgainst": 213.4
+   "nrr": 1.242,
+   "runsFor": 1476,
+   "oversFor": 211.2,
+   "runsAgainst": 1315,
+   "oversAgainst": 229
   },
   {
    "teamId": 12489755,
@@ -3039,17 +3062,17 @@
   {
    "teamId": 12489782,
    "name": "ZenStarz",
-   "played": 12,
-   "won": 2,
+   "played": 13,
+   "won": 3,
    "lost": 9,
    "tied": 0,
    "noResult": 1,
-   "points": 5,
-   "nrr": -1.083,
-   "runsFor": 1020,
-   "oversFor": 197.4,
-   "runsAgainst": 1181,
-   "oversAgainst": 189.1
+   "points": 7,
+   "nrr": -0.916,
+   "runsFor": 1126,
+   "oversFor": 213,
+   "runsAgainst": 1285,
+   "oversAgainst": 207.1
   },
   {
    "teamId": 12489623,

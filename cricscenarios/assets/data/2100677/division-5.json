@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 5,
- "generated_at": "2026-10-17T15:08:18.906Z",
+ "generated_at": "2026-10-17T22:55:12.050Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -131,13 +131,36 @@
  "matches": [
   {
    "id": 26354847,
-   "date": "2026-10-17T20:00:00.000Z",
+   "date": "2026-10-17T20:07:26.000Z",
    "venue": "RTP 3",
-   "home": 12476313,
-   "away": 12475579,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "home": 12475579,
+   "away": 12476313,
+   "status": "completed",
+   "resultText": "resulted — 5 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476313,
+    "margin": 5,
+    "innings": [
+     {
+      "team": 12475579,
+      "runs": 68,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476313,
+      "runs": 69,
+      "wickets": 5,
+      "overs": 14.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354832,
@@ -2213,13 +2236,36 @@
   },
   {
    "id": 26354848,
-   "date": "2026-10-17T17:00:00.000Z",
+   "date": "2026-10-17T17:16:12.000Z",
    "venue": "RTP 3",
    "home": 12489723,
    "away": 12480076,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 45 runs",
+   "overs": 15,
+   "result": {
+    "type": "runs",
+    "winner": 12489723,
+    "margin": 45,
+    "innings": [
+     {
+      "team": 12489723,
+      "runs": 89,
+      "wickets": 9,
+      "overs": 15,
+      "allOut": false,
+      "quotaOvers": 15
+     },
+     {
+      "team": 12480076,
+      "runs": 44,
+      "wickets": 8,
+      "overs": 13.4,
+      "allOut": false,
+      "quotaOvers": 15
+     }
+    ]
+   }
   },
   {
    "id": 26354864,
@@ -2859,6 +2905,21 @@
    "oversAgainst": 180
   },
   {
+   "teamId": 12476313,
+   "name": "Carolina Wildcats",
+   "played": 13,
+   "won": 9,
+   "lost": 2,
+   "tied": 2,
+   "noResult": 0,
+   "points": 19,
+   "nrr": 0.932,
+   "runsFor": 1297,
+   "oversFor": 220.5,
+   "runsAgainst": 1143,
+   "oversAgainst": 231.2
+  },
+  {
    "teamId": 12490219,
    "name": "Whales HT",
    "played": 12,
@@ -2872,21 +2933,6 @@
    "oversFor": 193.1,
    "runsAgainst": 1066,
    "oversAgainst": 195.5
-  },
-  {
-   "teamId": 12476313,
-   "name": "Carolina Wildcats",
-   "played": 12,
-   "won": 8,
-   "lost": 2,
-   "tied": 2,
-   "noResult": 0,
-   "points": 17,
-   "nrr": 0.903,
-   "runsFor": 1228,
-   "oversFor": 206.4,
-   "runsAgainst": 1075,
-   "oversAgainst": 213.2
   },
   {
    "teamId": 12478118,
@@ -3011,47 +3057,47 @@
   {
    "teamId": 12480076,
    "name": "Knockout Kings",
-   "played": 12,
+   "played": 13,
    "won": 3,
-   "lost": 8,
+   "lost": 9,
    "tied": 0,
    "noResult": 1,
    "points": 7,
-   "nrr": -0.755,
-   "runsFor": 1006,
-   "oversFor": 192.1,
-   "runsAgainst": 1156,
-   "oversAgainst": 193
-  },
-  {
-   "teamId": 12475579,
-   "name": "Blasters",
-   "played": 12,
-   "won": 2,
-   "lost": 8,
-   "tied": 0,
-   "noResult": 2,
-   "points": 6,
-   "nrr": -1.446,
-   "runsFor": 778,
-   "oversFor": 176.2,
-   "runsAgainst": 947,
-   "oversAgainst": 161.4
+   "nrr": -0.884,
+   "runsFor": 1050,
+   "oversFor": 205.5,
+   "runsAgainst": 1245,
+   "oversAgainst": 208
   },
   {
    "teamId": 12489723,
    "name": "Triangle Troopers",
-   "played": 12,
-   "won": 2,
+   "played": 13,
+   "won": 3,
    "lost": 10,
    "tied": 0,
    "noResult": 0,
-   "points": 4,
-   "nrr": -0.85,
-   "runsFor": 1208,
-   "oversFor": 216,
-   "runsAgainst": 1325,
-   "oversAgainst": 205.4
+   "points": 6,
+   "nrr": -0.627,
+   "runsFor": 1297,
+   "oversFor": 231,
+   "runsAgainst": 1369,
+   "oversAgainst": 219.2
+  },
+  {
+   "teamId": 12475579,
+   "name": "Blasters",
+   "played": 13,
+   "won": 2,
+   "lost": 9,
+   "tied": 0,
+   "noResult": 2,
+   "points": 6,
+   "nrr": -1.425,
+   "runsFor": 846,
+   "oversFor": 194.2,
+   "runsAgainst": 1016,
+   "oversAgainst": 175.5
   }
  ],
  "warnings": []

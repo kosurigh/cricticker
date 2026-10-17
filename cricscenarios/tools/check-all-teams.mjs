@@ -21,6 +21,7 @@ import { prepare, createRun, outcomeRates } from '../assets/js/simulate.js';
 import { summarise, buildReport } from '../assets/js/scenarios.js';
 import { goalCard } from '../assets/js/report-view.js';
 import { SHARED_OUTCOMES } from '../assets/js/config.js';
+import { marginsCard, teamMargins, MAX_FIXTURES } from '../assets/js/margins-view.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const GOALS = ['promotion', 'playoff', 'relegation'];
@@ -83,6 +84,31 @@ export function checkTeam(data, ctx, results, summary, team) {
         const lines = (html.match(/to beat/g) || []).length;
         const washed = (html.match(/if washed out or tied/g) || []).length;
         if (sharedOn && washed !== lines) bad(`${goal}: ${lines - washed} of ${lines} key results lack the washout figure`);
+      }
+    }
+  }
+  // The runs-and-overs card: renders cleanly, covers every own result, and
+  // agrees with the simulation wherever it claims a certainty.
+  if (ctx.remaining.length <= MAX_FIXTURES) {
+    const rates = { abandonRate: results.abandonRate, tieRate: results.tieRate };
+    const html = marginsCard(ctx, team.id, { rates });
+    const t = text(html);
+    if (/undefined|NaN|null|\[object/.test(t)) bad(`margins card contains undefined/NaN/null: ${t.slice(0, 200)}`);
+    const a = teamMargins(ctx, team.id, { rates });
+    for (const goal of GOALS) {
+      const cases = a.goals[goal];
+      if (!cases) continue;
+      if (cases.length !== Math.max(1, 3 ** games)) bad(`margins ${goal}: ${cases.length} own cases for ${games} game(s)`);
+      const lines = cases.flatMap((c) => c.lines);
+      const allIn = lines.every((l) => l.kind === 'in');
+      const allOut = lines.every((l) => l.kind === 'out');
+      const p = row.p[goal];
+      const success = goal === 'relegation' ? 1 - p : p;
+      if (allIn && success < 1) bad(`margins say ${goal} certain on points but simulation gives ${success}`);
+      if (allOut && success > 0) bad(`margins say ${goal} impossible on points but simulation gives ${success}`);
+      for (const c of cases) {
+        const sum = c.lines.reduce((x, l) => x + l.prob, 0);
+        if (Math.abs(sum - 1) > 1e-6) bad(`margins ${goal} ${c.label}: line probabilities sum to ${sum}`);
       }
     }
   }

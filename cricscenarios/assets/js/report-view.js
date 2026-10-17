@@ -165,27 +165,9 @@ function requirements(rep, avoiding, rules) {
       <ul class="reqs" style="margin-top:6px">${list}</ul>`]);
   }
 
-  // 4. Net run rate.
-  // Only worth saying when net run rate is genuinely the deciding factor: if
-  // winning out still leaves the team short on points, no margin rescues it.
-  const nrrDecides = sweepP > 0.02 && sweepP < 0.995;
-  if (rep.margin && rep.margin.samples >= 30 && nrrDecides) {
-    const m = rep.margin;
-    const bits = [];
-    if (m.runs != null) bits.push(`win by about <b>${m.runs} runs</b> batting first`);
-    if (m.oversToSpare != null) bits.push(`chase it down with about <b>${m.oversToSpare} overs to spare</b>`);
-    if (bits.length) {
-      items.push(['maybe', `<strong>Margins matter.</strong> In the simulated seasons where
-        ${esc(rep.team.name)} won everything and <em>still</em> missed out, the team that took
-        <b>${m.cutPlace}${ord(m.cutPlace)} place</b> did so on net run rate, typically around
-        <b>${signed(m.target)}</b>.
-        To clear that from ${signed(m.currentNrr)}, ${esc(rep.team.name)} needs to
-        ${bits.join(' — or ')} in ${m.games === 1 ? 'the last remaining game' : `each of the ${m.games} remaining games`}
-        (typical first-innings total in this division is ${m.typicalScore}).
-        <br><em>Wickets in hand do not affect net run rate when chasing — only the overs you leave
-        unused do.</em>`]);
-    }
-  }
+  // 4. Net run rate: see the "what it takes, in runs and overs" card
+  // (margins-view.js), which solves the margins exactly per scenario. The old
+  // single "typical cut-off" figure here could disagree with it, so it is gone.
 
   if (!items.length) {
     items.push(['maybe', 'No specific requirement stands out — the outcome is spread across many results.']);

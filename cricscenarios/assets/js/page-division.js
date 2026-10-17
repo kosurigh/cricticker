@@ -17,6 +17,7 @@ import {
 import { prepare, createRun, outcomeRates } from './simulate.js';
 import { summarise, buildReport } from './scenarios.js';
 import { goalCard } from './report-view.js';
+import { marginsCard } from './margins-view.js';
 import { netRunRate, standingsFor } from './engine.js';
 import { SIM_PRESETS, SHARED_OUTCOMES, proxyBase } from './config.js';
 
@@ -437,6 +438,8 @@ function renderReport() {
       <strong>Through</strong> and <strong>out</strong> are proved from the points arithmetic and hold
       whatever happens.
     </p>
+    ${marginsCard(state.ctx, state.focusId, { model: state.model, rates: state.rates })}
+    <h3 style="margin-top:20px">The odds</h3>
     ${cards}
     <div class="panelbox" style="margin-top:16px">
       <h3 style="margin-top:0">${esc(team.name)}'s remaining fixtures</h3>

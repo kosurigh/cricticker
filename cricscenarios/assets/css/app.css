@@ -252,3 +252,10 @@ footer.foot { border-top: 1px solid var(--line); margin-top: 36px; padding-top: 
    difference is the whole question of whether to trust the numbers. */
 .divcard.sample { border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
 .divcard.sample .d { color: var(--warn); }
+
+/* "What it takes" card (margins-view.js) */
+.margins h4 { margin: 18px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-dim); }
+.margins .mcase { margin-top: 8px; }
+.margins .mhead { display: flex; gap: 8px; align-items: baseline; }
+.margins ul.facts li { font-size: 15px; }
+.margins .sub { font-size: 12px; }
