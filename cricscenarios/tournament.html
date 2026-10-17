@@ -30,7 +30,8 @@
 </div>
 
 <script type="module">
-import { esc, breadcrumbs, query } from './assets/js/ui.js';
+import { esc, breadcrumbs, query, fmtWhen } from './assets/js/ui.js';
+import { fetchLiveProgress, progressLabel } from './assets/js/overview.js';
 
 const tid = query().get('t') || '2100677';
 
@@ -99,23 +100,51 @@ async function snapshotIndex(divisions) {
   const divisions = meta.divisions || [];
   const index = await snapshotIndex(divisions);
 
-  document.getElementById('divs').innerHTML = divisions.map((d) => {
-    const info = index.get(d);
-    let cls = '';
-    let note = 'No snapshot yet';
-    if (info && info.placeholder) {
-      cls = ' sample';
-      note = info.remaining != null ? `Sample data · ${info.remaining} to play` : 'Sample data';
-    } else if (info) {
-      cls = ' ready';
-      note = info.remaining != null ? `${info.remaining} games to play` : 'Data available';
+  // First paint from the committed index; then the live points table
+  // replaces the counts, so the cards agree with what each division page shows.
+  const render = (live) => {
+    document.getElementById('divs').innerHTML = divisions.map((d) => {
+      const info = index.get(d);
+      const now = live && live.progress.get(d);
+      let cls = '';
+      let note = 'No snapshot yet';
+      if (info && info.placeholder) {
+        cls = ' sample';
+        note = info.remaining != null ? `Sample data · ${info.remaining} to play` : 'Sample data';
+      } else if (now && now.remaining != null) {
+        cls = now.complete ? ' ready complete' : ' ready';
+        note = progressLabel(now);
+      } else if (info) {
+        cls = ' ready';
+        note = info.remaining != null
+          ? `${progressLabel({ ...info, total: info.matches })} · snapshot ${fmtWhen(info.generated_at)}`
+          : 'Data available';
+      }
+      return `
+      <a class="divcard${cls}" href="division.html?t=${encodeURIComponent(tid)}&d=${d}">
+        <div class="n">Division ${d}</div>
+        <div class="d">${esc(note)}</div>
+      </a>`;
+    }).join('');
+    const status = document.getElementById('divstatus');
+    if (status) {
+      status.innerHTML = live
+        ? `<span class="badge live"><span class="dot"></span>Live · ${esc(fmtWhen(live.fetchedAt))}</span>` +
+          (live.scheduleChanged
+            ? ` <span class="badge warn">CricHeroes now lists ${live.advertised} matches — fixture totals are from the last snapshot; open a division for exact counts</span>`
+            : '')
+        : '<span class="badge">Snapshot</span>';
     }
-    return `
-    <a class="divcard${cls}" href="division.html?t=${encodeURIComponent(tid)}&d=${d}">
-      <div class="n">Division ${d}</div>
-      <div class="d">${esc(note)}</div>
-    </a>`;
-  }).join('');
+  };
+  document.getElementById('divs').insertAdjacentHTML('beforebegin', '<p id="divstatus" class="meta"></p>');
+  render(null);
+
+  const totals = new Map(divisions.map((d) => [d, index.get(d)?.matches ?? null]));
+  try {
+    const mapAll = await (await fetch('assets/data/divisions.json', { cache: 'force-cache' })).json();
+    const live = await fetchLiveProgress(tid, mapAll[String(tid)], totals);
+    if (live) render(live);
+  } catch { /* keep the snapshot figures */ }
 
   if ([...index.values()].some((d) => d.placeholder)) {
     document.getElementById('divs').insertAdjacentHTML('beforebegin',

@@ -19,6 +19,8 @@ division.html       The analysis         ?t=2100677&d=7[&team=<id>]
 assets/js/engine.js      Points, net run rate, tie-breaks, mathematical certainties
 assets/js/simulate.js    Monte Carlo over the unplayed fixtures
 assets/js/scenarios.js   Turning counters into "win both and you are through"
+assets/js/report-view.js The "what has to happen" cards, as HTML (pure; shared with the checker)
+assets/js/overview.js    Division-list progress (games to play) from the live points table
 assets/js/chnorm.js      CricHeroes payload -> this project's schema
 assets/js/fixtures.js    Rebuilding a fixture list out of per-team ones
 assets/js/data.js        Snapshot loading + live refresh + cross-check
@@ -28,9 +30,10 @@ tools/fetch-tournament.mjs   Refresh the committed snapshots from CricHeroes
 tools/make-placeholder.mjs   Regenerate the sample seasons (all divisions)
 tools/team-names.mjs         Recover display names from the division map (build-time)
 tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
+tools/check-all-teams.mjs    Run and check the report for every team in every division
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        65 tests over the maths, the parser, the index
+test/                        69 tests over the maths, the parser, the index
                              and the committed snapshots
 ```
 
@@ -62,7 +65,14 @@ so the "Refresh from CricHeroes" button works locally without deploying anything
 
 ```bash
 node --test test/*.test.js     # run the tests
+node tools/check-all-teams.mjs # every team, every division, 200k simulations, with checks
 ```
+
+The division list shows each division's progress live ("6 games to play · 85 of 91
+played", or "Complete" when nothing is left), read from the published points table —
+half the division's appearances is its matches played — against the division's fixture
+total, so it agrees with the count on each division page. Without a proxy it falls back
+to the committed `index.json`, labelled with the snapshot date.
 
 ---
 
