@@ -259,3 +259,7 @@ footer.foot { border-top: 1px solid var(--line); margin-top: 36px; padding-top: 
 .margins .mhead { display: flex; gap: 8px; align-items: baseline; }
 .margins ul.facts li { font-size: 15px; }
 .margins .sub { font-size: 12px; }
+.margins table.ltable { width: 100%; border-collapse: collapse; margin: 6px 0 4px 28px; max-width: calc(100% - 28px); font-size: 13px; }
+.margins table.ltable th, .margins table.ltable td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line, #e5e7eb); }
+.margins table.ltable th { font-weight: 600; color: var(--muted, #6b7280); }
+.margins .mcase .sub { margin-left: 28px; }

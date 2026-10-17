@@ -7,7 +7,7 @@
 
 import { esc, signed } from './ui.js';
 import {
-  R, oversText, marginSettings, goalMargins, rivalMargins, racingRivals, currentNrr,
+  R, oversText, marginSettings, goalMargins, rivalMargins, racingRivals, currentNrr, lossMargins,
 } from './margins.js';
 import { certificates } from './engine.js';
 
@@ -198,7 +198,7 @@ export function rivalLines(ctx, set, teamId, { limit = 4 } = {}) {
         } else {
           text = v.winning
             ? `finish above ${RN} unless ${RN} ${marginText(v.need, { winning: true, set })}`
-            : `finish below ${RN} unless ${RN} lose by more than that: they stay above if they ${marginText(v.need, { winning: false, set })}`;
+            : `finish below ${RN} unless ${RN} lose heavily: ${RN} stay above if they ${marginText(v.need, { winning: false, set })}`;
         }
         return { text, state: v.state, on: v.on, cond: c.lines.length > 1 ? conditionsText(ctx, l.conditions) : '' };
       });
@@ -220,7 +220,7 @@ export function rivalLines(ctx, set, teamId, { limit = 4 } = {}) {
  * The headline facts, in the user's own terms: "can win and still miss out on
  * net run rate", "can lose to X and still finish above Y".
  */
-export function keyFacts(ctx, set, teamId, goals, rivals) {
+export function keyFacts(ctx, set, teamId, goals, rivals, losses = []) {
   const t = ctx.index.get(teamId);
   const team = nameOf(ctx, t);
   const facts = [];
@@ -255,10 +255,15 @@ export function keyFacts(ctx, set, teamId, goals, rivals) {
     for (const c of r.cases) {
       const lost = c.own.length && c.own.every((o) => o.result < 0);
       if (lost && c.lines.every((l) => l.state === 'above')) {
-        const opp = opponentName(ctx, t, c.own);
-        facts.push(`${b(team)} can ${lowerFirst(c.label)} and still finish above ${b(r.rival.name)}${c.lines.every((l) => l.on === 'points')
-          ? ' on points'
-          : ` — even losing by ${set.score - 10} runs, or with ${b(opp)} chasing ${set.score + 1} inside an over`}.`);
+        let how;
+        if (c.lines.every((l) => l.on === 'points')) how = ' on points';
+        else {
+          const ls = losses.filter((x) => x.rival === r.rival.id && c.own.some((o) => o.result < 0 && o.fixture === x.fixture));
+          how = ls.length && ls.every((x) => !x.realistic)
+            ? ' — no realistic defeat changes that (see "If they lose" below)'
+            : ' at typical margins (see "If they lose" below)';
+        }
+        facts.push(`${b(team)} can ${lowerFirst(c.label)} and still finish above ${b(r.rival.name)}${how}.`);
       }
     }
   }
@@ -280,8 +285,58 @@ export function teamMargins(ctx, teamId, opts = {}) {
   const allSettled = ['promotion', 'playoff', 'relegation'].every((g) => goals[`${g}Settled`]);
   // Nothing left to play for: the table races around them are noise.
   const rivals = allSettled ? [] : rivalLines(ctx, set, teamId);
+  // Only races still open count for the loss lines.
+  const Ks = ['playoff', 'promotion', 'relegation'].filter((g) => !goals[`${g}Settled`])
+    .map((g) => [g, goalPlaces(g, ctx.rules, ctx.n)]);
+  const losses = Ks.length ? lossMargins(ctx, set, teamId, Ks) : [];
   const plain = Object.fromEntries(Object.entries(goals).filter(([k]) => !k.endsWith('Settled')));
-  return { set, goals, rivals, facts: keyFacts(ctx, set, teamId, plain, rivals) };
+  return { set, goals, rivals, losses, facts: keyFacts(ctx, set, teamId, plain, rivals, losses) };
+}
+
+const GOAL_RACE = { playoff: 'playoff race', promotion: 'promotion race', relegation: 'relegation fight' };
+const runsWord = (r) => `${r} run${r === 1 ? '' : 's'}`;
+
+/**
+ * "If they lose": for each rival they could end level with on points, how
+ * badly they must lose for net run rate to drop them below it — in the right
+ * direction: losing by runs only when bowling first (the opponent batted
+ * first), being chased down when batting first.
+ */
+export function lossLines(ctx, set, teamId, losses) {
+  const t = ctx.index.get(teamId);
+  const T = b(nameOf(ctx, t));
+  return losses.map((l) => {
+    const r = ctx.index.get(l.rival), o = ctx.index.get(l.opponent);
+    const RN = b(nameOf(ctx, r)), O = b(nameOf(ctx, o));
+    const cond = l.conditions.length && l.conditions.some((c) => c.length) ? conditionsText(ctx, l.conditions) : '';
+    const race = listNames(l.goals.map((g) => GOAL_RACE[g]));
+    const now = `NRR now ${signed(l.nowT)} v ${signed(l.nowR)}`;
+    const assumed = l.assumed ? ` <span class="sub">(other results in this pair's games assumed at a typical ${set.typicalRuns}-run margin)</span>` : '';
+    const head = `${cond ? `${cond}, and ${T} lose to ${O}` : `If ${T} lose to ${O}`}, they finish level on points with ${RN} in the ${race} (${now}).`;
+    let verdict, table = '';
+    if (l.anyDefeat) {
+      verdict = `Any defeat drops ${T} below ${RN} on net run rate.`;
+    } else if (!l.realistic) {
+      verdict = `No realistic defeat drops ${T} below ${RN}: ${O} would have to bat first and make at least <b>${l.minScore ?? `more than ${600}`}</b>`
+        + `${l.minScore != null ? ` and bowl ${T} out for 0` : ''} (${l.reached
+          ? `${l.reached} of ${set.firstInnings.length} first innings in this division have reached ${l.minScore}`
+          : `the highest first innings in this division is ${set.highest}`}); with ${T} batting first, ${l.chaseEver == null ? 'no chase is quick enough' : `it needs them out for ${l.chaseEver}+ and chased in an over or so`}.`
+        + ` Worst case — bowled out for 0, then chased off 1 ball — leaves ${T} on ${signed(l.worst[0])} against ${signed(l.worst[1])}.`;
+    } else {
+      verdict = `${T} drop below ${RN} on net run rate only with a heavy enough defeat:`;
+      const row = (i) => {
+        const a = l.runs[i], c = l.chase[i];
+        const bowl = a.r == null ? 'no margin does it' : `lose by <b>${runsWord(a.r)}</b> or more (${esc(nameOf(ctx, t))} ${a.S - a.r} or fewer)`;
+        const bat = c.b == null ? 'no chase is quick enough' : `${O} chase ${c.S + 1} within <b>${oversText(c.b)} overs</b>`;
+        return `<tr><td>${a.S}</td><td>${bowl}</td><td>${bat}</td></tr>`;
+      };
+      table = `<table class="ltable"><thead><tr><th>First innings</th><th>${O} bat first (${esc(nameOf(ctx, t))} lose by runs)</th><th>${T} bat first (${O} chase)</th></tr></thead>
+        <tbody>${l.runs.map((_, i) => row(i)).join('')}</tbody></table>`
+        + `<p class="sub">Losing by runs can only do it once ${esc(nameOf(ctx, o))} make ${l.minScore ?? 'more than 600'} or more.`
+        + ` Worst case (bowled out for 0, chased off 1 ball): ${signed(l.worst[0])} against ${signed(l.worst[1])}.</p>`;
+    }
+    return { tone: l.anyDefeat ? 'no' : (l.realistic ? 'maybe' : 'ok'), text: `${head} ${verdict}${assumed}`, table, loss: l };
+  });
 }
 
 /** Above this many fixtures the exact enumeration (3^n) is not worth it. */
@@ -330,6 +385,11 @@ export function marginsCard(ctx, teamId, opts = {}) {
       const items = r.shown.flatMap((c) => c.lines.map((l) => `<li><span class="mark ${l.state === 'above' ? 'ok' : l.state === 'below' ? 'no' : 'maybe'}">${l.state === 'above' ? '▲' : l.state === 'below' ? '▼' : '→'}</span><span><strong>${esc(c.label)}</strong>${l.cond ? ` — ${l.cond}` : ''}: ${l.text}.</span></li>`));
       parts.push(`<ul class="reqs">${items.join('')}</ul>`);
     }
+  }
+  const ll = lossLines(ctx, s, teamId, a.losses);
+  if (ll.length) {
+    parts.push(`<h4>If they lose — how badly before net run rate drops them below a rival</h4>`);
+    parts.push(ll.map((l) => `<div class="mcase"><ul class="reqs"><li><span class="mark ${l.tone}">${l.tone === 'ok' ? '▲' : l.tone === 'no' ? '▼' : '→'}</span><span>${l.text}</span></li></ul>${l.table}</div>`).join(''));
   }
   return `<div class="panelbox margins" style="margin-top:16px">
     <h3 style="margin-top:0">${esc(team)} — what it takes, in runs and overs</h3>

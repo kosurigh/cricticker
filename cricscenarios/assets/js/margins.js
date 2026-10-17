@@ -73,6 +73,12 @@ export function marginSettings(ctx) {
     score: S,
     scores: [S - 20, S, S + 20],
     typicalRuns: Math.max(1, median(margins) ?? 20),
+    // The top of this division's range: a defeat that needs the opponent to
+    // score more than anyone has here is "not realistic".
+    highest: firsts.length ? Math.max(...firsts) : S + 40,
+    // A "big score here": the 90th percentile of first innings.
+    high: firsts.length ? [...firsts].sort((a, b) => a - b)[Math.floor(0.9 * (firsts.length - 1))] : S + 30,
+    firstInnings: [...firsts].sort((a, b) => a - b),
     quota: ctx.rules.overs_per_innings * BALLS_PER_OVER,
     samples: firsts.length,
   };
@@ -133,7 +139,9 @@ function nrrAfter(ctx, set, combo, free, margin, S) {
     if (o === R.SHARED) continue;
     const fx = ctx.remaining[f];
     const w = o === R.HOME ? fx.h : fx.a, l = o === R.HOME ? fx.a : fx.h;
-    decisive(st, w, l, free.has(f) ? margin : typical, S, Q);
+    // Only the free game's first innings varies; everything else stays at the
+    // division's typical score and margin.
+    decisive(st, w, l, free.has(f) ? margin : typical, free.has(f) ? S : set.score, Q);
   }
   return (i) => nrrOf(st, i);
 }
@@ -498,4 +506,137 @@ export function racingRivals(ctx, teamId) {
   // Closest in the current table first.
   return out.sort((x, y) => Math.abs(ctx.base.points[x] - ctx.base.points[t]) - Math.abs(ctx.base.points[y] - ctx.base.points[t]))
     .map((i) => ctx.teams[i].id);
+}
+
+/* ------------------------------------------------------------------ *
+ * How badly can a team lose before net run rate drops it below a rival?
+ * ------------------------------------------------------------------ */
+
+/**
+ * Losing, in the right cricket direction:
+ *  - bowling first: the opponent bats first and makes S; the team falls short
+ *    by r runs (charged the full quota whether bowled out or not);
+ *  - batting first: the team makes S (full quota charged); the opponent
+ *    chases S + 1 in b balls.
+ * Nothing is capped here: r runs up to S (bowled out for 0), b down to 1 ball.
+ */
+const MAX_SCORE = 600;
+
+/**
+ * For team `teamId` and each rival it could finish level with on points in a
+ * race that matters (top-K boundary for any goal), with team losing one of
+ * its games: exact margins at which its NRR is no longer above the rival's.
+ *
+ * Returns [{ rival, fixture, opponent, goals, conditions, assumed, nowT, nowR,
+ *            runs: [{S, r}], minScore, chase: [{S, b}], chaseEver, worst,
+ *            anyDefeat, realistic }]
+ *  r      — smallest defeat in runs (opponent batting first on S) that does it
+ *  minScore — smallest opponent first-innings total at which it can happen at
+ *             all (bowled out for 0), null if not up to MAX_SCORE
+ *  b      — most balls the opponent may take to chase S + 1 for it to happen
+ *  worst  — the team's and rival's NRR after the worst case: bowled out for
+ *           0 and chased off 1 ball
+ */
+export function lossMargins(ctx, set, teamId, goalKs) {
+  const t = ctx.index.get(teamId);
+  const mine = fixturesOf(ctx, t);
+  if (!mine.length) return [];
+  const Ks = goalKs || [];
+  const out = [];
+  const eps = 1e-12;
+  for (const rid of racingRivals(ctx, teamId)) {
+    const r = ctx.index.get(rid);
+    const dims = [...new Set([...mine, ...fixturesOf(ctx, r)])];
+    const rest = ctx.remaining.map((_, f) => f).filter((f) => !dims.includes(f));
+    for (const f of mine) {
+      const fx = ctx.remaining[f];
+      const lose = fx.h === t ? R.AWAY : R.HOME;
+      const opp = fx.h === t ? fx.a : fx.h;
+      const vary = dims.filter((x) => x !== f);
+      const blank = new Array(ctx.remaining.length).fill(-1);
+      blank[f] = lose;
+      const groups = new Map();
+      for (const c of combos(null, vary, blank)) {
+        const part = c.map((o) => (o === -1 ? R.SHARED : o));
+        const pts0 = pointsAfter(ctx, part);
+        if (Math.abs(pts0[t] - pts0[r]) > 1e-9) continue;
+        // Does the pair's order ever decide a goal? Points only, every
+        // outcome of the other fixtures.
+        const goals = new Set();
+        for (const c2 of combos(null, rest, c)) {
+          const pts = pointsAfter(ctx, c2);
+          let above = 0, level = 0;
+          for (let i = 0; i < ctx.n; i++) {
+            if (i === t) continue;
+            if (pts[i] > pts[t] + 1e-9) above++;
+            else if (Math.abs(pts[i] - pts[t]) < 1e-9) level++;
+          }
+          for (const [goal, K] of Ks) {
+            const m = K - above;
+            if (m > 0 && level >= m) goals.add(goal);
+          }
+          if (goals.size === Ks.length) break;
+        }
+        if (!goals.size) continue;
+        const res = lossThresholds(ctx, set, t, r, f, part, dims);
+        res.goals = [...goals];
+        const key = verdictKey(res);
+        if (!groups.has(key)) groups.set(key, { res, cubes: [] });
+        groups.get(key).cubes.push({ masks: vary.map((x) => 1 << c[x]) });
+      }
+      for (const g of groups.values()) {
+        out.push({
+          rival: rid, fixture: f, opponent: ctx.teams[opp].id, ...g.res,
+          conditions: mergeCubes(g.cubes).map((cube) => cube.masks
+            .map((mask, k) => ({ fixture: vary[k], mask })).filter((x) => x.mask !== 7)),
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function lossThresholds(ctx, set, t, r, f, combo, dims) {
+  const Q = set.quota;
+  const fx = ctx.remaining[f];
+  const winner = fx.h === t ? fx.a : fx.h;
+  const typical = { mode: 'runs', value: set.typicalRuns };
+  let assumed = false;
+  for (const x of dims) if (x !== f && combo[x] !== R.SHARED) assumed = true;
+  const after = (margin, S) => {
+    const st = baseStats(ctx);
+    for (const x of dims) {
+      const o = combo[x];
+      if (o === R.SHARED) continue;
+      const fy = ctx.remaining[x];
+      const w = o === R.HOME ? fy.h : fy.a, l = o === R.HOME ? fy.a : fy.h;
+      if (x === f) decisive(st, winner, t, margin, S, Q);
+      else decisive(st, w, l, typical, set.score, Q);
+    }
+    return [nrrOf(st, t), nrrOf(st, r)];
+  };
+  const below = (margin, S) => { const [a, b0] = after(margin, S); return a - b0 <= eps0; };
+  const eps0 = 1e-12;
+  const runsAt = (S) => firstTrue(1, S, (k) => below({ mode: 'runs', value: k }, S));
+  const chaseAt = (S) => {
+    const k = firstTrue(0, Q - 1, (j) => below({ mode: 'chase', value: Q - j }, S));
+    return k == null ? null : Q - k;
+  };
+  // Bowled out for 0 against a bigger and bigger total only gets worse.
+  const minScore = firstTrue(1, MAX_SCORE, (S) => below({ mode: 'runs', value: S }, S));
+  const scores = set.scores;
+  const runs = scores.map((S) => ({ S, r: runsAt(S) }));
+  const chase = scores.map((S) => ({ S, b: chaseAt(S) }));
+  let chaseEver = null;          // lowest own total at which some chase does it
+  for (let S = 0; S <= set.highest; S++) if (below({ mode: 'chase', value: 1 }, S)) { chaseEver = S; break; }
+  const worst = after({ mode: 'chase', value: 1 }, 0);
+  const anyDefeat = below({ mode: 'runs', value: 1 }, set.score) && below({ mode: 'chase', value: Q }, set.score);
+  // Realistic: it happens at one of the quoted scores, or once the opponent
+  // makes a score that one first innings in ten here reaches.
+  const big = set.high;
+  const realistic = runs.some((x) => x.r != null) || chase.some((x) => x.b != null)
+    || (minScore != null && minScore <= big) || (chaseEver != null && chaseEver <= big);
+  const reached = minScore == null ? 0 : (set.firstInnings || []).filter((x) => x >= minScore).length;
+  const [nowT, nowR] = [currentNrr(ctx, t), currentNrr(ctx, r)];
+  return { assumed, nowT, nowR, runs, minScore, reached, chase, chaseEver, worst, anyDefeat, realistic };
 }

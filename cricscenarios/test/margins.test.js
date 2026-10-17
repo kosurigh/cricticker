@@ -11,9 +11,9 @@ import { hydrate } from '../assets/js/data.js';
 import { prepare } from '../assets/js/simulate.js';
 import { DEFAULT_RULES } from '../assets/js/engine.js';
 import {
-  marginSettings, goalMargins, rivalMargins, scenarioVerdict, R, oversText,
+  marginSettings, goalMargins, rivalMargins, scenarioVerdict, R, oversText, lossMargins, currentNrr,
 } from '../assets/js/margins.js';
-import { teamMargins, marginsCard } from '../assets/js/margins-view.js';
+import { teamMargins, marginsCard, goalPlaces } from '../assets/js/margins-view.js';
 
 const strip = (h) => h.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 
@@ -114,5 +114,89 @@ test('Division 7: the card renders for every team with no undefined or NaN', () 
     const t0 = strip(marginsCard(ctx7, t.id));
     assert.doesNotMatch(t0, /undefined|NaN|\[object/, t.name);
     assert.match(t0, /what it takes, in runs and overs/);
+  }
+});
+
+/* ------------------------------------------- how badly can they lose? */
+
+const KS = (ctx) => ['playoff', 'promotion', 'relegation'].map((g) => [g, goalPlaces(g, ctx.rules, ctx.n)]);
+
+test('loss margins match brute force, in the right direction (by runs bowling first, chased down batting first)', () => {
+  // A (4 pts) still plays C; B (4 pts) is done. If A lose, A and B are level
+  // on 4 for the one place, and A's margin of defeat decides it.
+  const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }, { id: 3, name: 'C' }, { id: 4, name: 'D' }];
+  const P = {
+    1: [3, 2, 1, 4, 330, 54, 300, 54], 2: [4, 2, 2, 4, 400, 72, 390, 72],
+    3: [3, 1, 2, 2, 280, 54, 300, 54], 4: [4, 1, 3, 2, 360, 72, 380, 72],
+  };
+  const baseline = {};
+  for (const t of teams) {
+    const [pl, w, l, pts, rf, of, ra, oa] = P[t.id];
+    baseline[t.id] = { teamId: t.id, played: pl, won: w, lost: l, tied: 0, noResult: 0, points: pts,
+      runsFor: rf, ballsFor: of * 6, runsAgainst: ra, ballsAgainst: oa * 6 };
+  }
+  const rules = { ...RULES, playoff_spots: 1, promotion_spots: 1, relegation_spots: 1 };
+  const ctx = prepare(teams, [{ id: 9, home: 1, away: 3, status: 'upcoming', overs: 18 }], rules, baseline);
+  const set = { ...marginSettings(ctx), score: 120, scores: [100, 120, 140], typicalRuns: 20, highest: 160 };
+  const ls = lossMargins(ctx, set, 1, [['playoff', 1]]);
+  const vsB = ls.find((l) => l.rival === 2);
+  assert.ok(vsB, 'A losing to C leaves A level with B on 4 for the one place');
+  const bN = nrr(400, 432, 390, 432);
+  // A dead heat on NRR counts as no longer above (later tiebreaks are not modelled).
+  // Bowling first: C make S off 18, A make S - r off 18 (bowled out or not).
+  for (const { S, r } of vsB.runs) {
+    let want = null;
+    for (let k = 1; k <= S; k++) if (nrr(330 + S - k, 324 + 108, 300 + S, 324 + 108) <= bN + 1e-12) { want = k; break; }
+    assert.equal(r, want, `runs at ${S}`);
+  }
+  // Batting first: A make S off 18, C chase S + 1 off b balls.
+  for (const { S, b: bb } of vsB.chase) {
+    let want = null;
+    for (let k = 108; k >= 1; k--) if (nrr(330 + S, 324 + 108, 300 + S + 1, 324 + k) <= bN + 1e-12) { want = k; break; }
+    assert.equal(bb, want, `chase at ${S}`);
+  }
+  let minS = null;
+  for (let S = 1; S <= 600; S++) if (nrr(330, 432, 300 + S, 432) <= bN + 1e-12) { minS = S; break; }
+  assert.equal(vsB.minScore, minS);
+  assert.ok(Math.abs(vsB.worst[0] - nrr(330, 432, 301, 325)) < 1e-9, 'worst case: 0 off 18, chased (1 run) off 1 ball');
+});
+
+test('Division 7: no realistic defeat drops Cary Sirjis below Guts N Glory', { skip: !pending(SIRJIS, ZEN) && 'Zenstarz v Cary Sirjis has been played' }, () => {
+  const set = marginSettings(ctx7);
+  const s = ctx7.index.get(idOf(SIRJIS)), g = ctx7.index.get(idOf(GNG));
+  // CricHeroes' own figures: 992/172.4 v 893/188.4 and 1161/204 v 1146/204.5.
+  assert.ok(Math.abs(currentNrr(ctx7, s) - nrr(992, 1036, 893, 1132)) < 1e-9);
+  assert.ok(Math.abs(currentNrr(ctx7, g) - nrr(1161, 1224, 1146, 1229)) < 1e-9);
+  const l = lossMargins(ctx7, set, idOf(SIRJIS), KS(ctx7)).find((x) => x.rival === idOf(GNG));
+  assert.ok(l, 'a Sirjis defeat leaves them level with GnG in the playoff race');
+  assert.deepEqual(l.goals, ['playoff']);
+  assert.equal(l.realistic, false);
+  assert.equal(l.anyDefeat, false);
+  for (const x of l.runs) assert.equal(x.r, null, `no defeat by runs does it when Zenstarz make ${x.S}`);
+  for (const x of l.chase) assert.equal(x.b, null, `no chase of ${x.S + 1} is quick enough`);
+  assert.equal(l.chaseEver, null);
+  assert.equal(l.minScore, 163, 'only once Zenstarz make 163+ and bowl Sirjis out for 0');
+  assert.ok(Math.abs(l.worst[0] - 0.46846) < 1e-4, `worst case ${l.worst[0]}`);
+  assert.ok(Math.abs(l.worst[1] - 0.09638) < 1e-4);
+  const card = strip(marginsCard(ctx7, idOf(SIRJIS)));
+  assert.match(card, /No realistic defeat drops Cary Sirjis below Guts N Glory\s*: Zenstarz Warriors would have to bat first and make at least 163 and bowl Cary Sirjis out for 0/);
+  assert.match(card, /leaves Cary Sirjis on \+0\.468 against \+0\.096/);
+});
+
+test('Division 7: loss lines agree with the "lose by no more than" lines (one run apart)', { skip: !pending(TECH, HEAT) && 'Tech Stormers v HEAT has been played' }, () => {
+  const set = marginSettings(ctx7);
+  const tech = idOf(TECH), tb = idOf(/thunderbolts/i);
+  const l = lossMargins(ctx7, set, tech, KS(ctx7)).find((x) => x.rival === tb);
+  if (!l) return;
+  const rv = rivalMargins(ctx7, set, tech, tb);
+  const lose = rv.cases.find((c) => c.own.every((o) => o.result < 0));
+  const dep = lose.lines.find((x) => x.verdict.state === 'depends');
+  assert.ok(dep);
+  const need = dep.verdict.need;
+  for (const [k, at] of [['low', 0], ['main', 1], ['high', 2]]) {
+    // Survive losing by up to n runs  <=>  drop below from n + 1.
+    assert.equal(need[k].runs + 1, l.runs[at].r);
+    // Survive if they take at least b balls  <=>  drop below within b - 1.
+    assert.equal(need[k].balls - 1, l.chase[at].b);
   }
 });
