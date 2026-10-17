@@ -15,8 +15,18 @@
  *     from here. "Never happened in 200,000 trials" is evidence; it is not
  *     proof, and the UI keeps the two apart.
  *
+ * Each remaining match ends one of four ways: a home win, an away win, a tie
+ * (points shared, both innings count towards net run rate) or a washout
+ * (abandoned / no result: points shared, net run rate untouched). How often
+ * the last two happen is set by `abandonRate` and `tieRate` — see
+ * `outcomeRates()` and SHARED_OUTCOMES in config.js.
+ *
  * The hot loop runs on flat typed arrays with no allocation per trial.
  */
+
+/** Outcome codes, also the slot offsets in the per-fixture counters. */
+export const OUTCOME = { HOME: 0, AWAY: 1, TIE: 2, ABANDONED: 3 };
+export const OUTCOMES = 4;
 
 import {
   BALLS_PER_OVER, countingBalls, buildTable, netRunRate, DEFAULT_RULES,
@@ -155,6 +165,16 @@ export function prepare(teams, matches, rules = DEFAULT_RULES, baseline = null) 
     base.won[i] = r.won;
   }
 
+  // How often this division's completed matches ended with the points shared,
+  // for blending into the tournament-wide washout and tie rates.
+  const history = { completed: 0, abandoned: 0, tied: 0 };
+  for (const m of matches) {
+    if (m.status !== 'completed' || !m.result) continue;
+    history.completed++;
+    if (m.result.type === 'no_result' || m.result.type === 'abandoned') history.abandoned++;
+    else if (m.result.type === 'tie') history.tied++;
+  }
+
   const remaining = [];
   for (const m of matches) {
     if (m.status === 'completed') continue;
@@ -171,12 +191,19 @@ export function prepare(teams, matches, rules = DEFAULT_RULES, baseline = null) 
     if (w != null && l != null) played.push({ w, l });
   }
 
-  const shapes = matchShapes(matches, rules);
+  // Decisive shapes drive simulated wins; a tied shape dropped into a win
+  // would hand the "winner" a level scoreline. Real ties, where there are
+  // any, are kept apart to replay simulated ties.
+  const allShapes = matchShapes(matches, rules);
+  let shapes = allShapes.filter((x) => !x.tie);
+  if (!shapes.length) shapes = matchShapes([], rules);
+  const tieShapes = allShapes.filter((x) => x.tie);
   const strengths = bradleyTerry(n, played);
 
   return {
-    ids, index, n, base, remaining, shapes, strengths, rules, teams, matches, baseline,
-    avgFirstInnings: averageFirstInnings(shapes),
+    ids, index, n, base, remaining, shapes, tieShapes, strengths, rules, teams, matches, baseline,
+    history,
+    avgFirstInnings: averageFirstInnings(allShapes),
   };
 }
 
@@ -191,6 +218,32 @@ export function winProbability(ctx, h, a, model) {
 }
 
 /**
+ * The washout and tie rates to simulate with, from SHARED_OUTCOMES-shaped
+ * settings and (optionally) the division's own history.
+ *
+ * With `useDivisionHistory` each rate is a weighted blend: the configured
+ * default counts as `priorMatches` matches of evidence and the division's
+ * completed matches as themselves. Returns zeros when disabled, which gives
+ * back the plain win-or-lose model.
+ */
+export function outcomeRates(history, cfg) {
+  if (!cfg || cfg.enabled === false) return { abandonRate: 0, tieRate: 0, source: 'off' };
+  let abandonRate = Math.max(0, Number(cfg.abandonRate) || 0);
+  let tieRate = Math.max(0, Number(cfg.tieRate) || 0);
+  let source = 'default';
+  const prior = Math.max(0, Number(cfg.priorMatches) || 0);
+  if (cfg.useDivisionHistory && history && history.completed > 0) {
+    abandonRate = (history.abandoned + prior * abandonRate) / (history.completed + prior);
+    tieRate = (history.tied + prior * tieRate) / (history.completed + prior);
+    source = 'blended';
+  }
+  // Keep the model a model of cricket: at least half of games produce a winner.
+  const total = abandonRate + tieRate;
+  if (total > 0.5) { abandonRate *= 0.5 / total; tieRate *= 0.5 / total; }
+  return { abandonRate, tieRate, source };
+}
+
+/**
  * Create a resumable simulation run. Call `step(k)` to advance k trials; the
  * UI slices the work so the page keeps painting. Read `results` at any time.
  */
@@ -201,7 +254,13 @@ export function createRun(ctx, opts = {}) {
     focusId = null,
     seed = 0x5eed,
     goals = ['playoff', 'promotion', 'relegation'],
+    // Chance a remaining match is washed out / tied. Zero (the default) is
+    // the plain win-or-lose model and reproduces it draw for draw.
+    abandonRate = 0,
+    tieRate = 0,
   } = opts;
+  const pAbandon = Math.max(0, abandonRate);
+  const pShared = pAbandon + Math.max(0, tieRate);
 
   const n = ctx.n;
   const rules = ctx.rules;
@@ -228,18 +287,25 @@ export function createRun(ctx, opts = {}) {
   const goalCounts = {};
   for (const g of goals) goalCounts[g] = new Int32Array(n);
 
-  // Conditional counters for the focus team. Two counters per fixture per
-  // possible winner is all the "what has to happen elsewhere" analysis needs.
+  // Conditional counters for the focus team. One counter per fixture per
+  // possible outcome (home win, away win, tie, washout) is all the "what has
+  // to happen elsewhere" analysis needs.
   const ownCount = new Int32Array(FM + 1);
   const ownGoal = {};
   for (const g of goals) ownGoal[g] = new Int32Array(FM + 1);
+  // The same, split by wins *and* shared results (ties + washouts) from the
+  // team's own games: [wins * (FM + 1) + shared].
+  const W1 = FM + 1;
+  const ownMixCount = new Int32Array(W1 * W1);
+  const ownMixGoal = {};
+  for (const g of goals) ownMixGoal[g] = new Int32Array(W1 * W1);
 
-  const swingCount = new Int32Array(R * 2);
+  const swingCount = new Int32Array(R * OUTCOMES);
   const swingGoal = {};
-  for (const g of goals) swingGoal[g] = new Int32Array(R * 2);
-  const sweepCount = new Int32Array(R * 2);
+  for (const g of goals) swingGoal[g] = new Int32Array(R * OUTCOMES);
+  const sweepCount = new Int32Array(R * OUTCOMES);
   const sweepGoal = {};
-  for (const g of goals) sweepGoal[g] = new Int32Array(R * 2);
+  for (const g of goals) sweepGoal[g] = new Int32Array(R * OUTCOMES);
 
   let sweepTrials = 0;
   // Net run rate of whoever holds the last qualifying place, in trials where
@@ -257,7 +323,8 @@ export function createRun(ctx, opts = {}) {
   const ra = new Float64Array(n), ba = new Float64Array(n);
   const nrr = new Float64Array(n);
   const order = new Int32Array(n);
-  const winnerOf = new Int32Array(R);
+  const outcomeOf = new Int32Array(R);
+  const fullQuota = rules.overs_per_innings * BALLS_PER_OVER;
 
   const playoffSpots = rules.playoff_spots;
   const promotionSpots = rules.promotion_spots;
@@ -280,14 +347,49 @@ export function createRun(ctx, opts = {}) {
       rf.set(ctx.base.runsFor); bf.set(ctx.base.ballsFor);
       ra.set(ctx.base.runsAgainst); ba.set(ctx.base.ballsAgainst);
 
-      let focusWins = 0;
+      let focusWins = 0, focusShared = 0;
 
       for (let m = 0; m < R; m++) {
         const fx = ctx.remaining[m];
+
+        if (pShared > 0) {
+          const u = rnd();
+          if (u < pShared) {
+            const isFocus = fx.h === focus || fx.a === focus;
+            if (isFocus) focusShared++;
+            if (u < pAbandon) {
+              // Washed out: the points are shared and net run rate is untouched.
+              outcomeOf[m] = OUTCOME.ABANDONED;
+              pts[fx.h] += rules.points_no_result;
+              pts[fx.a] += rules.points_no_result;
+              continue;
+            }
+            // Tied: points shared, and both sides' innings still count.
+            outcomeOf[m] = OUTCOME.TIE;
+            pts[fx.h] += rules.points_tie;
+            pts[fx.a] += rules.points_tie;
+            const homeFirst = rnd() < 0.5;
+            const first = homeFirst ? fx.h : fx.a, second = homeFirst ? fx.a : fx.h;
+            let runs, b1, b2;
+            if (ctx.tieShapes && ctx.tieShapes.length) {
+              const t = ctx.tieShapes[(rnd() * ctx.tieShapes.length) | 0];
+              runs = t.firstRuns; b1 = t.firstBalls; b2 = t.secondBalls;
+            } else {
+              // No real tie to replay: take a real first innings and have the
+              // chase finish level off the last ball.
+              const t = ctx.shapes[(rnd() * ctx.shapes.length) | 0];
+              runs = t.firstRuns; b1 = t.firstBalls; b2 = fullQuota;
+            }
+            rf[first] += runs; bf[first] += b1; ra[second] += runs; ba[second] += b1;
+            rf[second] += runs; bf[second] += b2; ra[first] += runs; ba[first] += b2;
+            continue;
+          }
+        }
+
         const homeWins = rnd() < probs[m];
         const w = homeWins ? fx.h : fx.a;
         const l = homeWins ? fx.a : fx.h;
-        winnerOf[m] = homeWins ? 0 : 1;
+        outcomeOf[m] = homeWins ? OUTCOME.HOME : OUTCOME.AWAY;
 
         pts[w] += rules.points_win;
         pts[l] += rules.points_loss;
@@ -333,12 +435,17 @@ export function createRun(ctx, opts = {}) {
         if (hitPlayoff && ownGoal.playoff) ownGoal.playoff[focusWins]++;
         if (hitPromotion && ownGoal.promotion) ownGoal.promotion[focusWins]++;
         if (hitRelegation && ownGoal.relegation) ownGoal.relegation[focusWins]++;
+        const mix = focusWins * W1 + focusShared;
+        ownMixCount[mix]++;
+        if (hitPlayoff && ownMixGoal.playoff) ownMixGoal.playoff[mix]++;
+        if (hitPromotion && ownMixGoal.promotion) ownMixGoal.promotion[mix]++;
+        if (hitRelegation && ownMixGoal.relegation) ownMixGoal.relegation[mix]++;
 
         const swept = focusWins === FM;
         if (swept) sweepTrials++;
 
         for (let m = 0; m < R; m++) {
-          const slot = m * 2 + winnerOf[m];
+          const slot = m * OUTCOMES + outcomeOf[m];
           swingCount[slot]++;
           if (hitPlayoff && swingGoal.playoff) swingGoal.playoff[slot]++;
           if (hitPromotion && swingGoal.promotion) swingGoal.promotion[slot]++;
@@ -371,15 +478,20 @@ export function createRun(ctx, opts = {}) {
     get done() { return done; },
     trials,
     model,
+    abandonRate: pAbandon,
+    tieRate: pShared - pAbandon,
     focusIndex: focus,
     focusMatches,
     results: {
       get trials() { return done; },
       n, posCounts, goalCounts,
+      abandonRate: pAbandon,
+      tieRate: pShared - pAbandon,
       focus: {
         index: focus,
         matches: focusMatches,
         ownCount, ownGoal,
+        ownMixCount, ownMixGoal,
         swingCount, swingGoal,
         sweepCount, sweepGoal,
         get sweepTrials() { return sweepTrials; },

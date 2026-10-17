@@ -92,6 +92,7 @@ test('the fixture list agrees with the win/loss record CricHeroes publishes', ()
       assert.equal(r.won, pub.won, `${who}: won`);
       assert.equal(r.lost, pub.lost, `${who}: lost`);
       assert.equal(r.noResult, pub.noResult, `${who}: no results`);
+      assert.equal(r.tied ?? 0, pub.tied ?? 0, `${who}: ties`);
     }
   }
 });

@@ -96,6 +96,22 @@ const ABANDONED = new Set([
   'abandoned', 'cancelled', 'canceled', 'no result', 'no_result', 'washed out',
 ]);
 
+/**
+ * CricHeroes' own classification of a finished match, from `match_result`:
+ * "resulted" (someone won), "tie" or "abandoned". This is what the umpires
+ * signed off and what CricHeroes scores the table from, so where it is
+ * present it overrules anything inferred from the free-text margin — a
+ * resulted match whose `win_by` happens to mention rain is still a win, and an
+ * abandoned one with "-12 runs" in `win_by` is still a washout.
+ */
+export function cricheroesClass(matchResult) {
+  const s = String(matchResult ?? '').toLowerCase().trim();
+  if (s === 'resulted' || s === 'result' || s === 'won' || s === 'win') return 'win';
+  if (s === 'tie' || s === 'tied') return 'tie';
+  if (s === 'abandoned' || s === 'no result' || s === 'no_result') return 'abandoned';
+  return null;
+}
+
 export function normaliseStatus(raw, resultText) {
   const s = String(raw ?? '').toLowerCase().trim();
   const t = String(resultText ?? '').toLowerCase();
@@ -317,7 +333,10 @@ export function normaliseMatches(raw) {
     // is much use without the other, so the pair travels together from here on.
     const resultText = [pick(r, ALIASES.resultText), pick(r, ALIASES.marginText)]
       .filter((v) => v != null && v !== '').join(' — ') || null;
-    const status = normaliseStatus(pick(r, ALIASES.status), resultText);
+    const chClass = cricheroesClass(r.match_result);
+    let status = normaliseStatus(pick(r, ALIASES.status), resultText);
+    if (chClass === 'abandoned') status = 'abandoned';
+    else if (chClass && status === 'abandoned') status = 'completed';
     const matchOvers = num(pick(r, ALIASES.matchOvers));
     const match = {
       id: id ?? `${home}-${away}-${matches.length}`,
@@ -345,7 +364,13 @@ export function normaliseMatches(raw) {
     const withQuota = (s) => (s && matchOvers != null ? { ...s, quotaOvers: matchOvers } : s);
     const hs = hi || withQuota(parseSummary(pick(r, ALIASES.homeSummary), pick(r, ALIASES.homeOvers)));
     const as = ai || withQuota(parseSummary(pick(r, ALIASES.awaySummary), pick(r, ALIASES.awayOvers)));
-    const parsed = parseResultText(resultText);
+    let parsed = parseResultText(resultText);
+    if (chClass === 'tie') parsed = { type: 'tie', margin: 0 };
+    else if (chClass === 'win' && (parsed.type === 'tie' || parsed.type === 'no_result')) {
+      // CricHeroes says somebody won; read only the margin out of the text.
+      parsed = parseResultText(pick(r, ALIASES.marginText));
+      if (parsed.type === 'tie' || parsed.type === 'no_result') parsed = { type: null, margin: null };
+    }
     let winner = num(pick(r, ALIASES.winnerId));
     if (winner != null && winner !== home && winner !== away) winner = null;
     if (winner == null && parsed.type && parsed.type !== 'tie' && hs && as) {

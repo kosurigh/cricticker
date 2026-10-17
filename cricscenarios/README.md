@@ -19,18 +19,21 @@ division.html       The analysis         ?t=2100677&d=7[&team=<id>]
 assets/js/engine.js      Points, net run rate, tie-breaks, mathematical certainties
 assets/js/simulate.js    Monte Carlo over the unplayed fixtures
 assets/js/scenarios.js   Turning counters into "win both and you are through"
+assets/js/report-view.js The "what has to happen" cards, as HTML (pure; shared with the checker)
+assets/js/overview.js    Division-list progress (games to play) from the live points table
 assets/js/chnorm.js      CricHeroes payload -> this project's schema
 assets/js/fixtures.js    Rebuilding a fixture list out of per-team ones
 assets/js/data.js        Snapshot loading + live refresh + cross-check
-assets/js/config.js      Worker URL and the CricHeroes endpoint candidates
+assets/js/config.js      Worker URL, washout/tie rates, CricHeroes endpoint candidates
 
 tools/fetch-tournament.mjs   Refresh the committed snapshots from CricHeroes
 tools/make-placeholder.mjs   Regenerate the sample seasons (all divisions)
 tools/team-names.mjs         Recover display names from the division map (build-time)
 tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
+tools/check-all-teams.mjs    Run and check the report for every team in every division
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        53 tests over the maths, the parser, the index
+test/                        69 tests over the maths, the parser, the index
                              and the committed snapshots
 ```
 
@@ -62,7 +65,14 @@ so the "Refresh from CricHeroes" button works locally without deploying anything
 
 ```bash
 node --test test/*.test.js     # run the tests
+node tools/check-all-teams.mjs # every team, every division, 200k simulations, with checks
 ```
+
+The division list shows each division's progress live ("6 games to play · 85 of 91
+played", or "Complete" when nothing is left), read from the published points table —
+half the division's appearances is its matches played — against the division's fixture
+total, so it agrees with the count on each division page. Without a proxy it falls back
+to the committed `index.json`, labelled with the snapshot date.
 
 ---
 
@@ -123,6 +133,10 @@ Two controls change the answer, and it is worth understanding both:
   about who is better, just the combinatorics of who plays whom. Form-weighted rates teams
   from results so far. Flip between them: if a number barely moves, it is solid; if it
   swings a lot, your fate depends on an assumption rather than on arithmetic.
+- **Washouts & ties: Include vs Wins only.** *Include* lets every remaining match also be
+  washed out (abandoned / no result: points shared, net run rate untouched) or tied
+  (points shared, both innings count towards net run rate), at the rates described under
+  *Probabilities*. *Wins only* is the plain win-or-lose model.
 - **Simulations.** More trials, less jitter. Fast (10k) is enough to browse; Thorough
   (200k) is what to quote to anyone.
 
@@ -130,12 +144,14 @@ Two controls change the answer, and it is worth understanding both:
 
 Three cards — Promotion, Playoffs, Relegation — each answering the same four questions:
 
-1. **What do we need to do?** Your chance after each possible number of wins from your own
-   remaining games.
+1. **What do we need to do?** Your chance after each possible set of results from your own
+   remaining games — wins, washouts/ties and losses (e.g. *win both → 100% · 1 won, 1
+   washed out → 100% · both washed out → 97%*).
 2. **Is it in our hands?** Whether winning out settles it outright, or still leaves you
    waiting on someone else.
 3. **Who else matters?** The remaining fixtures elsewhere ranked by how much they swing
-   your chances, each with the number if it goes your way and the number if it does not.
+   your chances, each with the number if it goes your way, if it goes the other way, and
+   if it is washed out or tied.
 4. **How big do the wins need to be?** When net run rate is what decides the last place,
    the margin needed to clear it — in runs batting first, or overs to spare chasing.
 
@@ -297,6 +313,15 @@ time. Two choices make the output meaningful rather than decorative:
   game replays the shape of a real one — its first-innings total, its margin, the overs
   used — so simulated net run rates move the way real ones actually have, instead of
   following an invented bell curve.
+- **Not every game has a winner.** Each remaining match is washed out or tied at a rate
+  set in `SHARED_OUTCOMES` in `assets/js/config.js`. The defaults are what TCL Mega Smash
+  2026 has actually produced (69 abandoned and 8 tied of 767 completed matches at 17 Oct
+  2026, so 9% and 1%), blended with the division's own record as if the default were 40
+  matches of evidence — a division that has been wetter than the rest gets a slightly
+  higher washout rate, and one that has never tied does not get a tie rate of zero. A
+  washout adds the no-result points to both sides and nothing to net run rate; a tie adds
+  the tie points to both and replays a real tied scoreline (or a level chase off the last
+  ball) into both sides' run rates.
 - **Two models, switchable on the page.** *Coin flip* gives every remaining match 50/50:
   pure combinatorics, no opinion about who is better. *Form-weighted* fits
   [Bradley–Terry](https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model) strengths to
@@ -346,9 +371,20 @@ Per tournament, in `assets/data/<id>/meta.json`:
 }
 ```
 
-The points system is confirmed: 2 for a win, 1 for a tie, 1 for a no result reproduces
-every published row exactly, bar the five penalised teams. Every remaining fixture is an
-18-over game.
+**The points per outcome are read from CricHeroes, not assumed.** `engine.inferPointsSystem()`
+finds the win / tie / no-result / loss award that reproduces the most rows of the published
+points column (the rows that no system explains are the organiser penalties). For TCL Mega
+Smash that is 2 / 1 / 1 / 0, reproducing 120 of 126 rows. The fetcher works it out over the
+whole tournament and stores it in each snapshot as `points_system`; live refresh does the
+same from the live table. The values in `meta.json` are only the fallback for anything the
+table cannot pin down — the tie award in a division where nobody has tied, say. The page
+shows the system in use in the header badge. Every remaining fixture is an 18-over game.
+
+Completed results follow CricHeroes' own classification in `match_result` — *resulted*,
+*tie* or *abandoned*, as the umpires signed off — ahead of anything in the free-text
+margin (`win_by` says "rain out", "Called Off due to rain", even "-12 runs" on abandoned
+matches). `test/chnorm.test.js` runs every captured abandoned and tied record through the
+parser.
 
 `tiebreak` is **half confirmed**. Across the nine divisions there are 44 adjacent pairs of
 teams level on points in the published table; all 44 are ordered by descending net run

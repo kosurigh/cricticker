@@ -12,7 +12,9 @@
 import { ENDPOINTS, proxyBase } from './config.js';
 import { buildSnapshot, normaliseTeams } from './chnorm.js';
 import { collectFixtures } from './fixtures.js';
-import { DEFAULT_RULES, standingsFor, baselineFromPublished } from './engine.js';
+import {
+  DEFAULT_RULES, standingsFor, baselineFromPublished, rulesWithPublishedPoints,
+} from './engine.js';
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -54,8 +56,18 @@ export async function loadSnapshot(tid, division) {
  * played half of the table is CricHeroes' own arithmetic (penalties and all)
  * and only the unplayed half is ours. See engine.baselineFromPublished.
  */
-export function hydrate(snap) {
-  const rules = { ...DEFAULT_RULES, ...(snap.rules || {}) };
+export function hydrate(snap, { pointsTable = null } = {}) {
+  // Points per win / tie / no result are read off CricHeroes' own points
+  // column — the whole tournament's where we have it, since a division that
+  // has never seen a tie cannot say what one is worth — and the configured
+  // rules are only the fallback for anything the table cannot pin down.
+  const configured = { ...DEFAULT_RULES, ...(snap.rules || {}) };
+  const table = pointsTable || snap.published_all;
+  const rules = !table && snap.points_system && snap.points_system.points
+    // A committed snapshot carries the system the fetcher read off the whole
+    // tournament's table.
+    ? { ...configured, ...snap.points_system.points, points_source: snap.points_system }
+    : rulesWithPublishedPoints(configured, table || snap.published);
   const teams = snap.teams || [];
   const matches = snap.matches || [];
   const baseline = baselineFromPublished(snap.published, teams);
@@ -167,6 +179,7 @@ export async function fetchLive(tid, division, { divisionMap, rules, meta } = {}
 
   return hydrate({
     tournament_id: tid,
+    published_all: snap.published,
     tournament_name: meta?.name || `Tournament ${tid}`,
     division,
     rules: rules || meta?.rules || DEFAULT_RULES,

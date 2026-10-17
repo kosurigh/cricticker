@@ -40,7 +40,7 @@
    "city_id": 10758,
    "city_name": "Apex",
    "is_creator_team_admin": 1,
-   "captain_id": 43923520,
+   "captain_id": 48361422,
    "created_by": 2312,
    "logo": "https://media.cricheroes.in/default/teamintital/AB.png",
    "is_verified": 0
@@ -469,7 +469,7 @@
    "city_id": 10778,
    "city_name": "Fuquay-Varina",
    "is_creator_team_admin": 1,
-   "captain_id": 48017702,
+   "captain_id": 49105748,
    "created_by": 2312,
    "logo": "https://media.cricheroes.in/default/teamintital/GH.png",
    "is_verified": 0
@@ -898,7 +898,7 @@
    "city_id": 5741,
    "city_name": "Alabaster",
    "is_creator_team_admin": 1,
-   "captain_id": 48381756,
+   "captain_id": 47989531,
    "created_by": 2312,
    "logo": "https://media.cricheroes.in/default/teamintital/R.png",
    "is_verified": 0
@@ -1151,10 +1151,10 @@
    "city_id": 10741,
    "city_name": "Durham (North Carolina)",
    "is_creator_team_admin": 1,
-   "captain_id": 48543772,
+   "captain_id": 48507331,
    "created_by": 2312,
    "logo": "https://media.cricheroes.in/team_logo/1772980048849_qt8G40FIrX1d.jpeg",
-   "is_verified": 0
+   "is_verified": 1
   },
   {
    "team_id": 12490486,

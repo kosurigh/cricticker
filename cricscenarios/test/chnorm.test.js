@@ -357,3 +357,85 @@ test('a grouped standings payload yields every division, with runs and overs', (
   assert.deepEqual([panthers.runsFor, panthers.oversFor], [926, 119.3]);
   assert.deepEqual([panthers.runsAgainst, panthers.oversAgainst], [886, 138]);
 });
+
+/* ------------------------------------------------------------------ *
+ * Washouts and ties, straight from the captured fixture list.
+ *
+ * CricHeroes spells an abandonment a dozen ways in `win_by` ("rain out",
+ * "Called Off due to rain", even "-12 runs" on a match it still classes as
+ * abandoned), so this runs over every such record in the committed raw
+ * payload rather than a hand-picked few.
+ * ------------------------------------------------------------------ */
+
+import { readFileSync } from 'node:fs';
+
+const RAW = JSON.parse(readFileSync(
+  new URL('../assets/data/2100677/raw/matches.json', import.meta.url), 'utf8'));
+const rawRecords = (() => {
+  const seen = new Set(), out = [];
+  for (const r of (Array.isArray(RAW.data) ? RAW.data : Object.values(RAW.data).flat())) {
+    if (seen.has(r.match_id)) continue;
+    seen.add(r.match_id); out.push(r);
+  }
+  return out;
+})();
+
+test('every captured abandoned match becomes a no-result: points shared, run rate untouched', () => {
+  const abandoned = rawRecords.filter((r) => /abandon/i.test(r.match_result || ''));
+  assert.ok(abandoned.length >= 20, `expected the captured washouts, found ${abandoned.length}`);
+  for (const rec of abandoned) {
+    const { matches, teams } = normaliseMatches({ data: [rec] });
+    const m = matches[0];
+    const who = `match ${rec.match_id} (${rec.match_result} / ${rec.win_by})`;
+    assert.equal(m.status, 'completed', who);
+    assert.equal(m.result.type, 'no_result', who);
+    assert.equal(m.result.winner, null, who);
+    const rows = buildTable(teams, matches, DEFAULT_RULES);
+    for (const t of teams) {
+      assert.equal(rows[t.id].points, DEFAULT_RULES.points_no_result, who);
+      assert.equal(rows[t.id].noResult, 1, who);
+      assert.equal(rows[t.id].ballsFor + rows[t.id].ballsAgainst, 0, `${who}: no NRR`);
+    }
+  }
+});
+
+test('every captured tie shares the points and still counts both innings', () => {
+  const tied = rawRecords.filter((r) => /^tie$/i.test(String(r.match_result || '').trim()));
+  assert.ok(tied.length >= 5, `expected the captured ties, found ${tied.length}`);
+  for (const rec of tied) {
+    const { matches, teams } = normaliseMatches({ data: [rec] });
+    const m = matches[0];
+    const who = `match ${rec.match_id}`;
+    assert.equal(m.result.type, 'tie', who);
+    assert.equal(m.result.winner, null, who);
+    const rows = buildTable(teams, matches, DEFAULT_RULES);
+    for (const t of teams) {
+      assert.equal(rows[t.id].points, DEFAULT_RULES.points_tie, who);
+      assert.equal(rows[t.id].tied, 1, who);
+      assert.equal(rows[t.id].won + rows[t.id].lost, 0, who);
+    }
+    if (m.result.innings.length === 2) {
+      const [a, b] = teams.map((t) => rows[t.id]);
+      assert.ok(a.ballsFor > 0 && b.ballsFor > 0, `${who}: both innings count`);
+      assert.equal(a.runsFor, b.runsAgainst, who);
+    }
+  }
+});
+
+test("CricHeroes' match_result classification overrules the free-text margin", () => {
+  const base = { match_status: 'past', team_a_id: 1, team_a: 'A', team_b_id: 2, team_b: 'B', overs: 18 };
+  // Resulted, though win_by mentions rain: a win, not a washout.
+  const won = normaliseMatches({ data: [{ ...base, match_id: 1, match_result: 'Resulted',
+    win_by: 'Tournament Rules - rain', winning_team_id: 2 }] }).matches[0];
+  assert.equal(won.status, 'completed');
+  assert.notEqual(won.result.type, 'no_result');
+  assert.equal(won.result.winner, 2);
+  // Abandoned, though win_by reads like a margin.
+  const washed = normaliseMatches({ data: [{ ...base, match_id: 2, match_result: 'Abandoned',
+    win_by: '-12 runs' }] }).matches[0];
+  assert.equal(washed.result.type, 'no_result');
+  assert.equal(washed.result.winner, null);
+  // Tie, whatever else is said.
+  const tied = normaliseMatches({ data: [{ ...base, match_id: 3, match_result: 'Tie', win_by: 'Tie' }] }).matches[0];
+  assert.equal(tied.result.type, 'tie');
+});

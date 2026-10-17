@@ -5,7 +5,10 @@
  *    deploy one, the page still works — it just runs on the committed snapshot
  *    and the "Refresh from CricHeroes" button stays disabled.
  *
- * 2. ENDPOINTS: candidate CricHeroes API paths, tried in order until one
+ * 2. SHARED_OUTCOMES: how often a remaining match is assumed to end with
+ *    the points shared — washed out / abandoned, or tied — rather than won.
+ *
+ * 3. ENDPOINTS: candidate CricHeroes API paths, tried in order until one
  *    returns something usable. CricHeroes publishes no API contract and renames
  *    routes between releases, so this is a list rather than a constant. If live
  *    refresh stops working, add the new path to the top of the relevant list —
@@ -70,3 +73,31 @@ export const SIM_PRESETS = [
   { label: 'Normal', trials: 50000 },
   { label: 'Thorough', trials: 200000 },
 ];
+
+/**
+ * Remaining matches do not only end in a win. Some are washed out (abandoned /
+ * no result: points shared, net run rate untouched) and a few are tied (points
+ * shared, both innings still count towards net run rate). The points each
+ * earns come from the tournament rules (`points_no_result`, `points_tie` in
+ * assets/data/<id>/meta.json — 1 each in TCL, against 2 for a win).
+ *
+ * The rates below are the defaults, measured across the whole of TCL Mega
+ * Smash 2026 on 17 Oct 2026: 69 abandoned and 8 tied out of 767 completed
+ * matches.
+ *
+ * With `useDivisionHistory` the rate actually used is blended with the
+ * division's own record, weighted as if the default were `priorMatches`
+ * matches' worth of evidence. A division that has been unusually wet pulls
+ * its rate up a little; one with no ties yet does not drop the tie rate to
+ * zero on the strength of sixty games.
+ *
+ * Set `enabled: false` (or toggle "Wins only" on the page) to get the old
+ * win-or-lose model back.
+ */
+export const SHARED_OUTCOMES = {
+  enabled: true,
+  abandonRate: 0.09,    // ≈ 69 / 767
+  tieRate: 0.01,        // ≈ 8 / 767
+  useDivisionHistory: true,
+  priorMatches: 40,
+};

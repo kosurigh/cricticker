@@ -14,10 +14,11 @@ import {
 import {
   loadSnapshot, loadTournamentMeta, loadDivisionMap, fetchLive, crossCheck,
 } from './data.js';
-import { prepare, createRun } from './simulate.js';
-import { summarise, buildReport, GOALS } from './scenarios.js';
+import { prepare, createRun, outcomeRates } from './simulate.js';
+import { summarise, buildReport } from './scenarios.js';
+import { goalCard } from './report-view.js';
 import { netRunRate, standingsFor } from './engine.js';
-import { SIM_PRESETS, proxyBase } from './config.js';
+import { SIM_PRESETS, SHARED_OUTCOMES, proxyBase } from './config.js';
 
 const q = query();
 const TID = q.get('t') || '2100677';
@@ -33,6 +34,9 @@ const state = {
   focusId: null,
   model: 'form',
   trials: 200000,
+  // Whether remaining matches can also be tied or washed out (points shared).
+  shared: SHARED_OUTCOMES.enabled !== false,
+  rates: { abandonRate: 0, tieRate: 0, source: 'off' },
   running: false,
 };
 
@@ -106,6 +110,13 @@ function buildControls() {
       </span>
     </div>
     <div class="field">
+      <label>Washouts &amp; ties</label>
+      <span class="seg" role="group" aria-label="Shared-points outcomes">
+        <button type="button" data-shared="on" aria-pressed="${state.shared}" title="Remaining matches can also be washed out or tied, sharing the points">Include</button>
+        <button type="button" data-shared="off" aria-pressed="${!state.shared}" title="Every remaining match produces a winner">Wins only</button>
+      </span>
+    </div>
+    <div class="field">
       <label for="trials">Simulations</label>
       <select id="trials">${SIM_PRESETS.map((p) =>
         `<option value="${p.trials}"${p.trials === state.trials ? ' selected' : ''}>${p.label} — ${p.trials.toLocaleString()}</option>`).join('')}</select>
@@ -129,6 +140,15 @@ function buildControls() {
       state.model = b.dataset.model;
       for (const o of $('controls').querySelectorAll('[data-model]')) {
         o.setAttribute('aria-pressed', String(o.dataset.model === state.model));
+      }
+      rebuild();
+    };
+  }
+  for (const b of $('controls').querySelectorAll('[data-shared]')) {
+    b.onclick = () => {
+      state.shared = b.dataset.shared === 'on';
+      for (const o of $('controls').querySelectorAll('[data-shared]')) {
+        o.setAttribute('aria-pressed', String((o.dataset.shared === 'on') === state.shared));
       }
       rebuild();
     };
@@ -176,11 +196,14 @@ function rebuild() {
     return;
   }
 
+  state.rates = outcomeRates(state.ctx.history, { ...SHARED_OUTCOMES, enabled: state.shared });
   const run = createRun(state.ctx, {
     trials: state.trials,
     model: state.model,
     focusId: state.focusId,
     seed: 0x5eed,
+    abandonRate: state.rates.abandonRate,
+    tieRate: state.rates.tieRate,
   });
 
   state.running = true;
@@ -223,8 +246,15 @@ function renderMeta() {
       ? '<span class="badge warn">Sample data</span>'
       : `<span class="badge">Snapshot · ${esc(fmtWhen(d.generated_at))}</span>`;
 
+  const ps = d.rules.points_source;
+  const pointsTitle = ps && ps.source === 'cricheroes'
+    ? `Read off CricHeroes' points table: reproduces ${ps.matched} of ${ps.rows} published rows (the rest carry organiser penalties).` +
+      (Object.values(ps.derived).every(Boolean) ? '' : ' Values not shown by the table come from meta.json.')
+    : 'From the tournament rules in meta.json.';
   $('meta').innerHTML = `${src}
     <span class="badge">${played} played · ${left} to play</span>
+    <span class="badge" title="${esc(pointsTitle)}">Win ${d.rules.points_win} · Tie ${d.rules.points_tie} ·
+      No result ${d.rules.points_no_result} pts</span>
     <span class="badge">Top ${d.rules.promotion_spots} up · Top ${d.rules.playoff_spots} playoffs ·
       Bottom ${d.rules.relegation_spots} down</span>`;
 }
@@ -318,6 +348,8 @@ function renderTable() {
       <td class="num sm-hide">${s.row.played}</td>
       <td class="num sm-hide">${s.row.won}</td>
       <td class="num sm-hide">${s.row.lost}</td>
+      <td class="num sm-hide">${s.row.tied || 0}</td>
+      <td class="num sm-hide">${s.row.noResult || 0}</td>
       <td class="num"><strong>${s.row.points}</strong></td>
       <td class="num sm-hide">${signed(s.nrr)}</td>
       <td class="num sm-hide">${s.remaining}</td>
@@ -332,6 +364,7 @@ function renderTable() {
       <thead><tr>
         <th class="l">#</th><th class="l">Team</th>
         <th class="num sm-hide">P</th><th class="num sm-hide">W</th><th class="num sm-hide">L</th>
+        <th class="num sm-hide" title="Tied">T</th><th class="num sm-hide" title="No result (abandoned / washed out)">NR</th>
         <th class="num">Pts</th><th class="num sm-hide">NRR</th><th class="num sm-hide">Left</th>
         <th>Playoffs</th><th>Promotion</th><th>Relegation</th>
       </tr></thead>
@@ -366,12 +399,14 @@ function renderFinalTable() {
     return `<tr class="${zoneClass(i + 1)}">
       <td class="l pos">${i + 1}</td><td class="l">${teamCell(team)}</td>
       <td class="num">${r.played}</td><td class="num">${r.won}</td><td class="num">${r.lost}</td>
+      <td class="num">${r.tied || 0}</td><td class="num">${r.noResult || 0}</td>
       <td class="num"><strong>${r.points}</strong></td><td class="num">${signed(r.nrr)}</td>
     </tr>`;
   }).join('');
   $('table').innerHTML = `<div class="card scroll"><table>
     <thead><tr><th class="l">#</th><th class="l">Team</th><th class="num">P</th>
-      <th class="num">W</th><th class="num">L</th><th class="num">Pts</th><th class="num">NRR</th>
+      <th class="num">W</th><th class="num">L</th><th class="num" title="Tied">T</th>
+      <th class="num" title="No result (abandoned / washed out)">NR</th><th class="num">Pts</th><th class="num">NRR</th>
     </tr></thead><tbody>${rows}</tbody></table></div>`;
   $('report').innerHTML = banner('warn', 'Every match has been played',
     'There is nothing left to project — this is the final table.');
@@ -381,7 +416,7 @@ function renderFinalTable() {
 
 function renderReport() {
   const cards = ['promotion', 'playoff', 'relegation']
-    .map((goal) => goalCard(buildReport(state.ctx, state.results, state.summary, state.focusId, goal)))
+    .map((goal) => goalCard(buildReport(state.ctx, state.results, state.summary, state.focusId, goal), state.data.rules))
     .join('');
 
   const team = state.data.teams.find((t) => t.id === state.focusId);
@@ -398,6 +433,7 @@ function renderReport() {
     <p class="note">
       Percentages come from ${state.results.trials.toLocaleString()} simulated seasons using the
       <strong>${state.model === 'form' ? 'form-weighted' : 'coin flip'}</strong> model.
+      ${sharedNote()}
       <strong>Through</strong> and <strong>out</strong> are proved from the points arithmetic and hold
       whatever happens.
     </p>
@@ -408,148 +444,20 @@ function renderReport() {
     </div>`;
 }
 
-function goalCard(rep) {
-  const label = GOALS[rep.goal].label;
-  const avoiding = rep.goal === 'relegation';
-  const value = avoiding ? rep.probability : rep.probability;
-
-  let headline;
-  if (rep.state === 'clinched') {
-    headline = avoiding
-      ? `<span class="big out">Down</span><span class="lbl">relegation is already confirmed</span>`
-      : `<span class="big sure">Through</span><span class="lbl">confirmed, whatever happens next</span>`;
-  } else if (rep.state === 'eliminated') {
-    headline = avoiding
-      ? `<span class="big sure">Safe</span><span class="lbl">cannot be relegated</span>`
-      : `<span class="big out">Out</span><span class="lbl">no longer mathematically possible</span>`;
-  } else {
-    headline = `<span class="big">${pct(value)}</span><span class="lbl">${
-      avoiding ? 'chance of going down' : `chance of ${GOALS[rep.goal].verb === 'get promoted' ? 'promotion' : 'reaching the playoffs'}`}</span>`;
+/** One sentence on how washouts and ties were modelled. */
+function sharedNote() {
+  const r = state.rates;
+  const rules = state.data.rules;
+  if (!r || (r.abandonRate === 0 && r.tieRate === 0)) {
+    return 'Every remaining match is assumed to produce a winner (washouts and ties off).';
   }
-
-  return `<div class="panelbox" style="margin-top:16px">
-    <h3 style="margin-top:0">${esc(label)}</h3>
-    <div class="verdict">${headline}</div>
-    ${rep.state === 'live' ? requirements(rep, avoiding) : settled(rep, avoiding)}
-  </div>`;
-}
-
-function settled(rep, avoiding) {
-  const c = rep.summaryRow.certainty;
-  if (rep.state === 'clinched' && !avoiding) {
-    return `<ul class="reqs"><li><span class="mark ok">✓</span><span>
-      Even losing every remaining game, no one can push
-      <strong>${esc(rep.team.name)}</strong> out of the top ${state.data.rules[rep.goal === 'promotion' ? 'promotion_spots' : 'playoff_spots']}.
-      Worst possible finish: <b>${c.worstPossiblePosition}${ord(c.worstPossiblePosition)}</b>.
-    </span></li></ul>`;
-  }
-  if (rep.state === 'eliminated' && !avoiding) {
-    return `<ul class="reqs"><li><span class="mark no">✕</span><span>
-      Winning every remaining game still leaves too many teams above.
-      Best possible finish: <b>${c.bestPossiblePosition}${ord(c.bestPossiblePosition)}</b>.
-    </span></li></ul>`;
-  }
-  if (avoiding && rep.state === 'eliminated') {
-    return `<ul class="reqs"><li><span class="mark ok">✓</span><span>
-      Worst possible finish is <b>${c.worstPossiblePosition}${ord(c.worstPossiblePosition)}</b>,
-      clear of the bottom ${state.data.rules.relegation_spots}. Survival is already secured.
-    </span></li></ul>`;
-  }
-  return `<ul class="reqs"><li><span class="mark no">✕</span><span>
-    Best possible finish is <b>${c.bestPossiblePosition}${ord(c.bestPossiblePosition)}</b>,
-    which is inside the relegation places however the rest of the season goes.
-  </span></li></ul>`;
-}
-
-function ord(n) {
-  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
-  return s[(v - 20) % 10] || s[v] || s[0];
-}
-
-function requirements(rep, avoiding) {
-  const items = [];
-  const games = rep.summaryRow.remaining;
-
-  // 1. Your own games.
-  const seen = rep.breakdown.filter((b) => b.trials >= 20);
-  if (games > 0 && seen.length) {
-    const parts = seen.map((b) => {
-      const p = avoiding ? 1 - b.p : b.p;
-      const lbl = b.wins === games ? `win all ${games}` : (b.wins === 0 ? 'lose them all' : `win ${b.wins}`);
-      return `${lbl} → <b>${pct(p)}</b>`;
-    }).join(' &nbsp;·&nbsp; ');
-    items.push(['ok', `<strong>Your own ${games} game${games > 1 ? 's' : ''}:</strong> ${parts}
-      <br><em>${avoiding ? 'chance of staying up' : 'chance of making it'} after each number of wins</em>`]);
-  }
-
-  // 2. Does winning everything settle it on its own?
-  const sweepP = avoiding ? 1 - rep.sweep.base : rep.sweep.base;
-  if (games > 0 && rep.sweep.baseTrials >= 50) {
-    const outcome = avoiding ? 'stays up' : 'is enough';
-    if (sweepP >= 0.995) {
-      items.push(['ok', avoiding
-        ? `<strong>Winning all ${games} keeps you up</strong> — in every one of the
-           ${rep.sweep.baseTrials.toLocaleString()} simulated seasons where it happened.`
-        : `<strong>Winning all ${games} is enough on its own</strong> — it worked in every one of the
-           ${rep.sweep.baseTrials.toLocaleString()} simulated seasons where it happened.
-           No other result needs to go your way.`]);
-    } else if (sweepP <= 0.005) {
-      // Nothing useful to list below: no arrangement of other results rescued
-      // this in the sample, so pointing at "key fixtures" would be noise.
-      items.push(['no', `<strong>Winning all ${games} still ${avoiding ? 'does not keep you up' : 'is not enough'}</strong>
-        — it did not happen in any of the ${rep.sweep.baseTrials.toLocaleString()} simulated seasons
-        where ${avoiding ? 'they won out' : 'that happened'}. Not mathematically impossible yet, but
-        it needs a combination of other results rare enough that the simulation never produced one.`]);
-    } else {
-      items.push(['maybe', `<strong>Win all ${games} and it ${outcome} ${pct(sweepP)} of the time</strong> —
-        likely, but still dependent on results elsewhere.`]);
-    }
-  }
-
-  // 3. What has to happen elsewhere.
-  if (rep.sweep.fixtures.length && sweepP < 0.995 && sweepP > 0.005) {
-    const list = rep.sweep.fixtures.slice(0, 5).map((f) => {
-      const pGood = avoiding ? 1 - f.pIfNeeded : f.pIfNeeded;
-      const pBad = avoiding ? 1 - f.pIfNot : f.pIfNot;
-      return `<li><span class="mark maybe">→</span><span>
-        <strong>${esc(f.needWinner.name)}</strong> to beat ${esc(f.needLoser.name)}
-        &nbsp;<em>${pct(pGood)} if they do, ${pct(pBad)} if they don't</em></span></li>`;
-    }).join('');
-    items.push(['raw', `<strong>Assuming you win all ${games}, the results that matter most:</strong>
-      <ul class="reqs" style="margin-top:6px">${list}</ul>`]);
-  }
-
-  // 4. Net run rate.
-  // Only worth saying when net run rate is genuinely the deciding factor: if
-  // winning out still leaves the team short on points, no margin rescues it.
-  const nrrDecides = sweepP > 0.02 && sweepP < 0.995;
-  if (rep.margin && rep.margin.samples >= 30 && nrrDecides) {
-    const m = rep.margin;
-    const bits = [];
-    if (m.runs != null) bits.push(`win by about <b>${m.runs} runs</b> batting first`);
-    if (m.oversToSpare != null) bits.push(`chase it down with about <b>${m.oversToSpare} overs to spare</b>`);
-    if (bits.length) {
-      items.push(['maybe', `<strong>Margins matter.</strong> In the simulated seasons where
-        ${esc(rep.team.name)} won everything and <em>still</em> missed out, the team that took
-        <b>${m.cutPlace}${ord(m.cutPlace)} place</b> did so on net run rate, typically around
-        <b>${signed(m.target)}</b>.
-        To clear that from ${signed(m.currentNrr)}, ${esc(rep.team.name)} needs to
-        ${bits.join(' — or ')} in each of the ${m.games} remaining games
-        (typical first-innings total in this division is ${m.typicalScore}).
-        <br><em>Wickets in hand do not affect net run rate when chasing — only the overs you leave
-        unused do.</em>`]);
-    }
-  }
-
-  if (!items.length) {
-    items.push(['maybe', 'No specific requirement stands out — the outcome is spread across many results.']);
-  }
-
-  return `<ul class="reqs">${items.map(([mark, html]) => (
-    mark === 'raw'
-      ? `<li><span class="mark">·</span><span>${html}</span></li>`
-      : `<li><span class="mark ${mark}">${mark === 'ok' ? '✓' : mark === 'no' ? '✕' : '→'}</span><span>${html}</span></li>`
-  )).join('')}</ul>`;
+  const h = state.ctx.history;
+  const basis = r.source === 'blended'
+    ? ` — the tournament-wide rate blended with this division's own record (${h.abandoned} washed out and ${h.tied} tied of ${h.completed} played)`
+    : '';
+  return `Each remaining match has a <strong>${pct(r.abandonRate)}</strong> chance of being washed out
+    (${rules.points_no_result} pt each, no change to net run rate) and <strong>${pct(r.tieRate)}</strong> of
+    a tie (${rules.points_tie} pt each)${basis}.`;
 }
 
 init();
