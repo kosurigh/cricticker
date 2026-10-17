@@ -14,6 +14,10 @@
 import {
   BALLS_PER_OVER, certificates, netRunRate, buildTable, ballsToOvers,
 } from './engine.js';
+import { OUTCOME, OUTCOMES } from './simulate.js';
+
+/** Fewest simulated seasons behind a conditional percentage before it is shown. */
+export const MIN_SAMPLE = 20;
 
 export const GOALS = {
   playoff: { label: 'Playoffs', verb: 'reach the playoffs' },
@@ -92,6 +96,31 @@ export function ownResultsBreakdown(results, goal) {
 }
 
 /**
+ * "What if some of our games are washed out?"
+ *
+ * The own-results counters split by wins *and* shared results (ties and
+ * washouts, which earn the same points under TCL rules) from the team's own
+ * remaining games. One entry per combination that came up, best first: most
+ * wins, then most shared results. `lost` is whatever is left over.
+ */
+export function ownMixBreakdown(results, goal, { minTrials = MIN_SAMPLE } = {}) {
+  const f = results.focus;
+  if (!f.ownMixCount) return [];
+  const FM = f.matches.length, W1 = FM + 1;
+  const out = [];
+  for (let w = FM; w >= 0; w--) {
+    for (let s = FM - w; s >= 0; s--) {
+      const k = w * W1 + s;
+      const trials = f.ownMixCount[k];
+      if (trials < minTrials) continue;
+      const hits = f.ownMixGoal[goal][k];
+      out.push({ wins: w, shared: s, lost: FM - w - s, trials, hits, p: pct(hits, trials) });
+    }
+  }
+  return out;
+}
+
+/**
  * The minimum number of own wins that has ever produced the goal, and the
  * smallest number that produced it in *every* sampled trial.
  */
@@ -111,6 +140,11 @@ export function ownWinsThresholds(breakdown) {
  * For each remaining fixture not involving the team, compare the goal rate in
  * trials where the home side won against trials where the away side won. The
  * bigger the gap, the more that game decides your season.
+ *
+ * Each fixture also carries the goal rate when it is washed out
+ * (`pIfAbandoned`), tied (`pIfTie`), or either (`pIfShared` — the two share
+ * the points, so they usually move a team's chances the same way). Those are
+ * null when the simulation did not produce enough such seasons to say.
  */
 export function keyFixtures(ctx, results, goal, { givenSweep = true, limit = 8, minimise = false } = {}) {
   const f = results.focus;
@@ -129,9 +163,15 @@ export function keyFixtures(ctx, results, goal, { givenSweep = true, limit = 8, 
   for (let m = 0; m < ctx.remaining.length; m++) {
     const fx = ctx.remaining[m];
     if (fx.h === focusIdx || fx.a === focusIdx) continue;
-    const cH = count[m * 2], cA = count[m * 2 + 1];
-    if (cH < 20 || cA < 20) continue;
-    const pH = pct(hits[m * 2], cH), pA = pct(hits[m * 2 + 1], cA);
+    const o = m * OUTCOMES;
+    const cH = count[o + OUTCOME.HOME], cA = count[o + OUTCOME.AWAY];
+    if (cH < MIN_SAMPLE || cA < MIN_SAMPLE) continue;
+    const pH = pct(hits[o + OUTCOME.HOME], cH), pA = pct(hits[o + OUTCOME.AWAY], cA);
+    const cT = count[o + OUTCOME.TIE], cN = count[o + OUTCOME.ABANDONED];
+    const hT = hits[o + OUTCOME.TIE], hN = hits[o + OUTCOME.ABANDONED];
+    const pIfTie = cT >= MIN_SAMPLE ? pct(hT, cT) : null;
+    const pIfAbandoned = cN >= MIN_SAMPLE ? pct(hN, cN) : null;
+    const pIfShared = cT + cN >= MIN_SAMPLE ? pct(hT + hN, cT + cN) : null;
     // For a goal you are trying to avoid (relegation), the result you want is
     // the one that makes it *less* likely.
     const wantHome = minimise ? pH <= pA : pH >= pA;
@@ -144,7 +184,14 @@ export function keyFixtures(ctx, results, goal, { givenSweep = true, limit = 8, 
       needLoser: wantHome ? ctx.teams[fx.a] : ctx.teams[fx.h],
       pIfNeeded: wantHome ? pH : pA,
       pIfNot: wantHome ? pA : pH,
-      swing: Math.abs(pH - pA),
+      pIfTie,
+      pIfAbandoned,
+      pIfShared,
+      sharedTrials: cT + cN,
+      // Ranked on the win-or-lose gap, but a washout that is worse than
+      // either result (or better than both) is a swing too.
+      swing: Math.max(Math.abs(pH - pA),
+        pIfShared == null ? 0 : Math.max(Math.abs(pIfShared - pH), Math.abs(pIfShared - pA))),
       base,
     });
   }
@@ -261,6 +308,7 @@ export function buildReport(ctx, results, summary, teamId, goal) {
   const summaryRow = summary.find((s) => s.team.id === teamId);
   const state = goalState(summaryRow, goal);
   const breakdown = ownResultsBreakdown(results, goal);
+  const mix = ownMixBreakdown(results, goal);
   const thresholds = ownWinsThresholds(breakdown);
   const minimise = goal === 'relegation';
   const sweep = keyFixtures(ctx, results, goal, { givenSweep: true, minimise });
@@ -274,6 +322,8 @@ export function buildReport(ctx, results, summary, teamId, goal) {
     probability: state.p,
     summaryRow,
     breakdown,
+    mix,
+    sharedRates: { abandonRate: results.abandonRate || 0, tieRate: results.tieRate || 0 },
     thresholds,
     sweep,
     anyway,

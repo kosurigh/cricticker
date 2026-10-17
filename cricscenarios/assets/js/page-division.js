@@ -14,10 +14,10 @@ import {
 import {
   loadSnapshot, loadTournamentMeta, loadDivisionMap, fetchLive, crossCheck,
 } from './data.js';
-import { prepare, createRun } from './simulate.js';
+import { prepare, createRun, outcomeRates } from './simulate.js';
 import { summarise, buildReport, GOALS } from './scenarios.js';
 import { netRunRate, standingsFor } from './engine.js';
-import { SIM_PRESETS, proxyBase } from './config.js';
+import { SIM_PRESETS, SHARED_OUTCOMES, proxyBase } from './config.js';
 
 const q = query();
 const TID = q.get('t') || '2100677';
@@ -33,6 +33,9 @@ const state = {
   focusId: null,
   model: 'form',
   trials: 200000,
+  // Whether remaining matches can also be tied or washed out (points shared).
+  shared: SHARED_OUTCOMES.enabled !== false,
+  rates: { abandonRate: 0, tieRate: 0, source: 'off' },
   running: false,
 };
 
@@ -106,6 +109,13 @@ function buildControls() {
       </span>
     </div>
     <div class="field">
+      <label>Washouts &amp; ties</label>
+      <span class="seg" role="group" aria-label="Shared-points outcomes">
+        <button type="button" data-shared="on" aria-pressed="${state.shared}" title="Remaining matches can also be washed out or tied, sharing the points">Include</button>
+        <button type="button" data-shared="off" aria-pressed="${!state.shared}" title="Every remaining match produces a winner">Wins only</button>
+      </span>
+    </div>
+    <div class="field">
       <label for="trials">Simulations</label>
       <select id="trials">${SIM_PRESETS.map((p) =>
         `<option value="${p.trials}"${p.trials === state.trials ? ' selected' : ''}>${p.label} — ${p.trials.toLocaleString()}</option>`).join('')}</select>
@@ -129,6 +139,15 @@ function buildControls() {
       state.model = b.dataset.model;
       for (const o of $('controls').querySelectorAll('[data-model]')) {
         o.setAttribute('aria-pressed', String(o.dataset.model === state.model));
+      }
+      rebuild();
+    };
+  }
+  for (const b of $('controls').querySelectorAll('[data-shared]')) {
+    b.onclick = () => {
+      state.shared = b.dataset.shared === 'on';
+      for (const o of $('controls').querySelectorAll('[data-shared]')) {
+        o.setAttribute('aria-pressed', String((o.dataset.shared === 'on') === state.shared));
       }
       rebuild();
     };
@@ -176,11 +195,14 @@ function rebuild() {
     return;
   }
 
+  state.rates = outcomeRates(state.ctx.history, { ...SHARED_OUTCOMES, enabled: state.shared });
   const run = createRun(state.ctx, {
     trials: state.trials,
     model: state.model,
     focusId: state.focusId,
     seed: 0x5eed,
+    abandonRate: state.rates.abandonRate,
+    tieRate: state.rates.tieRate,
   });
 
   state.running = true;
@@ -223,8 +245,15 @@ function renderMeta() {
       ? '<span class="badge warn">Sample data</span>'
       : `<span class="badge">Snapshot · ${esc(fmtWhen(d.generated_at))}</span>`;
 
+  const ps = d.rules.points_source;
+  const pointsTitle = ps && ps.source === 'cricheroes'
+    ? `Read off CricHeroes' points table: reproduces ${ps.matched} of ${ps.rows} published rows (the rest carry organiser penalties).` +
+      (Object.values(ps.derived).every(Boolean) ? '' : ' Values not shown by the table come from meta.json.')
+    : 'From the tournament rules in meta.json.';
   $('meta').innerHTML = `${src}
     <span class="badge">${played} played · ${left} to play</span>
+    <span class="badge" title="${esc(pointsTitle)}">Win ${d.rules.points_win} · Tie ${d.rules.points_tie} ·
+      No result ${d.rules.points_no_result} pts</span>
     <span class="badge">Top ${d.rules.promotion_spots} up · Top ${d.rules.playoff_spots} playoffs ·
       Bottom ${d.rules.relegation_spots} down</span>`;
 }
@@ -318,6 +347,8 @@ function renderTable() {
       <td class="num sm-hide">${s.row.played}</td>
       <td class="num sm-hide">${s.row.won}</td>
       <td class="num sm-hide">${s.row.lost}</td>
+      <td class="num sm-hide">${s.row.tied || 0}</td>
+      <td class="num sm-hide">${s.row.noResult || 0}</td>
       <td class="num"><strong>${s.row.points}</strong></td>
       <td class="num sm-hide">${signed(s.nrr)}</td>
       <td class="num sm-hide">${s.remaining}</td>
@@ -332,6 +363,7 @@ function renderTable() {
       <thead><tr>
         <th class="l">#</th><th class="l">Team</th>
         <th class="num sm-hide">P</th><th class="num sm-hide">W</th><th class="num sm-hide">L</th>
+        <th class="num sm-hide" title="Tied">T</th><th class="num sm-hide" title="No result (abandoned / washed out)">NR</th>
         <th class="num">Pts</th><th class="num sm-hide">NRR</th><th class="num sm-hide">Left</th>
         <th>Playoffs</th><th>Promotion</th><th>Relegation</th>
       </tr></thead>
@@ -366,12 +398,14 @@ function renderFinalTable() {
     return `<tr class="${zoneClass(i + 1)}">
       <td class="l pos">${i + 1}</td><td class="l">${teamCell(team)}</td>
       <td class="num">${r.played}</td><td class="num">${r.won}</td><td class="num">${r.lost}</td>
+      <td class="num">${r.tied || 0}</td><td class="num">${r.noResult || 0}</td>
       <td class="num"><strong>${r.points}</strong></td><td class="num">${signed(r.nrr)}</td>
     </tr>`;
   }).join('');
   $('table').innerHTML = `<div class="card scroll"><table>
     <thead><tr><th class="l">#</th><th class="l">Team</th><th class="num">P</th>
-      <th class="num">W</th><th class="num">L</th><th class="num">Pts</th><th class="num">NRR</th>
+      <th class="num">W</th><th class="num">L</th><th class="num" title="Tied">T</th>
+      <th class="num" title="No result (abandoned / washed out)">NR</th><th class="num">Pts</th><th class="num">NRR</th>
     </tr></thead><tbody>${rows}</tbody></table></div>`;
   $('report').innerHTML = banner('warn', 'Every match has been played',
     'There is nothing left to project — this is the final table.');
@@ -398,6 +432,7 @@ function renderReport() {
     <p class="note">
       Percentages come from ${state.results.trials.toLocaleString()} simulated seasons using the
       <strong>${state.model === 'form' ? 'form-weighted' : 'coin flip'}</strong> model.
+      ${sharedNote()}
       <strong>Through</strong> and <strong>out</strong> are proved from the points arithmetic and hold
       whatever happens.
     </p>
@@ -407,6 +442,35 @@ function renderReport() {
       ${fixtures}
     </div>`;
 }
+
+/** One sentence on how washouts and ties were modelled. */
+function sharedNote() {
+  const r = state.rates;
+  const rules = state.data.rules;
+  if (!r || (r.abandonRate === 0 && r.tieRate === 0)) {
+    return 'Every remaining match is assumed to produce a winner (washouts and ties off).';
+  }
+  const h = state.ctx.history;
+  const basis = r.source === 'blended'
+    ? ` — the tournament-wide rate blended with this division's own record (${h.abandoned} washed out and ${h.tied} tied of ${h.completed} played)`
+    : '';
+  return `Each remaining match has a <strong>${pct(r.abandonRate)}</strong> chance of being washed out
+    (${rules.points_no_result} pt each, no change to net run rate) and <strong>${pct(r.tieRate)}</strong> of
+    a tie (${rules.points_tie} pt each)${basis}.`;
+}
+
+/** "win all 3", "win both", "win your last game" — and nothing silly for 0. */
+function winAll(games) {
+  if (games === 1) return 'win your last game';
+  if (games === 2) return 'win both';
+  return `win all ${games}`;
+}
+function winningAll(games) {
+  if (games === 1) return 'Winning your last game';
+  if (games === 2) return 'Winning both';
+  return `Winning all ${games}`;
+}
+const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function goalCard(rep) {
   const label = GOALS[rep.goal].label;
@@ -472,13 +536,39 @@ function requirements(rep, avoiding) {
 
   // 1. Your own games.
   const seen = rep.breakdown.filter((b) => b.trials >= 20);
-  if (games > 0 && seen.length) {
+  const sharedOn = rep.sharedRates.abandonRate + rep.sharedRates.tieRate > 0;
+  const rules = state.data.rules;
+  if (games > 0 && sharedOn && rep.mix && rep.mix.length) {
+    // Every combination of wins, washouts/ties and losses that came up, most
+    // points first: "win it → 100% · washed out → 42% · lose it → 12%".
+    const pointsOf = (b) => b.wins * rules.points_win + b.shared * rules.points_no_result + b.lost * rules.points_loss;
+    const combos = [...rep.mix].sort((x, y) => pointsOf(y) - pointsOf(x) || y.wins - x.wins);
+    const label = (b) => {
+      if (games === 1) return b.wins ? 'win it' : (b.shared ? 'washed out or tied' : 'lose it');
+      if (b.wins === games) return winAll(games);
+      if (b.shared === games) return games === 2 ? 'both washed out/tied' : `all ${games} washed out/tied`;
+      if (b.lost === games) return games === 2 ? 'lose both' : `lose all ${games}`;
+      const bits = [];
+      if (b.wins) bits.push(`${b.wins} won`);
+      if (b.shared) bits.push(`${b.shared} washed out/tied`);
+      if (b.lost) bits.push(`${b.lost} lost`);
+      return bits.join(', ');
+    };
+    const parts = combos.slice(0, 12).map((b) => {
+      const p = avoiding ? 1 - b.p : b.p;
+      return `${label(b)} → <b>${pct(p)}</b>`;
+    }).join(' &nbsp;·&nbsp; ');
+    items.push(['ok', `<strong>Your own ${plural(games, 'game')}:</strong> ${parts}
+      <br><em>${avoiding ? 'chance of staying up' : 'chance of making it'} after each set of results.
+      A washout or tie is worth ${plural(rules.points_no_result, 'point')} each, against ${rules.points_win} for a win.</em>`]);
+  } else if (games > 0 && seen.length) {
     const parts = seen.map((b) => {
       const p = avoiding ? 1 - b.p : b.p;
-      const lbl = b.wins === games ? `win all ${games}` : (b.wins === 0 ? 'lose them all' : `win ${b.wins}`);
+      const lbl = b.wins === games ? winAll(games)
+        : (b.wins === 0 ? (games === 1 ? 'lose it' : 'lose them all') : `win ${b.wins}`);
       return `${lbl} → <b>${pct(p)}</b>`;
     }).join(' &nbsp;·&nbsp; ');
-    items.push(['ok', `<strong>Your own ${games} game${games > 1 ? 's' : ''}:</strong> ${parts}
+    items.push(['ok', `<strong>Your own ${plural(games, 'game')}:</strong> ${parts}
       <br><em>${avoiding ? 'chance of staying up' : 'chance of making it'} after each number of wins</em>`]);
   }
 
@@ -488,20 +578,20 @@ function requirements(rep, avoiding) {
     const outcome = avoiding ? 'stays up' : 'is enough';
     if (sweepP >= 0.995) {
       items.push(['ok', avoiding
-        ? `<strong>Winning all ${games} keeps you up</strong> — in every one of the
+        ? `<strong>${winningAll(games)} keeps you up</strong> — in every one of the
            ${rep.sweep.baseTrials.toLocaleString()} simulated seasons where it happened.`
-        : `<strong>Winning all ${games} is enough on its own</strong> — it worked in every one of the
+        : `<strong>${winningAll(games)} is enough on its own</strong> — it worked in every one of the
            ${rep.sweep.baseTrials.toLocaleString()} simulated seasons where it happened.
            No other result needs to go your way.`]);
     } else if (sweepP <= 0.005) {
       // Nothing useful to list below: no arrangement of other results rescued
       // this in the sample, so pointing at "key fixtures" would be noise.
-      items.push(['no', `<strong>Winning all ${games} still ${avoiding ? 'does not keep you up' : 'is not enough'}</strong>
+      items.push(['no', `<strong>${winningAll(games)} still ${avoiding ? 'does not keep you up' : 'is not enough'}</strong>
         — it did not happen in any of the ${rep.sweep.baseTrials.toLocaleString()} simulated seasons
         where ${avoiding ? 'they won out' : 'that happened'}. Not mathematically impossible yet, but
         it needs a combination of other results rare enough that the simulation never produced one.`]);
     } else {
-      items.push(['maybe', `<strong>Win all ${games} and it ${outcome} ${pct(sweepP)} of the time</strong> —
+      items.push(['maybe', `<strong>${winAll(games).replace(/^w/, 'W')} and it ${outcome} ${pct(sweepP)} of the time</strong> —
         likely, but still dependent on results elsewhere.`]);
     }
   }
@@ -511,11 +601,17 @@ function requirements(rep, avoiding) {
     const list = rep.sweep.fixtures.slice(0, 5).map((f) => {
       const pGood = avoiding ? 1 - f.pIfNeeded : f.pIfNeeded;
       const pBad = avoiding ? 1 - f.pIfNot : f.pIfNot;
+      const washed = sharedOn && f.pIfShared != null
+        ? `, ${pct(avoiding ? 1 - f.pIfShared : f.pIfShared)} if washed out or tied`
+        : '';
       return `<li><span class="mark maybe">→</span><span>
         <strong>${esc(f.needWinner.name)}</strong> to beat ${esc(f.needLoser.name)}
-        &nbsp;<em>${pct(pGood)} if they do, ${pct(pBad)} if they don't</em></span></li>`;
+        &nbsp;<em>${pct(pGood)} if they do, ${pct(pBad)} if they ${sharedOn ? 'lose' : 'don\'t'}${washed}</em></span></li>`;
     }).join('');
-    items.push(['raw', `<strong>Assuming you win all ${games}, the results that matter most:</strong>
+    const lead = games > 0
+      ? `Assuming you ${winAll(games)}, the results that matter most:`
+      : 'With no games of your own left, the results that matter most:';
+    items.push(['raw', `<strong>${lead}</strong>
       <ul class="reqs" style="margin-top:6px">${list}</ul>`]);
   }
 
@@ -534,7 +630,7 @@ function requirements(rep, avoiding) {
         <b>${m.cutPlace}${ord(m.cutPlace)} place</b> did so on net run rate, typically around
         <b>${signed(m.target)}</b>.
         To clear that from ${signed(m.currentNrr)}, ${esc(rep.team.name)} needs to
-        ${bits.join(' — or ')} in each of the ${m.games} remaining games
+        ${bits.join(' — or ')} in ${m.games === 1 ? 'the last remaining game' : `each of the ${m.games} remaining games`}
         (typical first-innings total in this division is ${m.typicalScore}).
         <br><em>Wickets in hand do not affect net run rate when chasing — only the overs you leave
         unused do.</em>`]);

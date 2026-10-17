@@ -14,13 +14,15 @@ import assert from 'node:assert/strict';
 import {
   oversToBalls, ballsToOvers, ballsToDecimalOvers, netRunRate, buildTable,
   standingsFor, certificates, countingBalls, DEFAULT_RULES, headToHead,
-  baselineFromPublished,
+  baselineFromPublished, inferPointsSystem, pointsBounds,
 } from '../assets/js/engine.js';
 import {
-  prepare, simulate, bradleyTerry, matchShapes, winProbability,
+  prepare, simulate, bradleyTerry, matchShapes, winProbability, outcomeRates,
+  OUTCOME, OUTCOMES,
 } from '../assets/js/simulate.js';
 import {
   nrrAfterWins, requiredMargin, summarise, goalState, ownResultsBreakdown,
+  ownMixBreakdown, keyFixtures,
 } from '../assets/js/scenarios.js';
 
 const RULES = { ...DEFAULT_RULES, overs_per_innings: 20 };
@@ -456,4 +458,156 @@ test('an innings carries its own overs quota when the fixture sets one', () => {
   assert.equal(countingBalls(chased, RULES), 75, '12.3 overs is 75 balls');
   // No quota on the innings — fall back to the tournament rules, as before.
   assert.equal(countingBalls({ runs: 80, overs: 12.3, allOut: true }, RULES), 120);
+});
+
+/* ------------------------------------------------------------------ *
+ * Ties and washouts in the games still to come.
+ * ------------------------------------------------------------------ */
+
+test('the points system is read off the published points column', () => {
+  const rows = [
+    { won: 3, lost: 1, tied: 0, noResult: 0, points: 6 },
+    { won: 2, lost: 1, tied: 1, noResult: 0, points: 5 },
+    { won: 1, lost: 2, tied: 0, noResult: 1, points: 3 },
+    { won: 0, lost: 3, tied: 1, noResult: 0, points: 1 },
+    // A penalised row: no system explains it, and it must not derail the rest.
+    { won: 2, lost: 2, tied: 0, noResult: 0, points: 2 },
+  ];
+  const got = inferPointsSystem(rows);
+  assert.equal(got.source, 'cricheroes');
+  assert.deepEqual(got.points, { points_win: 2, points_tie: 1, points_no_result: 1, points_loss: 0 });
+  assert.equal(got.matched, 4);
+  assert.ok(got.derived.points_tie && got.derived.points_no_result);
+
+  // A different league's system is found, not assumed.
+  const fours = [
+    { won: 2, lost: 0, tied: 0, noResult: 1, points: 10 },
+    { won: 1, lost: 1, tied: 1, noResult: 0, points: 6 },
+    { won: 0, lost: 2, tied: 0, noResult: 1, points: 2 },
+  ];
+  assert.deepEqual(inferPointsSystem(fours).points,
+    { points_win: 4, points_tie: 2, points_no_result: 2, points_loss: 0 });
+});
+
+test('a points value the table cannot pin down keeps the configured fallback', () => {
+  // Nobody has tied, so the table says nothing about what a tie is worth.
+  const rows = [
+    { won: 3, lost: 1, tied: 0, noResult: 0, points: 6 },
+    { won: 1, lost: 2, tied: 0, noResult: 1, points: 3 },
+    { won: 0, lost: 4, tied: 0, noResult: 0, points: 0 },
+  ];
+  const got = inferPointsSystem(rows, { ...DEFAULT_RULES, points_tie: 1 });
+  assert.equal(got.points.points_tie, 1);
+  assert.equal(got.derived.points_tie, false);
+  assert.equal(got.derived.points_win, true);
+  // Too little to go on at all: everything stays configured.
+  assert.equal(inferPointsSystem([]).source, 'config');
+});
+
+test('washout and tie rates blend the default with the division record', () => {
+  const cfg = { enabled: true, abandonRate: 0.1, tieRate: 0.01, useDivisionHistory: true, priorMatches: 40 };
+  const r = outcomeRates({ completed: 60, abandoned: 12, tied: 0 }, cfg);
+  assert.ok(Math.abs(r.abandonRate - (12 + 4) / 100) < 1e-12);
+  assert.ok(Math.abs(r.tieRate - 0.4 / 100) < 1e-12, 'no ties yet does not mean ties are impossible');
+  assert.deepEqual(outcomeRates(null, { ...cfg, useDivisionHistory: false }),
+    { abandonRate: 0.1, tieRate: 0.01, source: 'default' });
+  assert.equal(outcomeRates({ completed: 10, abandoned: 5, tied: 0 }, { ...cfg, enabled: false }).abandonRate, 0);
+});
+
+test('with washouts and ties off, the simulation is the old win-or-lose one, draw for draw', () => {
+  const rules = { ...RULES, playoff_spots: 2, promotion_spots: 1, relegation_spots: 1 };
+  const ctx = prepare(TEAMS, blankSeason(TEAMS), rules);
+  const a = simulate(ctx, { trials: 3000, model: 'coinflip', focusId: 1, seed: 9 });
+  const b = simulate(ctx, { trials: 3000, model: 'coinflip', focusId: 1, seed: 9, abandonRate: 0, tieRate: 0 });
+  assert.deepEqual(Array.from(a.posCounts), Array.from(b.posCounts));
+  for (let m = 0; m < ctx.remaining.length; m++) {
+    assert.equal(a.focus.swingCount[m * OUTCOMES + OUTCOME.TIE], 0);
+    assert.equal(a.focus.swingCount[m * OUTCOMES + OUTCOME.ABANDONED], 0);
+  }
+});
+
+test('remaining matches are tied and washed out at the configured rates', () => {
+  const rules = { ...RULES, playoff_spots: 2, promotion_spots: 1, relegation_spots: 1 };
+  const ctx = prepare(TEAMS, blankSeason(TEAMS), rules);
+  const trials = 20000;
+  const res = simulate(ctx, { trials, model: 'coinflip', focusId: 1, seed: 21, abandonRate: 0.2, tieRate: 0.05 });
+  const f = res.focus;
+  for (let m = 0; m < ctx.remaining.length; m++) {
+    const c = (o) => f.swingCount[m * OUTCOMES + o] / trials;
+    assert.ok(Math.abs(c(OUTCOME.ABANDONED) - 0.2) < 0.015, `washout rate ${c(OUTCOME.ABANDONED)}`);
+    assert.ok(Math.abs(c(OUTCOME.TIE) - 0.05) < 0.01, `tie rate ${c(OUTCOME.TIE)}`);
+    assert.ok(Math.abs(c(OUTCOME.HOME) - 0.375) < 0.02);
+    const sum = [0, 1, 2, 3].reduce((s, o) => s + f.swingCount[m * OUTCOMES + o], 0);
+    assert.equal(sum, trials, 'every match ends exactly one way per trial');
+  }
+  // The own-results split by wins and shared results adds back up.
+  let total = 0;
+  for (const v of f.ownMixCount) total += v;
+  assert.equal(total, trials);
+  const mix = ownMixBreakdown(res, 'playoff', { minTrials: 1 });
+  assert.ok(mix.some((b) => b.shared === 3), 'all three washed out does come up');
+  assert.ok(mix.every((b) => b.wins + b.shared + b.lost === 3));
+});
+
+test('a washed-out match shares the points and leaves net run rate alone', () => {
+  // One game left; it can only be washed out.
+  const rules = { ...RULES, playoff_spots: 2, promotion_spots: 1, relegation_spots: 1 };
+  const matches = [
+    done(1, 1, 2, { team: 1, runs: 160, overs: 20 }, { team: 2, runs: 140, overs: 20 }, 1, 'runs', 20),
+    done(2, 3, 4, { team: 3, runs: 150, overs: 20 }, { team: 4, runs: 130, overs: 20 }, 3, 'runs', 20),
+    { id: 3, home: 2, away: 4, status: 'upcoming' },
+  ];
+  const ctx = prepare(TEAMS, matches, rules);
+  const res = simulate(ctx, { trials: 200, model: 'coinflip', focusId: 2, seed: 4, abandonRate: 0.5, tieRate: 0 });
+  // Bravo (0 pts, NRR -1) and Delta (0 pts, NRR -1) share a point in a
+  // washout, so the finishing order is the same as now in those trials.
+  const f = res.focus;
+  const washouts = f.swingCount[0 * OUTCOMES + OUTCOME.ABANDONED];
+  assert.ok(washouts > 50 && washouts < 150);
+  assert.equal(f.ownMixCount[0 * 2 + 1], washouts, 'Bravo: no win, one shared result');
+});
+
+test('a simulated tie gives both sides the tie points and level innings', () => {
+  const rules = { ...RULES, points_tie: 1 };
+  const matches = [{ id: 1, home: 1, away: 2, status: 'upcoming' }];
+  const two = TEAMS.slice(0, 2);
+  const ctx = prepare(two, matches, rules);
+  const res = simulate(ctx, { trials: 2000, model: 'coinflip', focusId: 1, seed: 2, tieRate: 0.5 });
+  const ties = res.focus.swingCount[OUTCOME.TIE];
+  // Alpha's own results: every tie is a shared result, never a win.
+  assert.equal(res.focus.ownMixCount[0 * 2 + 1], ties);
+  assert.ok(ties > 800 && ties < 1200, `ties: ${ties}`);
+  // In a tie the two are level on points and run rate, so it falls to the
+  // final deterministic order; in a win the winner is first. Either way each
+  // team holds exactly one place per trial.
+  for (let i = 0; i < 2; i++) {
+    assert.equal(res.posCounts[i * 2] + res.posCounts[i * 2 + 1], 2000);
+  }
+});
+
+test('the key fixtures report what a washout does, as well as a win or a loss', () => {
+  const rules = { ...RULES, playoff_spots: 2, promotion_spots: 1, relegation_spots: 1 };
+  const ctx = prepare(TEAMS, blankSeason(TEAMS), rules);
+  const res = simulate(ctx, { trials: 30000, model: 'coinflip', focusId: 1, seed: 8, abandonRate: 0.15, tieRate: 0.02 });
+  const k = keyFixtures(ctx, res, 'playoff', { givenSweep: false });
+  assert.ok(k.fixtures.length > 0);
+  for (const f of k.fixtures) {
+    assert.ok(f.pIfShared != null, 'enough washouts to report on');
+    assert.ok(f.pIfShared >= 0 && f.pIfShared <= 1);
+    assert.ok(f.pIfNeeded >= f.pIfNot);
+  }
+  // With nothing shared simulated, there is nothing to report.
+  const off = simulate(ctx, { trials: 5000, model: 'coinflip', focusId: 1, seed: 8 });
+  for (const f of keyFixtures(ctx, off, 'playoff', { givenSweep: false }).fixtures) {
+    assert.equal(f.pIfShared, null);
+  }
+});
+
+test('points bounds stay honest whatever a tie or washout is worth', () => {
+  const matches = [{ id: 1, home: 1, away: 2, status: 'upcoming' }];
+  const odd = { ...RULES, points_win: 2, points_tie: 3, points_no_result: 1, points_loss: 0 };
+  const b = pointsBounds(TEAMS, matches, odd);
+  assert.equal(b[1].max, 3, 'a tie worth more than a win raises the ceiling');
+  assert.equal(b[1].min, 0);
+  assert.equal(pointsBounds(TEAMS, matches, RULES)[1].max, 2);
 });

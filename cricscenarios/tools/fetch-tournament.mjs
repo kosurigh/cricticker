@@ -28,7 +28,7 @@ import { buildSnapshot, normaliseTeams, collectRecords } from '../assets/js/chno
 import { collectFixtures } from '../assets/js/fixtures.js';
 import { filterToDivision, crossCheck } from '../assets/js/data.js';
 import {
-  standingsFor, DEFAULT_RULES, netRunRate, baselineFromPublished,
+  standingsFor, DEFAULT_RULES, netRunRate, baselineFromPublished, inferPointsSystem,
 } from '../assets/js/engine.js';
 import { writeIndex } from './snapshot-index.mjs';
 
@@ -220,7 +220,17 @@ async function main() {
 
   const metaPath = path.join(dataDir, 'meta.json');
   const meta = existsSync(metaPath) ? JSON.parse(await readFile(metaPath, 'utf8')) : {};
-  const rules = { ...DEFAULT_RULES, ...(meta.rules || {}) };
+  // Points per outcome come from CricHeroes' own points column across the
+  // whole tournament; meta.json is the fallback for anything it cannot pin down.
+  const pointsSystem = inferPointsSystem(snap.published, { ...DEFAULT_RULES, ...(meta.rules || {}) });
+  const rules = { ...DEFAULT_RULES, ...(meta.rules || {}), ...pointsSystem.points };
+  {
+    const p = pointsSystem.points, d = pointsSystem.derived;
+    const tag = (k) => `${p[k]}${d[k] ? '' : ' (config)'}`;
+    console.log(`  points system: win ${tag('points_win')}, tie ${tag('points_tie')}, ` +
+      `no result ${tag('points_no_result')}, loss ${tag('points_loss')} — reproduces ` +
+      `${pointsSystem.matched} of ${pointsSystem.rows} published rows`);
+  }
 
   const written = [];
   const divisions = args.division != null ? [args.division]
@@ -264,6 +274,7 @@ async function main() {
       source: 'cricheroes',
       endpoints: { matches: matches.path, teams: teams.path, points: points.path },
       rules,
+      points_system: pointsSystem,
       teams: sub.teams,
       matches: sub.matches,
       published,

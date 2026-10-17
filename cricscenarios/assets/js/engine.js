@@ -273,13 +273,19 @@ export function remainingPerTeam(teams, matches) {
 export function pointsBounds(teams, matches, rules, baseline = null) {
   const rows = buildTable(teams, matches, rules, baseline);
   const left = remainingPerTeam(teams, matches);
+  // A remaining game can also be tied or washed out. With the usual points
+  // those sit between a win and a loss, but take the extremes over every
+  // outcome so an odd points system cannot make a certificate lie.
+  const per = [rules.points_win, rules.points_loss, rules.points_tie, rules.points_no_result]
+    .filter((v) => typeof v === 'number' && isFinite(v));
+  const best = Math.max(...per), worst = Math.min(...per);
   const out = {};
   for (const t of teams) {
     const row = rows[t.id];
     out[t.id] = {
       now: row.points,
-      max: row.points + left[t.id] * rules.points_win,
-      min: row.points + left[t.id] * rules.points_loss,
+      max: row.points + left[t.id] * best,
+      min: row.points + left[t.id] * worst,
       remaining: left[t.id],
     };
   }
@@ -323,4 +329,68 @@ export function certificates(teamId, teams, matches, rules, baseline = null) {
       doomed: guaranteedAbove + 1 > relegationLine,
     },
   };
+}
+
+/* ------------------------------------------------------------------ *
+ * The points system, read off the published table.
+ *
+ * Rather than trusting a configured "2 for a win, 1 for a tie", work out what
+ * CricHeroes actually awards from its own points column: every row states
+ * W / L / T / NR and the points they earned, so the system is whatever
+ * reproduces the most rows. Organiser penalties make a few rows disagree with
+ * any system, which is why this is "most rows", not "every row".
+ *
+ * A value no row can pin down — the tie award in a division where nobody has
+ * tied — is not guessed: it keeps the configured fallback, and `derived`
+ * says which values came from the data.
+ * ------------------------------------------------------------------ */
+
+const POINT_KEYS = ['points_win', 'points_tie', 'points_no_result', 'points_loss'];
+
+export function inferPointsSystem(published, fallback = DEFAULT_RULES) {
+  const rows = (published || []).filter((p) => p && p.points != null && p.won != null && p.lost != null);
+  const empty = {
+    points: Object.fromEntries(POINT_KEYS.map((k) => [k, fallback[k]])),
+    derived: Object.fromEntries(POINT_KEYS.map((k) => [k, false])),
+    matched: 0, rows: rows.length, source: 'config',
+  };
+  if (rows.length < 3) return empty;
+
+  let best = -1, candidates = [];
+  for (let w = 1; w <= 6; w++) {
+    for (let t = 0; t <= w; t++) {
+      for (let nr = 0; nr <= w; nr++) {
+        for (let l = 0; l <= 0; l++) {   // a loss scores nothing in every format CricHeroes runs
+          let hit = 0;
+          for (const r of rows) {
+            const pts = r.won * w + (r.tied || 0) * t + (r.noResult || 0) * nr + r.lost * l;
+            if (pts === r.points) hit++;
+          }
+          if (hit > best) { best = hit; candidates = []; }
+          if (hit === best) candidates.push({ points_win: w, points_tie: t, points_no_result: nr, points_loss: l });
+        }
+      }
+    }
+  }
+  // Too few rows explained to call it a system: keep the configuration.
+  if (best < Math.max(3, Math.ceil(rows.length * 0.6))) return { ...empty, matched: best };
+
+  const points = {}, derived = {};
+  for (const k of POINT_KEYS) {
+    const values = [...new Set(candidates.map((c) => c[k]))];
+    if (values.length === 1) { points[k] = values[0]; derived[k] = true; }
+    else {
+      // Not identifiable from these rows. Keep the configured value when the
+      // data allows it, otherwise the most conservative value it does allow.
+      points[k] = values.includes(fallback[k]) ? fallback[k] : values[0];
+      derived[k] = false;
+    }
+  }
+  return { points, derived, matched: best, rows: rows.length, source: 'cricheroes' };
+}
+
+/** Rules with the points system replaced by what the published table shows. */
+export function rulesWithPublishedPoints(rules, published) {
+  const inferred = inferPointsSystem(published, rules);
+  return { ...rules, ...inferred.points, points_source: inferred };
 }
