@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 3,
- "generated_at": "2026-10-17T15:08:18.898Z",
+ "generated_at": "2026-10-17T22:55:12.047Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -133,11 +133,34 @@
    "id": 26354688,
    "date": "2026-10-17T19:30:00.000Z",
    "venue": "Bethesda - Lower",
-   "home": 12489709,
-   "away": 12476430,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "home": 12476430,
+   "away": 12489709,
+   "status": "completed",
+   "resultText": "resulted — 7 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12489709,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12476430,
+      "runs": 60,
+      "wickets": 10,
+      "overs": 14.1,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489709,
+      "runs": 48,
+      "wickets": 3,
+      "overs": 9.2,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354659,
@@ -1215,9 +1238,15 @@
    "venue": "Bethesda - Lower",
    "home": 12476238,
    "away": 12480191,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "abandoned — rain",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
   },
   {
    "id": 26354658,
@@ -2432,9 +2461,15 @@
    "venue": "Bethesda - Lower",
    "home": 12490484,
    "away": 12489688,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "abandoned — rain/unfavorable condition ",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
   },
   {
    "id": 26354632,
@@ -2846,12 +2881,12 @@
   {
    "teamId": 12490484,
    "name": "POWER RANGERS",
-   "played": 12,
+   "played": 13,
    "won": 9,
    "lost": 1,
    "tied": 0,
-   "noResult": 2,
-   "points": 20,
+   "noResult": 3,
+   "points": 21,
    "nrr": 1.26,
    "runsFor": 1159,
    "oversFor": 169.4,
@@ -2861,12 +2896,12 @@
   {
    "teamId": 12489688,
    "name": "The 11 Stars- HT",
-   "played": 12,
+   "played": 13,
    "won": 8,
    "lost": 2,
    "tied": 1,
-   "noResult": 1,
-   "points": 18,
+   "noResult": 2,
+   "points": 19,
    "nrr": 2.597,
    "runsFor": 1184,
    "oversFor": 166,
@@ -2876,17 +2911,17 @@
   {
    "teamId": 12489709,
    "name": "The Fresh Starz",
-   "played": 12,
-   "won": 8,
+   "played": 13,
+   "won": 9,
    "lost": 3,
    "tied": 0,
    "noResult": 1,
-   "points": 17,
-   "nrr": 0.805,
-   "runsFor": 939,
-   "oversFor": 174.2,
-   "runsAgainst": 843,
-   "oversAgainst": 184
+   "points": 19,
+   "nrr": 0.904,
+   "runsFor": 987,
+   "oversFor": 183.4,
+   "runsAgainst": 903,
+   "oversAgainst": 202
   },
   {
    "teamId": 12476408,
@@ -2921,17 +2956,17 @@
   {
    "teamId": 12476430,
    "name": "Carolina Rhinos",
-   "played": 12,
+   "played": 13,
    "won": 7,
-   "lost": 4,
+   "lost": 5,
    "tied": 0,
    "noResult": 1,
    "points": 15,
-   "nrr": -0.052,
-   "runsFor": 1214,
-   "oversFor": 198,
-   "runsAgainst": 1212,
-   "oversAgainst": 196
+   "nrr": -0.238,
+   "runsFor": 1274,
+   "oversFor": 216,
+   "runsAgainst": 1260,
+   "oversAgainst": 205.2
   },
   {
    "teamId": 12480201,
@@ -2949,6 +2984,21 @@
    "oversAgainst": 182.3
   },
   {
+   "teamId": 12476238,
+   "name": "GIANTS - HT",
+   "played": 13,
+   "won": 4,
+   "lost": 7,
+   "tied": 0,
+   "noResult": 2,
+   "points": 10,
+   "nrr": -0.562,
+   "runsFor": 1101,
+   "oversFor": 186.3,
+   "runsAgainst": 1209,
+   "oversAgainst": 187
+  },
+  {
    "teamId": 12490007,
    "name": "Mustangs XI",
    "played": 12,
@@ -2962,21 +3012,6 @@
    "oversFor": 198,
    "runsAgainst": 1216,
    "oversAgainst": 163.3
-  },
-  {
-   "teamId": 12476238,
-   "name": "GIANTS - HT",
-   "played": 12,
-   "won": 4,
-   "lost": 7,
-   "tied": 0,
-   "noResult": 1,
-   "points": 9,
-   "nrr": -0.562,
-   "runsFor": 1101,
-   "oversFor": 186.3,
-   "runsAgainst": 1209,
-   "oversAgainst": 187
   },
   {
    "teamId": 12490030,
@@ -3041,12 +3076,12 @@
   {
    "teamId": 12480191,
    "name": "NC Trojans",
-   "played": 11,
+   "played": 12,
    "won": 2,
    "lost": 8,
    "tied": 1,
-   "noResult": 0,
-   "points": 5,
+   "noResult": 1,
+   "points": 6,
    "nrr": -1.158,
    "runsFor": 1039,
    "oversFor": 188.3,

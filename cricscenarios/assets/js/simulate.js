@@ -180,7 +180,7 @@ export function prepare(teams, matches, rules = DEFAULT_RULES, baseline = null) 
     if (m.status === 'completed') continue;
     const h = index.get(m.home), a = index.get(m.away);
     if (h == null || a == null) continue;
-    remaining.push({ h, a, id: m.id, date: m.date || null });
+    remaining.push({ h, a, id: m.id, date: m.date || null, overs: m.overs ?? null });
   }
 
   const played = [];

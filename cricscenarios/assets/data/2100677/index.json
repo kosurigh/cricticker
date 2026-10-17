@@ -1,96 +1,96 @@
 {
  "tournament_id": 2100677,
- "updated_at": "2026-10-17T15:08:18.945Z",
+ "updated_at": "2026-10-17T22:55:12.057Z",
  "divisions": [
   {
    "division": 1,
    "teams": 14,
    "matches": 91,
-   "played": 85,
-   "remaining": 6,
+   "played": 86,
+   "remaining": 5,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.883Z"
+   "generated_at": "2026-10-17T22:55:12.041Z"
   },
   {
    "division": 2,
    "teams": 14,
    "matches": 91,
-   "played": 85,
-   "remaining": 6,
+   "played": 86,
+   "remaining": 5,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.895Z"
+   "generated_at": "2026-10-17T22:55:12.046Z"
   },
   {
    "division": 3,
    "teams": 14,
    "matches": 91,
-   "played": 85,
-   "remaining": 6,
+   "played": 88,
+   "remaining": 3,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.898Z"
+   "generated_at": "2026-10-17T22:55:12.047Z"
   },
   {
    "division": 4,
    "teams": 14,
    "matches": 91,
-   "played": 86,
-   "remaining": 5,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.904Z"
+   "generated_at": "2026-10-17T22:55:12.049Z"
   },
   {
    "division": 5,
    "teams": 14,
    "matches": 91,
-   "played": 85,
-   "remaining": 6,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.906Z"
+   "generated_at": "2026-10-17T22:55:12.050Z"
   },
   {
    "division": 6,
    "teams": 14,
    "matches": 91,
-   "played": 84,
-   "remaining": 7,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.913Z"
+   "generated_at": "2026-10-17T22:55:12.052Z"
   },
   {
    "division": 7,
    "teams": 14,
    "matches": 91,
-   "played": 85,
-   "remaining": 6,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.921Z"
+   "generated_at": "2026-10-17T22:55:12.053Z"
   },
   {
    "division": 8,
    "teams": 14,
    "matches": 91,
-   "played": 86,
-   "remaining": 5,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.933Z"
+   "generated_at": "2026-10-17T22:55:12.054Z"
   },
   {
    "division": 9,
    "teams": 14,
    "matches": 91,
-   "played": 86,
-   "remaining": 5,
+   "played": 87,
+   "remaining": 4,
    "source": "cricheroes",
    "placeholder": false,
-   "generated_at": "2026-10-17T15:08:18.944Z"
+   "generated_at": "2026-10-17T22:55:12.056Z"
   }
  ]
 }

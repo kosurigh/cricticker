@@ -20,6 +20,8 @@ assets/js/engine.js      Points, net run rate, tie-breaks, mathematical certaint
 assets/js/simulate.js    Monte Carlo over the unplayed fixtures
 assets/js/scenarios.js   Turning counters into "win both and you are through"
 assets/js/report-view.js The "what has to happen" cards, as HTML (pure; shared with the checker)
+assets/js/margins.js     Exact "win by N runs / chase within X overs" thresholds per scenario
+assets/js/margins-view.js  ...as sentences, and the "what it takes" card
 assets/js/overview.js    Division-list progress (games to play) from the live points table
 assets/js/chnorm.js      CricHeroes payload -> this project's schema
 assets/js/fixtures.js    Rebuilding a fixture list out of per-team ones
@@ -33,7 +35,7 @@ tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
 tools/check-all-teams.mjs    Run and check the report for every team in every division
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        69 tests over the maths, the parser, the index
+test/                        74 tests over the maths, the parser, the index
                              and the committed snapshots
 ```
 
@@ -141,6 +143,32 @@ Two controls change the answer, and it is worth understanding both:
   (200k) is what to quote to anyone.
 
 ### The report underneath
+
+**What it takes, in runs and overs** comes first. With nine or fewer games left in the
+division, every combination of results (win / lose / washed out) is enumerated exactly —
+no simulation — and for each of the team's own results it says, in order: through on
+points whatever the margin; out on points; or level on points with named rivals, so net
+run rate decides, with the exact margin: *win by at least 67 runs batting first, or chase
+96 within 5.4 overs*. Against the teams around it, it says whether the team finishes
+above each one — *can lose to Zenstarz Warriors and still finish above Guts N Glory* —
+and by how much it can afford to lose. Conditions on other results are spelled out
+(*if Zenstarz Warriors beat Cary Sirjis …*) with how likely each is under the selected
+model.
+
+Assumptions, stated on the card: each remaining game is 18 overs a side; margins are
+quoted for a first-innings total equal to the division's median full-length first
+innings (rounded to 5), with the figures for 20 runs either side in brackets; batting
+first, a win by *r* runs is S off 18 overs against S − *r* off 18; chasing, S + 1 off *b*
+balls against S off 18. A side bowled out is charged the full 18 overs, so all-out
+finishes are covered; washouts change no one's net run rate (ties are treated the same,
+as they move both sides almost identically); wickets in hand do not count. Where another
+team in the same race also has a decisive game left, that game is assumed to finish with
+the division's median winning margin, and the card says so. A dead heat on net run rate is
+not counted as a win, because the later tiebreaks (head-to-head, wins) are not modelled
+there. The runs-for / overs-faced / runs-against / overs-bowled figures are CricHeroes'
+own, from the published points table's *For* and *Against* columns.
+
+Below that, the odds:
 
 Three cards — Promotion, Playoffs, Relegation — each answering the same four questions:
 

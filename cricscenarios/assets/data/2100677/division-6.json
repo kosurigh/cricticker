@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 6,
- "generated_at": "2026-10-17T15:08:18.913Z",
+ "generated_at": "2026-10-17T22:55:12.052Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -898,16 +898,6 @@
    }
   },
   {
-   "id": 26354920,
-   "date": "2026-10-17T16:00:00.000Z",
-   "venue": "RTP 4",
-   "home": 12480088,
-   "away": 12480055,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
-  },
-  {
    "id": 26354917,
    "date": "2026-10-18T16:00:00.000Z",
    "venue": "RTP 4",
@@ -916,6 +906,22 @@
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
+  },
+  {
+   "id": 26354920,
+   "date": "2026-10-17T16:00:00.000Z",
+   "venue": "RTP 4",
+   "home": 12480088,
+   "away": 12480055,
+   "status": "completed",
+   "resultText": "abandoned — due to rain and not playble condition",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
   },
   {
    "id": 26354949,
@@ -1529,13 +1535,36 @@
   },
   {
    "id": 26354983,
-   "date": "2026-10-17T19:30:00.000Z",
+   "date": "2026-10-17T19:33:29.000Z",
    "venue": "Bethesda - Upper",
-   "home": 12476443,
-   "away": 12475582,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "home": 12475582,
+   "away": 12476443,
+   "status": "completed",
+   "resultText": "resulted — 7 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12475582,
+    "margin": 7,
+    "innings": [
+     {
+      "team": 12475582,
+      "runs": 87,
+      "wickets": 9,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476443,
+      "runs": 80,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354982,
@@ -1803,13 +1832,19 @@
   },
   {
    "id": 26354919,
-   "date": "2026-10-17T19:00:00.000Z",
+   "date": "2026-10-17T17:29:14.000Z",
    "venue": "RTP 4",
    "home": 12489655,
    "away": 12476433,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "abandoned — abandoned without toss being done due to weather",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
   },
   {
    "id": 26354951,
@@ -2840,32 +2875,32 @@
   {
    "teamId": 12475582,
    "name": "Star Blasters",
-   "played": 12,
-   "won": 10,
+   "played": 13,
+   "won": 11,
    "lost": 2,
    "tied": 0,
    "noResult": 0,
-   "points": 20,
-   "nrr": 1.675,
-   "runsFor": 1168,
-   "oversFor": 176.5,
-   "runsAgainst": 1065,
-   "oversAgainst": 216
+   "points": 22,
+   "nrr": 1.548,
+   "runsFor": 1255,
+   "oversFor": 194.5,
+   "runsAgainst": 1145,
+   "oversAgainst": 234
   },
   {
    "teamId": 12476443,
    "name": "Fuquay Mavericks",
-   "played": 12,
+   "played": 13,
    "won": 9,
-   "lost": 3,
+   "lost": 4,
    "tied": 0,
    "noResult": 0,
    "points": 18,
-   "nrr": 0.84,
-   "runsFor": 1333,
-   "oversFor": 195.1,
-   "runsAgainst": 1250,
-   "oversAgainst": 208.4
+   "nrr": 0.73,
+   "runsFor": 1413,
+   "oversFor": 213.1,
+   "runsAgainst": 1337,
+   "oversAgainst": 226.4
   },
   {
    "teamId": 12476263,
@@ -2898,6 +2933,21 @@
    "oversAgainst": 187.4
   },
   {
+   "teamId": 12489655,
+   "name": "STARKS",
+   "played": 13,
+   "won": 5,
+   "lost": 5,
+   "tied": 0,
+   "noResult": 3,
+   "points": 13,
+   "nrr": -0.324,
+   "runsFor": 953,
+   "oversFor": 166.4,
+   "runsAgainst": 1009,
+   "oversAgainst": 167
+  },
+  {
    "teamId": 12480119,
    "name": "MIB",
    "played": 12,
@@ -2911,6 +2961,21 @@
    "oversFor": 149.2,
    "runsAgainst": 941,
    "oversAgainst": 157.2
+  },
+  {
+   "teamId": 12480088,
+   "name": "Limited Edition",
+   "played": 12,
+   "won": 5,
+   "lost": 5,
+   "tied": 0,
+   "noResult": 2,
+   "points": 12,
+   "nrr": 0.153,
+   "runsFor": 1121,
+   "oversFor": 179.1,
+   "runsAgainst": 1064,
+   "oversAgainst": 174.2
   },
   {
    "teamId": 12476265,
@@ -2928,21 +2993,6 @@
    "oversAgainst": 196.4
   },
   {
-   "teamId": 12489655,
-   "name": "STARKS",
-   "played": 12,
-   "won": 5,
-   "lost": 5,
-   "tied": 0,
-   "noResult": 2,
-   "points": 12,
-   "nrr": -0.324,
-   "runsFor": 953,
-   "oversFor": 166.4,
-   "runsAgainst": 1009,
-   "oversAgainst": 167
-  },
-  {
    "teamId": 12480100,
    "name": "Mammoths",
    "played": 12,
@@ -2956,21 +3006,6 @@
    "oversFor": 189.4,
    "runsAgainst": 891,
    "oversAgainst": 177.4
-  },
-  {
-   "teamId": 12480088,
-   "name": "Limited Edition",
-   "played": 11,
-   "won": 5,
-   "lost": 5,
-   "tied": 0,
-   "noResult": 1,
-   "points": 11,
-   "nrr": 0.153,
-   "runsFor": 1121,
-   "oversFor": 179.1,
-   "runsAgainst": 1064,
-   "oversAgainst": 174.2
   },
   {
    "teamId": 12489747,
@@ -2990,12 +3025,12 @@
   {
    "teamId": 12476433,
    "name": "Himalayan Kings",
-   "played": 12,
+   "played": 13,
    "won": 4,
    "lost": 7,
    "tied": 0,
-   "noResult": 1,
-   "points": 9,
+   "noResult": 2,
+   "points": 10,
    "nrr": -1.118,
    "runsFor": 913,
    "oversFor": 197,
@@ -3018,6 +3053,21 @@
    "oversAgainst": 150.4
   },
   {
+   "teamId": 12480055,
+   "name": "Cholans-HT",
+   "played": 12,
+   "won": 3,
+   "lost": 8,
+   "tied": 0,
+   "noResult": 1,
+   "points": 7,
+   "nrr": -1.169,
+   "runsFor": 913,
+   "oversFor": 188.2,
+   "runsAgainst": 1055,
+   "oversAgainst": 175.2
+  },
+  {
    "teamId": 12476419,
    "name": "Dragons XI",
    "played": 13,
@@ -3031,21 +3081,6 @@
    "oversFor": 210.4,
    "runsAgainst": 1196,
    "oversAgainst": 194
-  },
-  {
-   "teamId": 12480055,
-   "name": "Cholans-HT",
-   "played": 11,
-   "won": 3,
-   "lost": 8,
-   "tied": 0,
-   "noResult": 0,
-   "points": 6,
-   "nrr": -1.169,
-   "runsFor": 913,
-   "oversFor": 188.2,
-   "runsAgainst": 1055,
-   "oversAgainst": 175.2
   }
  ],
  "warnings": []
