@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 6,
- "generated_at": "2026-10-17T22:55:12.052Z",
+ "generated_at": "2026-10-18T21:11:14.725Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -20,10 +20,18 @@
   "overs_per_innings": 18,
   "tiebreak": [
    "points",
+   "wins",
    "nrr",
-   "h2h",
-   "wins"
-  ]
+   "h2h"
+  ],
+  "division_overrides": {
+   "1": {
+    "promotion_spots": 0
+   },
+   "9": {
+    "relegation_spots": 0
+   }
+  }
  },
  "points_system": {
   "points": {
@@ -131,13 +139,36 @@
  "matches": [
   {
    "id": 26354918,
-   "date": "2026-10-18T13:00:00.000Z",
+   "date": "2026-10-18T13:03:22.000Z",
    "venue": "RTP 4",
    "home": 12489747,
    "away": 12476265,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 9 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476265,
+    "margin": 9,
+    "innings": [
+     {
+      "team": 12489747,
+      "runs": 101,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476265,
+      "runs": 106,
+      "wickets": 1,
+      "overs": 12,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354946,
@@ -899,13 +930,36 @@
   },
   {
    "id": 26354917,
-   "date": "2026-10-18T16:00:00.000Z",
+   "date": "2026-10-18T16:03:42.000Z",
    "venue": "RTP 4",
    "home": 12480055,
    "away": 12476398,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 42 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480055,
+    "margin": 42,
+    "innings": [
+     {
+      "team": 12480055,
+      "runs": 144,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476398,
+      "runs": 102,
+      "wickets": 9,
+      "overs": 15.1,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354920,
@@ -2062,13 +2116,36 @@
   },
   {
    "id": 26354935,
-   "date": "2026-10-18T17:00:00.000Z",
+   "date": "2026-10-18T17:06:05.000Z",
    "venue": "RTP 3",
    "home": 12480100,
    "away": 12480026,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 5 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12480026,
+    "margin": 5,
+    "innings": [
+     {
+      "team": 12480100,
+      "runs": 88,
+      "wickets": 9,
+      "overs": 17.4,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480026,
+      "runs": 90,
+      "wickets": 5,
+      "overs": 15.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354977,
@@ -2255,8 +2332,8 @@
    "id": 26354916,
    "date": "2026-10-18T19:00:00.000Z",
    "venue": "RTP 4",
-   "home": 12480119,
-   "away": 12480088,
+   "home": 12480088,
+   "away": 12480119,
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
@@ -2903,6 +2980,21 @@
    "oversAgainst": 226.4
   },
   {
+   "teamId": 12480026,
+   "name": "Hollysprings Hurricanes",
+   "played": 13,
+   "won": 8,
+   "lost": 4,
+   "tied": 0,
+   "noResult": 1,
+   "points": 17,
+   "nrr": 1.156,
+   "runsFor": 1313,
+   "oversFor": 198,
+   "runsAgainst": 1126,
+   "oversAgainst": 205.4
+  },
+  {
    "teamId": 12476263,
    "name": "Apex Blues",
    "played": 13,
@@ -2918,19 +3010,19 @@
    "oversAgainst": 189.1
   },
   {
-   "teamId": 12480026,
-   "name": "Hollysprings Hurricanes",
-   "played": 12,
+   "teamId": 12476265,
+   "name": "Astras - HT",
+   "played": 13,
    "won": 7,
-   "lost": 4,
+   "lost": 6,
    "tied": 0,
-   "noResult": 1,
-   "points": 15,
-   "nrr": 1.17,
-   "runsFor": 1223,
-   "oversFor": 182.3,
-   "runsAgainst": 1038,
-   "oversAgainst": 187.4
+   "noResult": 0,
+   "points": 14,
+   "nrr": 0.024,
+   "runsFor": 1225,
+   "oversFor": 208.2,
+   "runsAgainst": 1257,
+   "oversAgainst": 214.4
   },
   {
    "teamId": 12489655,
@@ -2978,49 +3070,34 @@
    "oversAgainst": 174.2
   },
   {
-   "teamId": 12476265,
-   "name": "Astras - HT",
-   "played": 12,
-   "won": 6,
-   "lost": 6,
-   "tied": 0,
-   "noResult": 0,
-   "points": 12,
-   "nrr": -0.178,
-   "runsFor": 1119,
-   "oversFor": 196.2,
-   "runsAgainst": 1156,
-   "oversAgainst": 196.4
-  },
-  {
    "teamId": 12480100,
    "name": "Mammoths",
-   "played": 12,
+   "played": 13,
    "won": 5,
-   "lost": 6,
+   "lost": 7,
    "tied": 0,
    "noResult": 1,
    "points": 11,
-   "nrr": 0.284,
-   "runsFor": 1005,
-   "oversFor": 189.4,
-   "runsAgainst": 891,
-   "oversAgainst": 177.4
+   "nrr": 0.185,
+   "runsFor": 1093,
+   "oversFor": 207.4,
+   "runsAgainst": 981,
+   "oversAgainst": 193.1
   },
   {
    "teamId": 12489747,
    "name": "White Oak Warriors",
-   "played": 12,
+   "played": 13,
    "won": 5,
-   "lost": 6,
+   "lost": 7,
    "tied": 0,
    "noResult": 1,
    "points": 11,
-   "nrr": -0.264,
-   "runsFor": 1068,
-   "oversFor": 185.5,
-   "runsAgainst": 1117,
-   "oversAgainst": 185.5
+   "nrr": -0.447,
+   "runsFor": 1169,
+   "oversFor": 203.5,
+   "runsAgainst": 1223,
+   "oversAgainst": 197.5
   },
   {
    "teamId": 12476433,
@@ -3038,34 +3115,34 @@
    "oversAgainst": 170
   },
   {
-   "teamId": 12476398,
-   "name": "RockStars",
-   "played": 12,
-   "won": 2,
-   "lost": 7,
-   "tied": 0,
-   "noResult": 3,
-   "points": 7,
-   "nrr": -0.751,
-   "runsFor": 861,
-   "oversFor": 153,
-   "runsAgainst": 961,
-   "oversAgainst": 150.4
-  },
-  {
    "teamId": 12480055,
    "name": "Cholans-HT",
-   "played": 12,
-   "won": 3,
+   "played": 13,
+   "won": 4,
    "lost": 8,
    "tied": 0,
    "noResult": 1,
+   "points": 9,
+   "nrr": -0.951,
+   "runsFor": 1057,
+   "oversFor": 206.2,
+   "runsAgainst": 1157,
+   "oversAgainst": 190.3
+  },
+  {
+   "teamId": 12476398,
+   "name": "RockStars",
+   "played": 13,
+   "won": 2,
+   "lost": 8,
+   "tied": 0,
+   "noResult": 3,
    "points": 7,
-   "nrr": -1.169,
-   "runsFor": 913,
-   "oversFor": 188.2,
-   "runsAgainst": 1055,
-   "oversAgainst": 175.2
+   "nrr": -0.825,
+   "runsFor": 963,
+   "oversFor": 168.1,
+   "runsAgainst": 1105,
+   "oversAgainst": 168.4
   },
   {
    "teamId": 12476419,

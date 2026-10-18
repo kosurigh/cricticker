@@ -9,7 +9,14 @@ import { esc, signed } from './ui.js';
 import {
   R, oversText, marginSettings, goalMargins, rivalMargins, racingRivals, currentNrr, lossMargins,
 } from './margins.js';
-import { certificates } from './engine.js';
+import { certificates, winsBeforeNrr } from './engine.js';
+
+/** Goals this division actually has (TCL: no promotion from Division 1, no relegation from Division 9). */
+export function activeGoals(rules) {
+  return ['promotion', 'playoff', 'relegation'].filter((g) => (g === 'playoff' ? rules.playoff_spots
+    : g === 'promotion' ? rules.promotion_spots : rules.relegation_spots) > 0);
+}
+const winsWord = (k) => `${k} win${k === 1 ? '' : 's'}`;
 
 const GOAL_WORDS = {
   playoff: { name: 'Playoffs', reach: 'make the playoffs', in: 'Through to the playoffs', out: 'Misses the playoffs' },
@@ -97,14 +104,26 @@ function opponentName(ctx, t, own) {
 function verdictText(ctx, set, t, v, goal, own) {
   const w = GOAL_WORDS[goal];
   const opp = opponentName(ctx, t, own);
-  if (v.kind === 'in') return { tone: 'ok', text: `${w.in} on points, whatever the margin.` };
+  const T = b(nameOf(ctx, t));
+  if (v.kind === 'in') {
+    if (v.winsBelow && v.winsBelow.length) {
+      const names = v.winsBelow.map((j, k) => `${b(nameOf(ctx, j))} (${v.winsOf[k]})`);
+      return { tone: 'ok', text: `Level on ${v.points} points with ${listNames(names)}, but with more wins (${v.wins}) — ${T} finish above ${v.winsBelow.length === 1 ? 'them' : 'all of them'} whatever the margin. ${w.in}.` };
+    }
+    return { tone: 'ok', text: `${w.in} on points, whatever the margin.` };
+  }
   if (v.kind === 'out') {
+    if (v.winsAbove && v.winsAbove.length) {
+      const names = v.winsAbove.map((j, k) => `${b(nameOf(ctx, j))} (${v.winsOf[k]})`);
+      const R0 = v.winsAbove.length === 1 ? b(nameOf(ctx, v.winsAbove[0])) : 'all of them';
+      return { tone: 'no', text: `${T} would finish level on ${v.points} points with ${listNames(names)} but with fewer wins (${v.wins}), so ${R0} finish above them whatever the margin. ${goal === 'relegation' ? 'Relegated' : w.out}.` };
+    }
     return { tone: 'no', text: goal === 'relegation'
       ? `Relegated on points — ${v.above} teams finish above.`
       : `Not enough on points — ${v.above} team${v.above === 1 ? '' : 's'} finish above.` };
   }
   const rivals = v.level.map((j) => `${b(nameOf(ctx, j))} (NRR ${signed(currentNrr(ctx, j))})`);
-  const levelLine = `Level on ${v.points} points with ${listNames(rivals)}`
+  const levelLine = `Level on ${v.points} points${winsBeforeNrr(ctx.rules) && v.wins != null ? ` and ${winsWord(v.wins)}` : ''} with ${listNames(rivals)}`
     + (v.level.length > 1 ? ` — must finish above ${v.mustBeat ?? (v.level.length - v.places + 1)} of them` : '');
   const assumed = v.pendingRivals && v.pendingRivals.length
     ? ` <span class="sub">(${esc(listNames(v.pendingRivals.map((j) => nameOf(ctx, j))))}'s game assumed to finish with a typical ${set.typicalRuns}-run margin)</span>`
@@ -175,7 +194,7 @@ export function rivalLines(ctx, set, teamId, { limit = 4 } = {}) {
   for (const rid of racingRivals(ctx, teamId)) {
     const r = ctx.index.get(rid);
     const a = rivalMargins(ctx, set, teamId, rid);
-    const anyNrr = a.cases.some((c) => c.lines.some((l) => l.verdict.on === 'nrr'));
+    const anyNrr = a.cases.some((c) => c.lines.some((l) => l.verdict.on === 'nrr' || l.verdict.on === 'wins'));
     const states = new Set(a.cases.flatMap((c) => c.lines.map((l) => l.verdict.state)));
     if (!anyNrr && states.size < 2) continue;
     const RN = b(nameOf(ctx, r));
@@ -185,6 +204,9 @@ export function rivalLines(ctx, set, teamId, { limit = 4 } = {}) {
         const v = l.verdict;
         let text;
         if (v.on === 'points') text = v.state === 'above' ? `finish above ${RN} on points` : `finish below ${RN} on points`;
+        else if (v.on === 'wins') {
+          text = `level on ${v.points} points, but ${v.state === 'above' ? 'more' : 'fewer'} wins (${v.wins[0]} v ${v.wins[1]}): finish ${v.state} ${RN} whatever the margin`;
+        }
         else if (v.state !== 'depends') {
           const losing = c.own.length && c.own.every((o) => o.result < 0);
           const how = !v.robust ? ' (at typical margins)'
@@ -207,7 +229,7 @@ export function rivalLines(ctx, set, teamId, { limit = 4 } = {}) {
     // Worth showing: anything net run rate decides, and a defeat that still
     // leaves them above the rival. Plain points lines are in the cards above.
     const losing = (c) => c.own.length && c.own.every((o) => o.result < 0);
-    const shown = cases.map((c) => ({ ...c, lines: c.lines.filter((l) => l.on === 'nrr' || (losing(c) && l.state === 'above')) }))
+    const shown = cases.map((c) => ({ ...c, lines: c.lines.filter((l) => l.on === 'nrr' || l.on === 'wins' || (losing(c) && l.state === 'above')) }))
       .filter((c) => c.lines.length);
     if (!shown.length) continue;
     out.push({ rival: ctx.teams[r], cases, shown });
@@ -233,7 +255,14 @@ export function keyFacts(ctx, set, teamId, goals, rivals, losses = []) {
       const nrrLines = c.lines.filter((l) => l.kind === 'race');
       const allIn = c.lines.every((l) => l.tone === 'ok' && l.kind === 'in');
       const anyOk = c.lines.some((l) => l.tone !== 'no');
-      if (won && nrrLines.some((l) => !(l.verdict.need?.main?.any))) {
+      const winsOut = c.lines.find((l) => l.kind === 'out' && l.verdict.winsAbove && l.verdict.winsAbove.length);
+      if (won && winsOut && c.lines.every((l) => l.tone === 'no')) {
+        const v = winsOut.verdict;
+        const names = listNames(v.winsAbove.map((j) => b(nameOf(ctx, j))));
+        facts.push(`${b(team)} can win and still not ${w.reach}: they would finish level on ${v.points} points with ${names} but with fewer wins (${v.wins} v ${v.winsOf.join(', ')}), so ${names} finish above them whatever the margin.`);
+      } else if (won && winsOut) {
+        facts.push(`${b(team)} can win and still not ${w.reach} — level on points, wins can put others above them (see below).`);
+      } else if (won && nrrLines.some((l) => !(l.verdict.need?.main?.any))) {
         facts.push(`${b(team)} can win and still not ${w.reach} — it can come down to net run rate (see below).`);
       } else if (won && allIn) {
         facts.push(`A win ${goal === 'relegation' ? 'keeps' : 'takes'} ${b(team)} ${goal === 'relegation' ? 'up' : (goal === 'promotion' ? 'up a division' : 'into the playoffs')} on points, whatever the margin.`);
@@ -259,9 +288,11 @@ export function keyFacts(ctx, set, teamId, goals, rivals, losses = []) {
         if (c.lines.every((l) => l.on === 'points')) how = ' on points';
         else {
           const ls = losses.filter((x) => x.rival === r.rival.id && c.own.some((o) => o.result < 0 && o.fixture === x.fixture));
+          const robust = c.lines.every((l) => l.on !== 'nrr' || l.robust);
           how = ls.length && ls.every((x) => !x.realistic)
             ? ' — no realistic defeat changes that (see "If they lose" below)'
-            : ' at typical margins (see "If they lose" below)';
+            : ls.length ? ' at typical margins (see "If they lose" below)'
+              : (robust ? ' on net run rate, even after a heavy defeat' : ' on net run rate at typical margins');
         }
         facts.push(`${b(team)} can ${lowerFirst(c.label)} and still finish above ${b(r.rival.name)}${how}.`);
       }
@@ -274,7 +305,8 @@ export function keyFacts(ctx, set, teamId, goals, rivals, losses = []) {
 export function teamMargins(ctx, teamId, opts = {}) {
   const set = marginSettings(ctx);
   const goals = {};
-  for (const goal of ['promotion', 'playoff', 'relegation']) {
+  const live = activeGoals(ctx.rules);
+  for (const goal of live) {
     const cert = certificates(teamId, ctx.teams, ctx.matches, ctx.rules, ctx.baseline);
     const settled = goal === 'relegation'
       ? (cert.relegation.safe ? 'in' : (cert.relegation.doomed ? 'out' : null))
@@ -282,11 +314,11 @@ export function teamMargins(ctx, teamId, opts = {}) {
     goals[goal] = settled ? null : goalLines(ctx, set, teamId, goal, opts);
     if (settled) goals[`${goal}Settled`] = settled;
   }
-  const allSettled = ['promotion', 'playoff', 'relegation'].every((g) => goals[`${g}Settled`]);
+  const allSettled = live.every((g) => goals[`${g}Settled`]);
   // Nothing left to play for: the table races around them are noise.
   const rivals = allSettled ? [] : rivalLines(ctx, set, teamId);
   // Only races still open count for the loss lines.
-  const Ks = ['playoff', 'promotion', 'relegation'].filter((g) => !goals[`${g}Settled`])
+  const Ks = ['playoff', 'promotion', 'relegation'].filter((g) => live.includes(g) && !goals[`${g}Settled`])
     .map((g) => [g, goalPlaces(g, ctx.rules, ctx.n)]);
   const losses = Ks.length ? lossMargins(ctx, set, teamId, Ks) : [];
   const plain = Object.fromEntries(Object.entries(goals).filter(([k]) => !k.endsWith('Settled')));
@@ -312,7 +344,15 @@ export function lossLines(ctx, set, teamId, losses) {
     const race = listNames(l.goals.map((g) => GOAL_RACE[g]));
     const now = `NRR now ${signed(l.nowT)} v ${signed(l.nowR)}`;
     const assumed = l.assumed ? ` <span class="sub">(other results in this pair's games assumed at a typical ${set.typicalRuns}-run margin)</span>` : '';
-    const head = `${cond ? `${cond}, and ${T} lose to ${O}` : `If ${T} lose to ${O}`}, they finish level on points with ${RN} in the ${race} (${now}).`;
+    const winsNote = winsBeforeNrr(ctx.rules) && l.wins ? ` and ${winsWord(l.wins[0])}` : '';
+    if (l.winsDecide) {
+      const lead = `${cond ? `${cond}, and ${T} lose to ${O}` : `If ${T} lose to ${O}`}, they finish level on ${l.points} points with ${RN} in the ${race}`;
+      const text = l.state === 'above'
+        ? `${lead} but with more wins (${l.wins[0]} v ${l.wins[1]}), so ${T} stay above ${RN} whatever the margin.`
+        : `${lead} but with fewer wins (${l.wins[0]} v ${l.wins[1]}), so ${RN} finish above ${T} whatever the margin.`;
+      return { tone: l.state === 'above' ? 'ok' : 'no', text, table: '', loss: l };
+    }
+    const head = `${cond ? `${cond}, and ${T} lose to ${O}` : `If ${T} lose to ${O}`}, they finish level on ${l.points != null ? `${l.points} points${winsNote}` : 'points'} with ${RN} in the ${race}, so net run rate decides (${now}).`;
     let verdict, table = '';
     if (l.anyDefeat) {
       verdict = `Any defeat drops ${T} below ${RN} on net run rate.`;
@@ -355,15 +395,18 @@ export function marginsCard(ctx, teamId, opts = {}) {
   const a = teamMargins(ctx, teamId, opts);
   const s = a.set;
   const parts = [];
-  parts.push(`<p class="note">Points first, then net run rate. Margins are worked out exactly from
+  parts.push(`<p class="note">${winsBeforeNrr(ctx.rules) ? 'Points first, then wins, then net run rate.' : 'Points first, then net run rate.'} Margins are worked out exactly from
     CricHeroes' runs-for / overs-faced and runs-against / overs-bowled figures, for an
     ${s.quota / 6}-over game with a first-innings total of <b>${s.score}</b> (this division's median;
     figures for ${s.scores[0]} and ${s.scores[2]} in brackets). A side bowled out is charged the full
-    ${s.quota / 6} overs; washouts leave net run rate alone; wickets in hand do not count.</p>`);
+    ${s.quota / 6} overs; washouts leave net run rate alone; wickets in hand do not count.
+    ${winsBeforeNrr(ctx.rules) ? `Teams level on points are split by <b>most wins first</b>, then net run rate (TCL handbook
+    16.10.5), so a margin only matters between teams level on points <em>and</em> wins. A dead heat after that
+    goes to head-to-head, then last season's ranking or a coin toss, which is never counted as through.` : ''}</p>`);
   if (a.facts.length) {
     parts.push(`<ul class="reqs facts">${a.facts.map((f) => `<li><span class="mark ok">!</span><span>${f}</span></li>`).join('')}</ul>`);
   }
-  for (const goal of ['playoff', 'promotion', 'relegation']) {
+  for (const goal of ['playoff', 'promotion', 'relegation'].filter((g) => activeGoals(ctx.rules).includes(g))) {
     const w = GOAL_WORDS[goal];
     const settled = a.goals[`${goal}Settled`];
     if (settled) {

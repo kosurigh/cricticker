@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 5,
- "generated_at": "2026-10-17T22:55:12.050Z",
+ "generated_at": "2026-10-18T21:11:14.723Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -20,10 +20,18 @@
   "overs_per_innings": 18,
   "tiebreak": [
    "points",
+   "wins",
    "nrr",
-   "h2h",
-   "wins"
-  ]
+   "h2h"
+  ],
+  "division_overrides": {
+   "1": {
+    "promotion_spots": 0
+   },
+   "9": {
+    "relegation_spots": 0
+   }
+  }
  },
  "points_system": {
   "points": {
@@ -922,13 +930,36 @@
   },
   {
    "id": 26354845,
-   "date": "2026-10-18T14:00:00.000Z",
+   "date": "2026-10-18T14:05:40.000Z",
    "venue": "RTP 3",
    "home": 12490219,
    "away": 12476321,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 6 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12476321,
+    "margin": 6,
+    "innings": [
+     {
+      "team": 12490219,
+      "runs": 92,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12476321,
+      "runs": 93,
+      "wickets": 4,
+      "overs": 15.3,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354828,
@@ -1558,10 +1589,10 @@
   },
   {
    "id": 26354894,
-   "date": "2026-10-18T19:30:00.000Z",
+   "date": "2026-10-18T19:37:21.000Z",
    "venue": "Bethesda - Lower",
-   "home": 12605278,
-   "away": 12476169,
+   "home": 12476169,
+   "away": 12605278,
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
@@ -1815,13 +1846,19 @@
   },
   {
    "id": 26354849,
-   "date": "2026-10-17T14:00:00.000Z",
+   "date": "2026-10-17T23:14:18.000Z",
    "venue": "RTP 3",
    "home": 12490033,
    "away": 12476440,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "abandoned — rain",
+   "overs": 18,
+   "result": {
+    "type": "no_result",
+    "winner": null,
+    "margin": null,
+    "innings": []
+   }
   },
   {
    "id": 26354861,
@@ -2601,8 +2638,8 @@
    "id": 26354884,
    "date": "2026-10-18T19:30:00.000Z",
    "venue": "Bethesda - Upper",
-   "home": 12490033,
-   "away": 12480147,
+   "home": 12480147,
+   "away": 12490033,
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
@@ -2922,17 +2959,17 @@
   {
    "teamId": 12490219,
    "name": "Whales HT",
-   "played": 12,
+   "played": 13,
    "won": 8,
-   "lost": 2,
+   "lost": 3,
    "tied": 1,
    "noResult": 1,
    "points": 18,
-   "nrr": 1.126,
-   "runsFor": 1269,
-   "oversFor": 193.1,
-   "runsAgainst": 1066,
-   "oversAgainst": 195.5
+   "nrr": 0.961,
+   "runsFor": 1361,
+   "oversFor": 211.1,
+   "runsAgainst": 1159,
+   "oversAgainst": 211.2
   },
   {
    "teamId": 12478118,
@@ -2952,17 +2989,32 @@
   {
    "teamId": 12476440,
    "name": "Finishers - HT",
-   "played": 12,
+   "played": 13,
    "won": 6,
    "lost": 4,
    "tied": 0,
-   "noResult": 2,
-   "points": 14,
+   "noResult": 3,
+   "points": 15,
    "nrr": 0.359,
    "runsFor": 966,
    "oversFor": 164.5,
    "runsAgainst": 949,
    "oversAgainst": 172.3
+  },
+  {
+   "teamId": 12476321,
+   "name": "Cary Kings",
+   "played": 13,
+   "won": 6,
+   "lost": 5,
+   "tied": 0,
+   "noResult": 2,
+   "points": 14,
+   "nrr": 0.007,
+   "runsFor": 1042,
+   "oversFor": 182.1,
+   "runsAgainst": 1093,
+   "oversAgainst": 191.2
   },
   {
    "teamId": 12596309,
@@ -2978,21 +3030,6 @@
    "oversFor": 210.1,
    "runsAgainst": 1204,
    "oversAgainst": 203.3
-  },
-  {
-   "teamId": 12476321,
-   "name": "Cary Kings",
-   "played": 12,
-   "won": 5,
-   "lost": 5,
-   "tied": 0,
-   "noResult": 2,
-   "points": 12,
-   "nrr": -0.081,
-   "runsFor": 949,
-   "oversFor": 166.4,
-   "runsAgainst": 1001,
-   "oversAgainst": 173.2
   },
   {
    "teamId": 12605278,
@@ -3025,6 +3062,21 @@
    "oversAgainst": 220.5
   },
   {
+   "teamId": 12490033,
+   "name": "RISING BULLS",
+   "played": 12,
+   "won": 3,
+   "lost": 6,
+   "tied": 0,
+   "noResult": 3,
+   "points": 9,
+   "nrr": -0.728,
+   "runsFor": 720,
+   "oversFor": 155.4,
+   "runsAgainst": 786,
+   "oversAgainst": 146.5
+  },
+  {
    "teamId": 12476169,
    "name": "Courageous Lions - HT",
    "played": 12,
@@ -3038,21 +3090,6 @@
    "oversFor": 183.3,
    "runsAgainst": 1222,
    "oversAgainst": 182.3
-  },
-  {
-   "teamId": 12490033,
-   "name": "RISING BULLS",
-   "played": 11,
-   "won": 3,
-   "lost": 6,
-   "tied": 0,
-   "noResult": 2,
-   "points": 8,
-   "nrr": -0.728,
-   "runsFor": 720,
-   "oversFor": 155.4,
-   "runsAgainst": 786,
-   "oversAgainst": 146.5
   },
   {
    "teamId": 12480076,

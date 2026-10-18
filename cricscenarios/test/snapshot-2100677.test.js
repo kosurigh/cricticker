@@ -128,7 +128,33 @@ test('the rules recorded for the tournament are the ones in play', () => {
   const upcoming = divisions.flatMap((d) => d.matches.filter((m) => m.status !== 'completed'));
   const overs = new Set(upcoming.map((m) => m.overs).filter((o) => o != null));
   assert.deepEqual([...overs], [meta.rules.overs_per_innings]);
-  assert.deepEqual(meta.rules.tiebreak, ['points', 'nrr', 'h2h', 'wins']);
+  // TCL HT League handbook 16.10.5: points, most wins, NRR, head-to-head.
+  assert.deepEqual(meta.rules.tiebreak, ['points', 'wins', 'nrr', 'h2h']);
+  // Pages 7-9: no promotion from Division 1, no relegation from Division 9.
+  const d1 = divisions.find((d) => d.division === 1), d9 = divisions.find((d) => d.division === 9);
+  assert.equal(d1.rules.promotion_spots, 0);
+  assert.equal(d1.rules.relegation_spots, 3);
+  assert.equal(d9.rules.relegation_spots, 0);
+  assert.equal(d9.rules.promotion_spots, 3);
+});
+
+test('the handbook order differs from CricHeroes exactly where wins and NRR disagree', () => {
+  let disagree = 0;
+  for (const d of divisions) {
+    const pos = new Map(d.standings.map((r, i) => [r.teamId, i]));
+    const pub = d.published;
+    for (let i = 0; i < pub.length; i++) {
+      for (let j = i + 1; j < pub.length; j++) {
+        const a = pub[i], b = pub[j];
+        if (a.points !== b.points || a.won === b.won) continue;
+        // Level on points, different wins: more wins must sit higher here.
+        const more = a.won > b.won ? a : b, fewer = more === a ? b : a;
+        assert.ok(pos.get(more.teamId) < pos.get(fewer.teamId), `division ${d.division}: ${more.name} (${more.won} wins) below ${fewer.name}`);
+        if (more === b) disagree++;          // CricHeroes had the fewer-wins side on top
+      }
+    }
+  }
+  assert.ok(disagree > 0, 'CricHeroes sorts by NRR first and disagrees with the handbook somewhere');
 });
 
 test('the published order is consistent with points then net run rate', () => {

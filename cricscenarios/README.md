@@ -35,7 +35,7 @@ tools/snapshot-index.mjs     Maintain assets/data/<id>/index.json
 tools/check-all-teams.mjs    Run and check the report for every team in every division
 dev-server.py                Local server + API proxy (Python 3, no install)
 worker.js / wrangler.toml    Production API proxy (Cloudflare Worker)
-test/                        77 tests over the maths, the parser, the index
+test/                        83 tests over the maths, the parser, the index
                              and the committed snapshots
 ```
 
@@ -163,13 +163,17 @@ balls against S off 18. A side bowled out is charged the full 18 overs, so all-o
 finishes are covered; washouts change no one's net run rate (ties are treated the same,
 as they move both sides almost identically); wickets in hand do not count. Where another
 team in the same race also has a decisive game left, that game is assumed to finish with
-the division's median winning margin, and the card says so. A dead heat on net run rate is
-not counted as a win, because the later tiebreaks (head-to-head, wins) are not modelled
-there. The runs-for / overs-faced / runs-against / overs-bowled figures are CricHeroes'
+the division's median winning margin, and the card says so. Teams level on points are split
+by **wins first** (TCL handbook 16.10.5), so a margin is only quoted against a team level on
+points *and* wins; where wins decide, the card says so in plain words — *Hollysprings HEAT
+would finish level on 15 points with Guts N Glory (7) but with fewer wins (6), so Guts N
+Glory finish above them whatever the margin*. A dead heat on net run rate is not counted as
+a win, because the later tiebreaks (head-to-head, then last season's ranking or a coin
+toss) are not modelled there. The runs-for / overs-faced / runs-against / overs-bowled figures are CricHeroes'
 own, from the published points table's *For* and *Against* columns.
 
 **If they lose — how badly before net run rate drops them below a rival.** For every team
-with a game left, and every rival a defeat would leave it level with on points in a race
+with a game left, and every rival a defeat would leave it level with on points and wins in a race
 that is still open (playoffs, promotion or the relegation places), the card works out the
 defeat exactly, in the right cricket direction: *bowling first*, the opponent bats first
 and makes S and the team loses by r runs (charged the full 18 overs, bowled out or not);
@@ -180,6 +184,8 @@ then chased off 1 ball). When it takes an opponent total that fewer than one fir
 in ten reaches here, it says *no realistic defeat drops X below Y*. Nothing is capped:
 margins run from 1 run to bowled out for 0, and chases from 18 overs down to 1 ball. A
 dead heat on net run rate counts as no longer above (later tiebreaks are not modelled).
+When a defeat leaves the two level on points but not on wins, there is no margin to give:
+the line says which side wins put above, whatever the score.
 
 Below that, the odds:
 
@@ -408,9 +414,15 @@ Per tournament, in `assets/data/<id>/meta.json`:
   "playoff_spots": 6, "promotion_spots": 3, "relegation_spots": 3,
   "points_win": 2, "points_tie": 1, "points_no_result": 1, "points_loss": 0,
   "overs_per_innings": 18,
-  "tiebreak": ["points", "nrr", "h2h", "wins"]
+  "tiebreak": ["points", "wins", "nrr", "h2h"],
+  "division_overrides": { "1": { "promotion_spots": 0 }, "9": { "relegation_spots": 0 } }
 }
 ```
+
+**Division 1 has no promotion and Division 9 has no relegation** (handbook pp. 7–9), via
+`division_overrides`, which `engine.rulesForDivision()` applies to the division's
+snapshot. Those columns, cards and probabilities are hidden for those divisions, and the
+checker requires their probabilities to be 0.
 
 **The points per outcome are read from CricHeroes, not assumed.** `engine.inferPointsSystem()`
 finds the win / tie / no-result / loss award that reproduces the most rows of the published
@@ -427,14 +439,30 @@ margin (`win_by` says "rain out", "Called Off due to rain", even "-12 runs" on a
 matches). `test/chnorm.test.js` runs every captured abandoned and tied record through the
 parser.
 
-`tiebreak` is **half confirmed**. Across the nine divisions there are 44 adjacent pairs of
-teams level on points in the published table; all 44 are ordered by descending net run
-rate and none against it, and no two teams anywhere share an exact net run rate. So
-`points` then `nrr` is verified against live data, and nothing in the tournament reaches
-the third key. `h2h` and `wins` remain the assumed CricHeroes default — neither the TCL
-site nor the CricHeroes pages are reachable from a scripted client (Cloudflare turns both
-away), so they could not be read from the source. If TCL publishes a different order,
-change it here: it is one line and everything downstream follows.
+`tiebreak` follows the **TCL HT League Handbook, 16.10.5** (pp. 44–45; the 2026 Mega Smash
+change document does not alter it):
+
+> In the event of teams finishing on equal points in the league stage … The team with the
+> greatest number of wins in the league matches will be placed in the higher position. If
+> there are teams with equal points and equal wins in the league matches, then in such case
+> the teams will be ordered according to their net run rate (NRR) … If there are teams with
+> equal points, equal wins and equal NRR … ordered according to the team with the most
+> number of wins over the other such team(s). If two or more teams are still equal, then …
+> ordered according to their previous season rankings after league stage. This will be
+> replaced by coin toss if the tournament format is new and last season rankings cannot be
+> used.
+
+So: points → wins → net run rate → head-to-head (wins over the other tied teams). The last
+step (previous season / coin toss) is not modelled: rows still level after head-to-head are
+marked `=` in the table, and nothing is ever called through or out on that basis. The
+mathematical certainties use wins too (a points tie at the extremes is settled by wins);
+the simulation orders by points, wins, then net run rate (exact NRR dead heats do not occur).
+
+**CricHeroes' published table disagrees in places.** It sorts teams level on points by net
+run rate first (all 44 level-on-points pairs in the live table are in NRR order), so where
+a team with more wins has the lower NRR, this site places it higher than CricHeroes does —
+14 rows across Divisions 2–6 at the time of writing. The division page notes how many rows
+differ.
 
 ---
 

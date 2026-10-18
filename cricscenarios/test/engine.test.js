@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import {
   oversToBalls, ballsToOvers, ballsToDecimalOvers, netRunRate, buildTable,
   standingsFor, certificates, countingBalls, DEFAULT_RULES, headToHead,
-  baselineFromPublished, inferPointsSystem, pointsBounds,
+  baselineFromPublished, inferPointsSystem, pointsBounds, rulesForDivision, winsBeforeNrr,
 } from '../assets/js/engine.js';
 import {
   prepare, simulate, bradleyTerry, matchShapes, winProbability, outcomeRates,
@@ -139,6 +139,72 @@ test('head-to-head separates two teams level on points and run rate', () => {
   const single = [matches[0], matches[2], matches[3]];
   assert.equal(headToHead(single, 1, 2), 1);    // Alpha won the only meeting
   assert.equal(headToHead(single, 2, 1), -1);
+});
+
+/* ------------------------------------------- TCL handbook tie-breaks */
+
+const HANDBOOK = { ...RULES, tiebreak: ['points', 'wins', 'nrr', 'h2h'] };
+const NR = (id, home, away) => ({ id, home, away, status: 'completed', result: { type: 'no_result', innings: [] } });
+
+test('TCL order (16.10.5): level on points, more wins beats a better net run rate', () => {
+  // Alpha: a 1-run win and a 100-run defeat (2 pts, 1 win, NRR well below 0).
+  // Bravo: two washouts (2 pts, 0 wins, NRR 0).
+  const matches = [
+    done(1, 1, 3, { team: 1, runs: 150, overs: 20 }, { team: 3, runs: 149, overs: 20 }, 1, 'runs', 1),
+    done(2, 4, 1, { team: 4, runs: 200, overs: 20 }, { team: 1, runs: 100, overs: 20 }, 4, 'runs', 100),
+    NR(3, 2, 3), NR(4, 2, 4),
+  ];
+  const old = standingsFor(TEAMS, matches, RULES).map((r) => r.teamId);
+  const hb = standingsFor(TEAMS, matches, HANDBOOK).map((r) => r.teamId);
+  assert.ok(old.indexOf(2) < old.indexOf(1), 'NRR first: Bravo above Alpha');
+  assert.ok(hb.indexOf(1) < hb.indexOf(2), 'wins first: Alpha above Bravo');
+  assert.equal(winsBeforeNrr(HANDBOOK), true);
+  assert.equal(winsBeforeNrr(RULES), false);
+
+  // The simulation orders the same way (one game left, Charlie v Delta, which
+  // cannot touch either).
+  const left = [...matches, { id: 9, home: 3, away: 4, status: 'upcoming' }];
+  for (const [rules, above, below] of [[HANDBOOK, 1, 2], [RULES, 2, 1]]) {
+    const ctx = prepare(TEAMS, left, rules);
+    const res = simulate(ctx, { trials: 300, model: 'coinflip', seed: 7 });
+    const n = ctx.n, ia = ctx.index.get(above), ib = ctx.index.get(below);
+    const mean = (i) => { let s = 0, c = 0; for (let p = 0; p < n; p++) { s += p * res.posCounts[i * n + p]; c += res.posCounts[i * n + p]; } return s / c; };
+    assert.ok(mean(ia) < mean(ib), `${JSON.stringify(rules.tiebreak)}: team ${above} above ${below} in every trial`);
+  }
+});
+
+test('certificates use wins when wins come before net run rate', () => {
+  // Alpha and Bravo are done on 2 points (1 win v 0); Delta already has 3,
+  // Charlie v Delta is left. Wins first: Alpha is always above Bravo.
+  const matches = [
+    done(1, 1, 3, { team: 1, runs: 150, overs: 20 }, { team: 3, runs: 149, overs: 20 }, 1, 'runs', 1),
+    done(2, 4, 1, { team: 4, runs: 200, overs: 20 }, { team: 1, runs: 100, overs: 20 }, 4, 'runs', 100),
+    NR(3, 2, 3), NR(4, 2, 4), { id: 9, home: 3, away: 4, status: 'upcoming' },
+  ];
+  assert.equal(certificates(2, TEAMS, matches, HANDBOOK).bestPossiblePosition, 3);
+  assert.equal(certificates(2, TEAMS, matches, RULES).bestPossiblePosition, 2);
+  assert.equal(certificates(1, TEAMS, matches, HANDBOOK).worstPossiblePosition, 3);
+  assert.equal(certificates(1, TEAMS, matches, RULES).worstPossiblePosition, 4);
+});
+
+test('teams level on everything modelled are flagged for last season / coin toss', () => {
+  const matches = [NR(1, 1, 3), NR(2, 2, 4)];
+  const table = standingsFor(TEAMS, matches, HANDBOOK);
+  assert.ok(table.every((r) => r.unresolved), 'all four on 1 point, 0 wins, NRR 0, no head-to-head');
+  const split = standingsFor(TEAMS, [done(1, 1, 3, { team: 1, runs: 150, overs: 20 }, { team: 3, runs: 140, overs: 20 }, 1, 'runs', 10)], HANDBOOK);
+  assert.equal(split.find((r) => r.teamId === 1).unresolved, undefined);
+});
+
+test('division overrides: no promotion from the top division, no relegation from the bottom one', () => {
+  const rules = { ...HANDBOOK, division_overrides: { 1: { promotion_spots: 0 }, 9: { relegation_spots: 0 } } };
+  assert.equal(rulesForDivision(rules, 1).promotion_spots, 0);
+  assert.equal(rulesForDivision(rules, 1).relegation_spots, rules.relegation_spots);
+  assert.equal(rulesForDivision(rules, 9).relegation_spots, 0);
+  assert.equal(rulesForDivision(rules, 5).promotion_spots, rules.promotion_spots);
+  // And the simulation then never promotes or relegates anyone there.
+  const ctx = prepare(TEAMS, [{ id: 1, home: 1, away: 2, status: 'upcoming' }], rulesForDivision(rules, 1));
+  const res = simulate(ctx, { trials: 200, model: 'coinflip', seed: 1 });
+  assert.ok(res.goalCounts.promotion.every((x) => x === 0));
 });
 
 /* --------------------------------------------------------- certificates */

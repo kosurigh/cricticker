@@ -13,7 +13,7 @@ import { ENDPOINTS, proxyBase } from './config.js';
 import { buildSnapshot, normaliseTeams } from './chnorm.js';
 import { collectFixtures } from './fixtures.js';
 import {
-  DEFAULT_RULES, standingsFor, baselineFromPublished, rulesWithPublishedPoints,
+  DEFAULT_RULES, standingsFor, baselineFromPublished, rulesWithPublishedPoints, rulesForDivision,
 } from './engine.js';
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -61,7 +61,7 @@ export function hydrate(snap, { pointsTable = null } = {}) {
   // column — the whole tournament's where we have it, since a division that
   // has never seen a tie cannot say what one is worth — and the configured
   // rules are only the fallback for anything the table cannot pin down.
-  const configured = { ...DEFAULT_RULES, ...(snap.rules || {}) };
+  const configured = rulesForDivision({ ...DEFAULT_RULES, ...(snap.rules || {}) }, snap.division);
   const table = pointsTable || snap.published_all;
   const rules = !table && snap.points_system && snap.points_system.points
     // A committed snapshot carries the system the fetcher read off the whole

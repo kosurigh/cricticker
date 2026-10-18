@@ -9,9 +9,9 @@ import { readFileSync } from 'node:fs';
 
 import { hydrate } from '../assets/js/data.js';
 import { prepare } from '../assets/js/simulate.js';
-import { DEFAULT_RULES } from '../assets/js/engine.js';
+import { DEFAULT_RULES, certificates } from '../assets/js/engine.js';
 import {
-  marginSettings, goalMargins, rivalMargins, scenarioVerdict, R, oversText, lossMargins, currentNrr,
+  marginSettings, goalMargins, rivalMargins, scenarioVerdict, R, oversText, lossMargins, currentNrr, pairLossThresholds,
 } from '../assets/js/margins.js';
 import { teamMargins, marginsCard, goalPlaces } from '../assets/js/margins-view.js';
 
@@ -80,23 +80,29 @@ const pending = (a, b) => ctx7.remaining.some((fx) => {
 const HEAT = /hollysprings heat/i, SIRJIS = /cary sirjis/i, GNG = /guts\s*n\s*glory/i;
 const ZEN = /zenstarz/i, TECH = /tech stormers/i;
 
-test('Division 7: Hollysprings HEAT can win and still miss the playoffs on net run rate', { skip: !pending(HEAT, TECH) && 'HEAT v Tech Stormers has been played' }, () => {
+test('Division 7: Hollysprings HEAT can win and still miss the playoffs — on wins, whatever the margin', { skip: !pending(HEAT, TECH) && 'HEAT v Tech Stormers has been played' }, () => {
   const set = marginSettings(ctx7);
   const g = goalMargins(ctx7, set, idOf(HEAT), d7.rules.playoff_spots);
   const win = g.cases.find((c) => c.own.every((o) => o.result > 0));
   assert.ok(win, 'a winning case exists');
-  const races = win.lines.filter((l) => l.verdict.kind === 'race');
-  assert.ok(races.length, 'a win leaves HEAT level on points with someone');
-  for (const l of races) {
-    // A narrow win does not do it: it needs a margin bigger than 1 run.
-    assert.ok(l.verdict.need.main.runs == null || l.verdict.need.main.runs > 1);
-    assert.equal(l.verdict.need.main.any, false);
-    // Guts N Glory is the team whose NRR they are racing.
-    assert.ok(l.verdict.level.map((j) => ctx7.teams[j].name).some((n) => GNG.test(n)));
+  // TCL handbook 16.10.5: level on 15 points, but 6 wins against Guts N
+  // Glory's 7, so wins decide before net run rate is looked at.
+  for (const l of win.lines) {
+    assert.equal(l.verdict.kind, 'out', JSON.stringify(l.verdict));
+    assert.equal(l.verdict.points, 15);
+    assert.equal(l.verdict.wins, 6);
+    assert.ok(l.verdict.winsAbove.some((j) => GNG.test(ctx7.teams[j].name)), 'Guts N Glory finish above on wins');
   }
-  assert.ok(!win.lines.some((l) => l.verdict.kind === 'in'), 'no combination puts a HEAT win through on points alone');
-  const facts = teamMargins(ctx7, idOf(HEAT)).facts.map(strip).join(' | ');
-  assert.match(facts, /Hollysprings HEAT can win and still not make the playoffs/);
+  // Points plus wins now settle it outright, so the table says so too
+  // (Guts N Glory and Cary Sirjis finish level on points at worst, with 7 wins).
+  const cert = certificates(idOf(HEAT), d7.teams, d7.matches, d7.rules, d7.baseline);
+  assert.equal(cert.bestPossiblePosition, 7);
+  assert.equal(cert.playoff.eliminated, true);
+  assert.equal(certificates(idOf(GNG), d7.teams, d7.matches, d7.rules, d7.baseline).playoff.clinched, true);
+  // Under the old NRR-first order the same win was a net run rate race.
+  const old = prepare(d7.teams, d7.matches, { ...d7.rules, tiebreak: ['points', 'nrr', 'h2h', 'wins'] }, d7.baseline);
+  const go = goalMargins(old, marginSettings(old), idOf(HEAT), d7.rules.playoff_spots);
+  assert.ok(go.cases.find((c) => c.own.every((o) => o.result > 0)).lines.some((l) => l.verdict.kind === 'race'));
 });
 
 test('Division 7: Cary Sirjis can lose to Zenstarz Warriors and still finish above Guts N Glory', { skip: !pending(SIRJIS, ZEN) && 'Zenstarz v Cary Sirjis has been played' }, () => {
@@ -104,7 +110,12 @@ test('Division 7: Cary Sirjis can lose to Zenstarz Warriors and still finish abo
   const rv = rivalMargins(ctx7, set, idOf(SIRJIS), idOf(GNG));
   const lose = rv.cases.find((c) => c.own.every((o) => o.result < 0));
   assert.ok(lose);
-  for (const l of lose.lines) assert.equal(l.verdict.state, 'above', JSON.stringify(l.verdict));
+  for (const l of lose.lines) {
+    assert.equal(l.verdict.state, 'above', JSON.stringify(l.verdict));
+    // 15 points and 7 wins each: net run rate decides this pair.
+    assert.equal(l.verdict.on, 'nrr');
+    assert.deepEqual(l.verdict.wins, [7, 7]);
+  }
   const facts = teamMargins(ctx7, idOf(SIRJIS)).facts.map(strip).join(' | ');
   assert.match(facts, /Cary Sirjis can lose to Zenstarz Warriors and still finish above Guts N Glory/);
 });
@@ -167,36 +178,59 @@ test('Division 7: no realistic defeat drops Cary Sirjis below Guts N Glory', { s
   // CricHeroes' own figures: 992/172.4 v 893/188.4 and 1161/204 v 1146/204.5.
   assert.ok(Math.abs(currentNrr(ctx7, s) - nrr(992, 1036, 893, 1132)) < 1e-9);
   assert.ok(Math.abs(currentNrr(ctx7, g) - nrr(1161, 1224, 1146, 1229)) < 1e-9);
-  const l = lossMargins(ctx7, set, idOf(SIRJIS), KS(ctx7)).find((x) => x.rival === idOf(GNG));
-  assert.ok(l, 'a Sirjis defeat leaves them level with GnG in the playoff race');
-  assert.deepEqual(l.goals, ['playoff']);
+  // Wins do not decide this pair (7 each after a Sirjis defeat), so it is
+  // still net run rate, with the same exact figures as before.
+  const f = ctx7.remaining.findIndex((fx) => [fx.h, fx.a].includes(s) && ZEN.test(ctx7.teams[fx.h === s ? fx.a : fx.h].name));
+  const l = pairLossThresholds(ctx7, set, idOf(SIRJIS), idOf(GNG), f);
   assert.equal(l.realistic, false);
   assert.equal(l.anyDefeat, false);
   for (const x of l.runs) assert.equal(x.r, null, `no defeat by runs does it when Zenstarz make ${x.S}`);
   for (const x of l.chase) assert.equal(x.b, null, `no chase of ${x.S + 1} is quick enough`);
-  assert.equal(l.chaseEver, null);
   assert.equal(l.minScore, 163, 'only once Zenstarz make 163+ and bowl Sirjis out for 0');
   assert.ok(Math.abs(l.worst[0] - 0.46846) < 1e-4, `worst case ${l.worst[0]}`);
-  assert.ok(Math.abs(l.worst[1] - 0.09638) < 1e-4);
-  const card = strip(marginsCard(ctx7, idOf(SIRJIS)));
-  assert.match(card, /No realistic defeat drops Cary Sirjis below Guts N Glory\s*: Zenstarz Warriors would have to bat first and make at least 163 and bowl Cary Sirjis out for 0/);
-  assert.match(card, /leaves Cary Sirjis on \+0\.468 against \+0\.096/);
+  // Under the handbook the pair's order no longer decides anything: Hollysprings
+  // HEAT cannot pass Guts N Glory on wins, so both are in the playoffs either
+  // way and the card shows no "If they lose" line for them.
+  if (pending(HEAT, TECH)) {
+    assert.equal(lossMargins(ctx7, set, idOf(SIRJIS), KS(ctx7)).find((x) => x.rival === idOf(GNG)), undefined);
+  }
 });
 
-test('Division 7: loss lines agree with the "lose by no more than" lines (one run apart)', { skip: !pending(TECH, HEAT) && 'Tech Stormers v HEAT has been played' }, () => {
+test('Division 7: wins, not the margin, decide Tech Stormers v RTP ThunderBolts at the bottom', { skip: !(pending(TECH, HEAT) && pending(/thunderbolts/i, /^R3$/)) && 'those games have been played' }, () => {
   const set = marginSettings(ctx7);
   const tech = idOf(TECH), tb = idOf(/thunderbolts/i);
   const l = lossMargins(ctx7, set, tech, KS(ctx7)).find((x) => x.rival === tb);
-  if (!l) return;
-  const rv = rivalMargins(ctx7, set, tech, tb);
-  const lose = rv.cases.find((c) => c.own.every((o) => o.result < 0));
-  const dep = lose.lines.find((x) => x.verdict.state === 'depends');
-  assert.ok(dep);
-  const need = dep.verdict.need;
-  for (const [k, at] of [['low', 0], ['main', 1], ['high', 2]]) {
-    // Survive losing by up to n runs  <=>  drop below from n + 1.
-    assert.equal(need[k].runs + 1, l.runs[at].r);
-    // Survive if they take at least b balls  <=>  drop below within b - 1.
-    assert.equal(need[k].balls - 1, l.chase[at].b);
+  assert.ok(l, 'Tech losing to HEAT and ThunderBolts beating R3 leaves both on 9 points');
+  assert.equal(l.winsDecide, true);
+  assert.equal(l.state, 'below');
+  assert.deepEqual(l.wins, [3, 5]);
+  const card = strip(marginsCard(ctx7, tech));
+  assert.match(card, /finish level on 9 points with RTP ThunderBolts in the relegation fight but with fewer wins \(3 v 5\), so RTP ThunderBolts finish above Tech Stormers- HT whatever the margin/);
+});
+
+test('loss lines agree with the "lose by no more than" lines, one run and one ball apart', () => {
+  const teams = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }, { id: 3, name: 'C' }, { id: 4, name: 'D' }];
+  const P = {
+    1: [3, 2, 1, 4, 330, 54, 300, 54], 2: [4, 2, 2, 4, 400, 72, 390, 72],
+    3: [3, 1, 2, 2, 280, 54, 300, 54], 4: [4, 1, 3, 2, 360, 72, 380, 72],
+  };
+  const baseline = {};
+  for (const t of teams) {
+    const [pl, w, l, pts, rf, of, ra, oa] = P[t.id];
+    baseline[t.id] = { teamId: t.id, played: pl, won: w, lost: l, tied: 0, noResult: 0, points: pts,
+      runsFor: rf, ballsFor: of * 6, runsAgainst: ra, ballsAgainst: oa * 6 };
+  }
+  for (const tiebreak of [['points', 'wins', 'nrr', 'h2h'], ['points', 'nrr', 'h2h', 'wins']]) {
+    const rules = { ...RULES, tiebreak, playoff_spots: 1, promotion_spots: 1, relegation_spots: 1 };
+    const ctx = prepare(teams, [{ id: 9, home: 1, away: 3, status: 'upcoming', overs: 18 }], rules, baseline);
+    const set = { ...marginSettings(ctx), score: 120, scores: [100, 120, 140], typicalRuns: 20, highest: 160 };
+    const l = lossMargins(ctx, set, 1, [['playoff', 1]]).find((x) => x.rival === 2);
+    const dep = rivalMargins(ctx, set, 1, 2).cases.find((c) => c.own.every((o) => o.result < 0))
+      .lines.find((x) => x.verdict.state === 'depends');
+    assert.ok(l && dep, JSON.stringify(tiebreak));
+    for (const [k, at] of [['low', 0], ['main', 1], ['high', 2]]) {
+      if (dep.verdict.need[k].runs != null) assert.equal(dep.verdict.need[k].runs + 1, l.runs[at].r);
+      if (dep.verdict.need[k].balls != null) assert.equal(dep.verdict.need[k].balls - 1, l.chase[at].b);
+    }
   }
 });

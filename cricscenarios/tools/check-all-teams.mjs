@@ -21,7 +21,8 @@ import { prepare, createRun, outcomeRates } from '../assets/js/simulate.js';
 import { summarise, buildReport } from '../assets/js/scenarios.js';
 import { goalCard } from '../assets/js/report-view.js';
 import { SHARED_OUTCOMES } from '../assets/js/config.js';
-import { marginsCard, teamMargins, MAX_FIXTURES } from '../assets/js/margins-view.js';
+import { marginsCard, teamMargins, MAX_FIXTURES, activeGoals } from '../assets/js/margins-view.js';
+import { winsBeforeNrr } from '../assets/js/engine.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const GOALS = ['promotion', 'playoff', 'relegation'];
@@ -44,6 +45,11 @@ export function checkTeam(data, ctx, results, summary, team) {
   for (const goal of GOALS) {
     const rep = buildReport(ctx, results, summary, team.id, goal);
     const p = row.p[goal];
+    // TCL: no promotion from Division 1, no relegation from Division 9.
+    if (!activeGoals(data.rules).includes(goal)) {
+      if (p !== 0) bad(`${goal} does not exist in this division but simulated ${p}`);
+      continue;
+    }
     if (!(p >= 0 && p <= 1)) bad(`${goal} probability ${p} out of range`);
     if (!(rep.probability >= 0 && rep.probability <= 1)) bad(`${goal} headline ${rep.probability} out of range`);
     // Proof and sample must agree: a proved outcome happens in every trial,
@@ -114,7 +120,12 @@ export function checkTeam(data, ctx, results, summary, team) {
     // "If they lose" lines: only for teams with a game left, only against a
     // rival they can be level with, and the margins re-derived independently.
     for (const l of a.losses) {
-      results.lossLines = (results.lossLines || []).concat([{ team: team.name, rival: l.rival, realistic: l.realistic, anyDefeat: l.anyDefeat, assumed: l.assumed }]);
+      results.lossLines = (results.lossLines || []).concat([{ team: team.name, rival: l.rival, realistic: l.realistic, anyDefeat: l.anyDefeat, assumed: l.assumed, winsDecide: !!l.winsDecide }]);
+      if (l.winsDecide) {
+        if (!(l.wins[0] !== l.wins[1])) bad(`wins-decided loss line v ${l.rival} with equal wins`);
+        continue;
+      }
+      if (winsBeforeNrr(ctx.rules) && l.wins && l.wins[0] !== l.wins[1]) bad(`NRR loss line v ${l.rival} but wins differ ${l.wins}`);
       if (!games) bad('loss line for a team with no games left');
       if (l.rival === team.id) bad('loss line against itself');
       if (!t.includes('If they lose')) bad('loss lines computed but not shown');
@@ -192,8 +203,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         `playoff ${f(r.playoff)}%  promo ${f(r.promotion)}%  releg ${f(r.relegation)}%`);
     }
     const L = d.loss || [];
+    const N = L.filter((x) => !x.winsDecide);
     console.log(`   "If they lose" lines: ${new Set(L.map((x) => x.team)).size} team(s), ${L.length} line(s) over ${new Set(L.map((x) => `${x.team}|${x.rival}`)).size} rival pair(s); ` +
-      `${L.filter((x) => x.realistic && !x.anyDefeat).length} where a realistic margin decides, ${L.filter((x) => !x.realistic).length} no realistic defeat, ${L.filter((x) => x.anyDefeat).length} any defeat`);
+      `${L.filter((x) => x.winsDecide).length} decided by wins, ${N.filter((x) => x.realistic && !x.anyDefeat).length} where a realistic margin decides, ${N.filter((x) => !x.realistic).length} no realistic defeat, ${N.filter((x) => x.anyDefeat).length} any defeat`);
     d.problems.forEach((p) => console.log(`   ! ${p}`));
   }
   console.log(`\n${teams} teams checked, ${problems} problem(s).`);

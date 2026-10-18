@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 9,
- "generated_at": "2026-10-17T22:55:12.056Z",
+ "generated_at": "2026-10-18T21:11:14.731Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -20,10 +20,18 @@
   "overs_per_innings": 18,
   "tiebreak": [
    "points",
+   "wins",
    "nrr",
-   "h2h",
-   "wins"
-  ]
+   "h2h"
+  ],
+  "division_overrides": {
+   "1": {
+    "promotion_spots": 0
+   },
+   "9": {
+    "relegation_spots": 0
+   }
+  }
  },
  "points_system": {
   "points": {
@@ -922,13 +930,36 @@
   },
   {
    "id": 26355239,
-   "date": "2026-10-18T16:00:00.000Z",
+   "date": "2026-10-18T16:05:46.000Z",
    "venue": "C. R. Wood Park",
-   "home": 12602198,
-   "away": 12476340,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "home": 12476340,
+   "away": 12602198,
+   "status": "completed",
+   "resultText": "resulted — 2 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12602198,
+    "margin": 2,
+    "innings": [
+     {
+      "team": 12476340,
+      "runs": 132,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12602198,
+      "runs": 135,
+      "wickets": 8,
+      "overs": 17.5,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26355216,
@@ -1569,13 +1600,36 @@
   },
   {
    "id": 26355240,
-   "date": "2026-10-18T12:30:00.000Z",
+   "date": "2026-10-18T12:36:36.000Z",
    "venue": "C. R. Wood Park",
    "home": 12602245,
    "away": 12489612,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 18 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12602245,
+    "margin": 18,
+    "innings": [
+     {
+      "team": 12602245,
+      "runs": 119,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489612,
+      "runs": 101,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26355264,
@@ -2992,17 +3046,32 @@
   {
    "teamId": 12476340,
    "name": "Chennai Super Kings",
-   "played": 12,
+   "played": 13,
    "won": 10,
-   "lost": 2,
+   "lost": 3,
    "tied": 0,
    "noResult": 0,
    "points": 20,
-   "nrr": 1.178,
-   "runsFor": 1360,
-   "oversFor": 194.5,
-   "runsAgainst": 1205,
-   "oversAgainst": 207.4
+   "nrr": 1.068,
+   "runsFor": 1492,
+   "oversFor": 212.5,
+   "runsAgainst": 1340,
+   "oversAgainst": 225.3
+  },
+  {
+   "teamId": 12602198,
+   "name": "The Bouys",
+   "played": 13,
+   "won": 9,
+   "lost": 4,
+   "tied": 0,
+   "noResult": 0,
+   "points": 18,
+   "nrr": 1.33,
+   "runsFor": 1351,
+   "oversFor": 211.5,
+   "runsAgainst": 1161,
+   "oversAgainst": 230
   },
   {
    "teamId": 12602266,
@@ -3018,21 +3087,6 @@
    "oversFor": 225,
    "runsAgainst": 1231,
    "oversAgainst": 224.4
-  },
-  {
-   "teamId": 12602198,
-   "name": "The Bouys",
-   "played": 12,
-   "won": 8,
-   "lost": 4,
-   "tied": 0,
-   "noResult": 0,
-   "points": 16,
-   "nrr": 1.414,
-   "runsFor": 1216,
-   "oversFor": 194,
-   "runsAgainst": 1029,
-   "oversAgainst": 212
   },
   {
    "teamId": 12490312,
@@ -3110,6 +3164,21 @@
    "oversAgainst": 195.3
   },
   {
+   "teamId": 12602245,
+   "name": "Hyderabad Hunters",
+   "played": 13,
+   "won": 3,
+   "lost": 9,
+   "tied": 0,
+   "noResult": 1,
+   "points": 7,
+   "nrr": -0.917,
+   "runsFor": 1119,
+   "oversFor": 212.4,
+   "runsAgainst": 1212,
+   "oversAgainst": 196.1
+  },
+  {
    "teamId": 12480043,
    "name": "Immortals",
    "played": 13,
@@ -3127,17 +3196,17 @@
   {
    "teamId": 12489612,
    "name": "Royal Bengal Tigers - HT",
-   "played": 12,
+   "played": 13,
    "won": 3,
-   "lost": 8,
+   "lost": 9,
    "tied": 0,
    "noResult": 1,
    "points": 6,
-   "nrr": -1.708,
-   "runsFor": 870,
-   "oversFor": 188.5,
-   "runsAgainst": 1142,
-   "oversAgainst": 180.5
+   "nrr": -1.647,
+   "runsFor": 971,
+   "oversFor": 206.5,
+   "runsAgainst": 1261,
+   "oversAgainst": 198.5
   },
   {
    "teamId": 12605545,
@@ -3153,21 +3222,6 @@
    "oversFor": 191.3,
    "runsAgainst": 1170,
    "oversAgainst": 174.2
-  },
-  {
-   "teamId": 12602245,
-   "name": "Hyderabad Hunters",
-   "played": 12,
-   "won": 2,
-   "lost": 9,
-   "tied": 0,
-   "noResult": 1,
-   "points": 5,
-   "nrr": -1.099,
-   "runsFor": 1000,
-   "oversFor": 194.4,
-   "runsAgainst": 1111,
-   "oversAgainst": 178.1
   },
   {
    "teamId": 12602239,
