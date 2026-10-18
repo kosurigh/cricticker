@@ -17,8 +17,8 @@ import {
 import { prepare, createRun, outcomeRates } from './simulate.js';
 import { summarise, buildReport } from './scenarios.js';
 import { goalCard } from './report-view.js';
-import { marginsCard } from './margins-view.js';
-import { netRunRate, standingsFor } from './engine.js';
+import { marginsCard, activeGoals } from './margins-view.js';
+import { netRunRate, standingsFor, winsBeforeNrr } from './engine.js';
 import { SIM_PRESETS, SHARED_OUTCOMES, proxyBase } from './config.js';
 
 const q = query();
@@ -256,8 +256,10 @@ function renderMeta() {
     <span class="badge">${played} played · ${left} to play</span>
     <span class="badge" title="${esc(pointsTitle)}">Win ${d.rules.points_win} · Tie ${d.rules.points_tie} ·
       No result ${d.rules.points_no_result} pts</span>
-    <span class="badge">Top ${d.rules.promotion_spots} up · Top ${d.rules.playoff_spots} playoffs ·
-      Bottom ${d.rules.relegation_spots} down</span>`;
+    <span class="badge">${[d.rules.promotion_spots ? `Top ${d.rules.promotion_spots} up` : 'No promotion',
+      `Top ${d.rules.playoff_spots} playoffs`,
+      d.rules.relegation_spots ? `Bottom ${d.rules.relegation_spots} down` : 'No relegation'].join(' · ')}</span>
+    <span class="badge" title="TCL HT League handbook 16.10.5">Level on points: ${winsBeforeNrr(d.rules) ? 'wins, then NRR' : 'NRR'}</span>`;
 }
 
 function renderWarnings() {
@@ -333,6 +335,12 @@ function renderTable() {
     return pa - pb;
   });
 
+  const goals = ['playoff', 'promotion', 'relegation'].filter((k) => activeGoals(state.data.rules).includes(k));
+  const unresolved = new Set(state.data.standings.filter((r) => r.unresolved).map((r) => r.teamId));
+  // Where the handbook order (wins before NRR) differs from CricHeroes' table.
+  const pub = (state.data.published || []).map((p) => p.teamId);
+  const ours = state.data.standings.map((r) => r.teamId);
+  const moved = pub.length === ours.length ? ours.filter((id, i) => pub[i] !== id) : [];
   const body = rows.map((s, i) => {
     const pos = i + 1;
     const g = (k) => {
@@ -351,12 +359,10 @@ function renderTable() {
       <td class="num sm-hide">${s.row.lost}</td>
       <td class="num sm-hide">${s.row.tied || 0}</td>
       <td class="num sm-hide">${s.row.noResult || 0}</td>
-      <td class="num"><strong>${s.row.points}</strong></td>
+      <td class="num"><strong>${s.row.points}</strong>${unresolved.has(s.team.id) ? ' <span class="sub" title="Level on points, wins, net run rate and head-to-head: TCL decides by last season\'s ranking or a coin toss">=</span>' : ''}</td>
       <td class="num sm-hide">${signed(s.nrr)}</td>
       <td class="num sm-hide">${s.remaining}</td>
-      ${probCell('playoff', s.p.playoff, g('playoff'))}
-      ${probCell('promotion', s.p.promotion, g('promotion'))}
-      ${probCell('relegation', s.p.relegation, g('relegation'))}
+      ${goals.map((k) => probCell(k, s.p[k], g(k))).join('')}
     </tr>`;
   }).join('');
 
@@ -367,16 +373,19 @@ function renderTable() {
         <th class="num sm-hide">P</th><th class="num sm-hide">W</th><th class="num sm-hide">L</th>
         <th class="num sm-hide" title="Tied">T</th><th class="num sm-hide" title="No result (abandoned / washed out)">NR</th>
         <th class="num">Pts</th><th class="num sm-hide">NRR</th><th class="num sm-hide">Left</th>
-        <th>Playoffs</th><th>Promotion</th><th>Relegation</th>
+        ${goals.map((k) => `<th>${{ playoff: 'Playoffs', promotion: 'Promotion', relegation: 'Relegation' }[k]}</th>`).join('')}
       </tr></thead>
       <tbody>${body}</tbody>
     </table></div>
     <div class="legend">
-      <span><i style="background:var(--promote)"></i>Promotion places (top ${state.data.rules.promotion_spots})</span>
+      ${state.data.rules.promotion_spots ? `<span><i style="background:var(--promote)"></i>Promotion places (top ${state.data.rules.promotion_spots})</span>` : '<span>No promotion from this division</span>'}
       <span><i style="background:var(--playoff)"></i>Playoff places (top ${state.data.rules.playoff_spots})</span>
-      <span><i style="background:var(--relegate)"></i>Relegation places (bottom ${state.data.rules.relegation_spots})</span>
+      ${state.data.rules.relegation_spots ? `<span><i style="background:var(--relegate)"></i>Relegation places (bottom ${state.data.rules.relegation_spots})</span>` : '<span>No relegation from this division</span>'}
       <span><strong>Yes</strong> / <strong>—</strong> = mathematically settled, whatever happens</span>
-    </div>`;
+    </div>
+    ${winsBeforeNrr(state.data.rules) ? `<p class="note">Ordered by the TCL handbook (16.10.5): points, then <b>wins</b>, then net run rate, then head-to-head.
+      ${moved.length ? `CricHeroes' own table puts net run rate before wins, so it orders ${moved.length} of these rows differently.` : 'Here that gives the same order as CricHeroes\' own table, which puts net run rate before wins.'}
+      ${unresolved.size ? ' <b>=</b> marks teams level on everything modelled: TCL would use last season\'s ranking or a coin toss.' : ''}</p>` : ''}`;
 
   for (const tr of $('table').querySelectorAll('tr[data-team]')) {
     tr.onclick = () => {
@@ -416,7 +425,7 @@ function renderFinalTable() {
 /* --------------------------------------------------------------- report */
 
 function renderReport() {
-  const cards = ['promotion', 'playoff', 'relegation']
+  const cards = ['promotion', 'playoff', 'relegation'].filter((g) => activeGoals(state.data.rules).includes(g))
     .map((goal) => goalCard(buildReport(state.ctx, state.results, state.summary, state.focusId, goal), state.data.rules))
     .join('');
 

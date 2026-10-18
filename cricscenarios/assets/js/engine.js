@@ -42,8 +42,27 @@ export const DEFAULT_RULES = {
   overs_per_innings: 20,
   // Applied in order. "h2h" runs as a pairwise pass after the sort — see
   // sortStandings() — because head-to-head is not a transitive ordering.
+  // Anything still level after the last key is flagged `unresolved` (TCL:
+  // previous season's ranking, else a coin toss — not modelled).
   tiebreak: ['points', 'nrr', 'h2h', 'wins'],
 };
+
+/**
+ * The rules for one division: `division_overrides[division]` on top of the
+ * tournament rules. TCL: Division 1 has no promotion, Division 9 (the bottom)
+ * no relegation.
+ */
+export function rulesForDivision(rules, division) {
+  const o = rules && rules.division_overrides && division != null ? rules.division_overrides[String(division)] : null;
+  return o ? { ...rules, ...o } : rules;
+}
+
+/** Does the tiebreak list put wins ahead of net run rate? */
+export function winsBeforeNrr(rules) {
+  const k = (rules && rules.tiebreak) || DEFAULT_RULES.tiebreak;
+  const w = k.indexOf('wins'), n = k.indexOf('nrr');
+  return w >= 0 && (n < 0 || w < n);
+}
 
 export function emptyRow(teamId) {
   return {
@@ -242,6 +261,15 @@ export function sortStandings(rows, matches, rules) {
     }
   }
 
+  // Level on every key we model: TCL then uses last season's ranking or a coin
+  // toss. Flag it rather than pretend the order above settles it.
+  const all = keys.filter((k) => k !== 'h2h');
+  const same = (p, q) => all.every((k) => Math.abs(keyValue(p, k) - keyValue(q, k)) < 1e-9)
+    && (!keys.includes('h2h') || headToHead(matches, p.teamId, q.teamId) === 0);
+  for (let i = 0; i < list.length - 1; i++) {
+    if (same(list[i], list[i + 1])) { list[i].unresolved = true; list[i + 1].unresolved = true; }
+  }
+
   list.forEach((r, i) => { r.position = i + 1; });
   return list;
 }
@@ -304,10 +332,23 @@ export function certificates(teamId, teams, matches, rules, baseline = null) {
   const me = b[teamId];
   const others = teams.filter((t) => t.id !== teamId);
 
-  const guaranteedAbove = others.filter((t) => b[t.id].min > me.max).length;
-  const possiblyAbove = others.filter((t) => b[t.id].max >= me.min).length;
-  const guaranteedBelow = others.filter((t) => b[t.id].max < me.min).length;
-  const possiblyBelow = others.filter((t) => b[t.id].min <= me.max).length;
+  // With wins ahead of net run rate (TCL), a points tie at the extremes is
+  // settled by wins too: a team's most points come from winning everything
+  // left (wins = won + left), its fewest from losing everything (wins = won),
+  // and those two extremes can always happen together. Equal wins still goes
+  // to net run rate, so it stays "possibly".
+  const rows = buildTable(teams, matches, rules, baseline);
+  const byWins = winsBeforeNrr(rules) && rules.points_win > Math.max(rules.points_no_result ?? 0, rules.points_tie ?? 0)
+    && rules.points_loss <= Math.min(rules.points_no_result ?? 0, rules.points_tie ?? 0);
+  const won = (id) => rows[id].won;
+  const above = (t) => b[t.id].min > me.max
+    || (byWins && b[t.id].min === me.max && won(t.id) > won(teamId) + me.remaining);
+  const maybeAbove = (t) => b[t.id].max > me.min
+    || (b[t.id].max === me.min && (!byWins || won(t.id) + b[t.id].remaining >= won(teamId)));
+  const guaranteedAbove = others.filter(above).length;
+  const possiblyAbove = others.filter(maybeAbove).length;
+  const guaranteedBelow = others.filter((t) => !maybeAbove(t)).length;
+  const possiblyBelow = others.filter((t) => !above(t)).length;
 
   const n = teams.length;
   const relegationLine = n - rules.relegation_spots; // finishing > this = relegated

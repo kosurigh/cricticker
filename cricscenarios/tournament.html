@@ -83,18 +83,36 @@ async function snapshotIndex(divisions) {
     `${meta.organiser || ''} · ${(meta.divisions || []).length} divisions`;
 
   const r = meta.rules || {};
+  const ov = r.division_overrides || {};
+  const without = (k) => Object.keys(ov).filter((d) => ov[d][k] === 0).map((d) => `Division ${d}`);
+  const noUp = without('promotion_spots'), noDown = without('relegation_spots');
+  const names = { points: 'points', wins: 'most wins', nrr: 'net run rate', h2h: 'head-to-head (wins over the other tied teams)' };
+  const order = (r.tiebreak || []).map((k) => names[k] || k);
   document.getElementById('rules').innerHTML = `
     <ul class="reqs">
       <li><span class="mark ok">▲</span><span>Top <b>${r.promotion_spots}</b> are
-        <strong>promoted</strong> to the division above.</span></li>
+        <strong>promoted</strong> to the division above${noUp.length ? ` (not in ${noUp.join(', ')}, the top division)` : ''}.</span></li>
       <li><span class="mark maybe">◆</span><span>Top <b>${r.playoff_spots}</b> reach the
-        <strong>playoffs</strong>.</span></li>
+        <strong>championship playoffs</strong>.</span></li>
       <li><span class="mark no">▼</span><span>Bottom <b>${r.relegation_spots}</b> are
-        <strong>relegated</strong> to the division below.</span></li>
+        <strong>relegated</strong> to the division below${noDown.length ? ` (not in ${noDown.join(', ')}, the bottom division)` : ''}.</span></li>
       <li><span class="mark">·</span><span>A win is <b>${r.points_win}</b> points,
-        a tie or no result <b>${r.points_tie}</b>. Places are decided by
-        <b>${(r.tiebreak || []).join(' → ')}</b>.</span></li>
+        a tie, no result or abandoned match <b>${r.points_tie}</b>. Places are decided by
+        <b>${order.join(' → ')}</b>, then the previous season's ranking or a coin toss.</span></li>
     </ul>
+    <blockquote class="note" style="margin:8px 0;padding-left:10px;border-left:3px solid var(--line,#ddd)">
+      <b>TCL HT League Handbook, 16.10.5:</b> "In the event of teams finishing on equal points in the league stage …
+      The team with the greatest number of wins in the league matches will be placed in the higher position.
+      If there are teams with equal points and equal wins in the league matches, then in such case the teams will be
+      ordered according to their net run rate (NRR) … If there are teams with equal points, equal wins and equal NRR …
+      ordered according to the team with the most number of wins over the other such team(s). If two or more teams are
+      still equal, then … ordered according to their previous season rankings after league stage. This will be replaced
+      by coin toss if the tournament format is new and last season rankings cannot be used."
+    </blockquote>
+    <p class="note"><b>CricHeroes disagrees in places.</b> Its published points table sorts teams level on points by net
+      run rate first, so a team with more wins but a lower net run rate appears below where the handbook puts it. This site
+      follows the handbook. The last step (previous season / coin toss) is not modelled: where it would decide a place the
+      page says so and never calls a team through or out on it.</p>
     ${meta.rules_note ? `<p class="note">${esc(meta.rules_note)}</p>` : ''}`;
 
   const divisions = meta.divisions || [];

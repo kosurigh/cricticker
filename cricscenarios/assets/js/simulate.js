@@ -319,6 +319,7 @@ export function createRun(ctx, opts = {}) {
 
   // --- scratch (reused every trial, never reallocated) ---------------
   const pts = new Float64Array(n);
+  const wn = new Float64Array(n);
   const rf = new Float64Array(n), bf = new Float64Array(n);
   const ra = new Float64Array(n), ba = new Float64Array(n);
   const nrr = new Float64Array(n);
@@ -330,11 +331,19 @@ export function createRun(ctx, opts = {}) {
   const promotionSpots = rules.promotion_spots;
   const relegationLine = n - rules.relegation_spots;
 
+  // Points, then the tiebreak keys in the order the rules give (TCL: wins,
+  // then net run rate). Head-to-head and the coin toss only ever separate
+  // teams level on all of these to the last decimal, which a simulated net
+  // run rate never is.
+  const keyArrays = ((rules.tiebreak || ['points', 'nrr']).filter((k) => k === 'wins' || k === 'nrr'))
+    .map((k) => (k === 'wins' ? wn : nrr));
   const cmp = (x, y) => {
     const d = pts[y] - pts[x];
     if (Math.abs(d) > 1e-9) return d;
-    const e = nrr[y] - nrr[x];
-    if (Math.abs(e) > 1e-12) return e;
+    for (const a of keyArrays) {
+      const e = a[y] - a[x];
+      if (Math.abs(e) > 1e-12) return e;
+    }
     return x - y;
   };
 
@@ -344,6 +353,7 @@ export function createRun(ctx, opts = {}) {
     const end = Math.min(trials, done + k);
     for (; done < end; done++) {
       pts.set(ctx.base.points);
+      wn.set(ctx.base.won);
       rf.set(ctx.base.runsFor); bf.set(ctx.base.ballsFor);
       ra.set(ctx.base.runsAgainst); ba.set(ctx.base.ballsAgainst);
 
@@ -393,6 +403,7 @@ export function createRun(ctx, opts = {}) {
 
         pts[w] += rules.points_win;
         pts[l] += rules.points_loss;
+        wn[w] += 1;
         if (w === focus) focusWins++;
 
         const s = ctx.shapes[(rnd() * ctx.shapes.length) | 0];

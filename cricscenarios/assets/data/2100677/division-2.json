@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 2,
- "generated_at": "2026-10-17T22:55:12.046Z",
+ "generated_at": "2026-10-18T21:11:14.718Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -20,10 +20,18 @@
   "overs_per_innings": 18,
   "tiebreak": [
    "points",
+   "wins",
    "nrr",
-   "h2h",
-   "wins"
-  ]
+   "h2h"
+  ],
+  "division_overrides": {
+   "1": {
+    "promotion_spots": 0
+   },
+   "9": {
+    "relegation_spots": 0
+   }
+  }
  },
  "points_system": {
   "points": {
@@ -133,8 +141,8 @@
    "id": 26354606,
    "date": "2026-10-18T19:00:00.000Z",
    "venue": "Apex Jaycee Park",
-   "home": 12489732,
-   "away": 12475468,
+   "home": 12475468,
+   "away": 12489732,
    "status": "upcoming",
    "resultText": "[object Object]",
    "overs": 18
@@ -485,24 +493,70 @@
    }
   },
   {
-   "id": 26354532,
-   "date": "2026-10-17T22:00:00.000Z",
-   "venue": "RTP 4",
-   "home": 12480081,
-   "away": 12489755,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
-  },
-  {
    "id": 26354575,
-   "date": "2026-10-18T16:30:00.000Z",
+   "date": "2026-10-18T16:35:29.000Z",
    "venue": "Bethesda - Upper",
    "home": 12480081,
    "away": 12478004,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 46 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12480081,
+    "margin": 46,
+    "innings": [
+     {
+      "team": 12480081,
+      "runs": 102,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12478004,
+      "runs": 56,
+      "wickets": 9,
+      "overs": 14,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
+  },
+  {
+   "id": 26354532,
+   "date": "2026-10-17T22:03:16.000Z",
+   "venue": "RTP 4",
+   "home": 12480081,
+   "away": 12489755,
+   "status": "completed",
+   "resultText": "resulted — 2 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12489755,
+    "margin": 2,
+    "innings": [
+     {
+      "team": 12480081,
+      "runs": 64,
+      "wickets": 7,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12489755,
+      "runs": 65,
+      "wickets": 8,
+      "overs": 17.4,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354546,
@@ -2895,6 +2949,21 @@
    "oversAgainst": 194.3
   },
   {
+   "teamId": 12489755,
+   "name": "WhiteWalkers",
+   "played": 13,
+   "won": 9,
+   "lost": 2,
+   "tied": 0,
+   "noResult": 2,
+   "points": 20,
+   "nrr": 1.071,
+   "runsFor": 1017,
+   "oversFor": 174.5,
+   "runsAgainst": 912,
+   "oversAgainst": 192.1
+  },
+  {
    "teamId": 12478009,
    "name": "Garudas HT",
    "played": 13,
@@ -2908,21 +2977,6 @@
    "oversFor": 211.2,
    "runsAgainst": 1315,
    "oversAgainst": 229
-  },
-  {
-   "teamId": 12489755,
-   "name": "WhiteWalkers",
-   "played": 12,
-   "won": 8,
-   "lost": 2,
-   "tied": 0,
-   "noResult": 2,
-   "points": 18,
-   "nrr": 1.188,
-   "runsFor": 952,
-   "oversFor": 157.1,
-   "runsAgainst": 848,
-   "oversAgainst": 174.1
   },
   {
    "teamId": 12489740,
@@ -2968,6 +3022,21 @@
    "oversFor": 216,
    "runsAgainst": 1149,
    "oversAgainst": 210.1
+  },
+  {
+   "teamId": 12480081,
+   "name": "Carolina Islanders",
+   "played": 13,
+   "won": 5,
+   "lost": 7,
+   "tied": 1,
+   "noResult": 0,
+   "points": 11,
+   "nrr": 0.017,
+   "runsFor": 1047,
+   "oversFor": 221,
+   "runsAgainst": 956,
+   "oversAgainst": 202.3
   },
   {
    "teamId": 12475780,
@@ -3017,17 +3086,17 @@
   {
    "teamId": 12478004,
    "name": "Stallions",
-   "played": 12,
+   "played": 13,
    "won": 5,
-   "lost": 6,
+   "lost": 7,
    "tied": 0,
    "noResult": 1,
    "points": 11,
-   "nrr": -1.757,
-   "runsFor": 897,
-   "oversFor": 185,
-   "runsAgainst": 1134,
-   "oversAgainst": 171.4
+   "nrr": -1.728,
+   "runsFor": 953,
+   "oversFor": 199,
+   "runsAgainst": 1236,
+   "oversAgainst": 189.4
   },
   {
    "teamId": 12489591,
@@ -3043,21 +3112,6 @@
    "oversFor": 207.4,
    "runsAgainst": 1275,
    "oversAgainst": 199.5
-  },
-  {
-   "teamId": 12480081,
-   "name": "Carolina Islanders",
-   "played": 11,
-   "won": 4,
-   "lost": 6,
-   "tied": 1,
-   "noResult": 0,
-   "points": 9,
-   "nrr": -0.126,
-   "runsFor": 881,
-   "oversFor": 185,
-   "runsAgainst": 835,
-   "oversAgainst": 170.5
   },
   {
    "teamId": 12489782,

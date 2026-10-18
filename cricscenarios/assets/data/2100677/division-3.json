@@ -2,7 +2,7 @@
  "tournament_id": 2100677,
  "tournament_name": "TCL Mega Smash 2026",
  "division": 3,
- "generated_at": "2026-10-17T22:55:12.047Z",
+ "generated_at": "2026-10-18T21:11:14.720Z",
  "source": "cricheroes",
  "endpoints": {
   "matches": "/api/v1/team/get-team-match/{id}",
@@ -20,10 +20,18 @@
   "overs_per_innings": 18,
   "tiebreak": [
    "points",
+   "wins",
    "nrr",
-   "h2h",
-   "wins"
-  ]
+   "h2h"
+  ],
+  "division_overrides": {
+   "1": {
+    "promotion_spots": 0
+   },
+   "9": {
+    "relegation_spots": 0
+   }
+  }
  },
  "points_system": {
   "points": {
@@ -1804,13 +1812,36 @@
   },
   {
    "id": 26354687,
-   "date": "2026-10-18T13:30:00.000Z",
+   "date": "2026-10-18T13:37:01.000Z",
    "venue": "Bethesda - Lower",
    "home": 12490007,
    "away": 12480191,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 4 wickets",
+   "overs": 18,
+   "result": {
+    "type": "wickets",
+    "winner": 12480191,
+    "margin": 4,
+    "innings": [
+     {
+      "team": 12490007,
+      "runs": 123,
+      "wickets": 10,
+      "overs": 18,
+      "allOut": true,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12480191,
+      "runs": 126,
+      "wickets": 6,
+      "overs": 17,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   },
   {
    "id": 26354649,
@@ -2868,13 +2899,36 @@
   },
   {
    "id": 26354686,
-   "date": "2026-10-18T16:30:00.000Z",
+   "date": "2026-10-18T16:38:15.000Z",
    "venue": "Bethesda - Lower",
    "home": 12489771,
    "away": 12475573,
-   "status": "upcoming",
-   "resultText": "[object Object]",
-   "overs": 18
+   "status": "completed",
+   "resultText": "resulted — 47 runs",
+   "overs": 18,
+   "result": {
+    "type": "runs",
+    "winner": 12489771,
+    "margin": 47,
+    "innings": [
+     {
+      "team": 12489771,
+      "runs": 164,
+      "wickets": 5,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     },
+     {
+      "team": 12475573,
+      "runs": 117,
+      "wickets": 8,
+      "overs": 18,
+      "allOut": false,
+      "quotaOvers": 18
+     }
+    ]
+   }
   }
  ],
  "published": [
@@ -2984,6 +3038,21 @@
    "oversAgainst": 182.3
   },
   {
+   "teamId": 12489771,
+   "name": "Wilson Cricket Club",
+   "played": 13,
+   "won": 4,
+   "lost": 7,
+   "tied": 1,
+   "noResult": 1,
+   "points": 10,
+   "nrr": -0.234,
+   "runsFor": 1178,
+   "oversFor": 198.3,
+   "runsAgainst": 1243,
+   "oversAgainst": 201.3
+  },
+  {
    "teamId": 12476238,
    "name": "GIANTS - HT",
    "played": 13,
@@ -3001,17 +3070,17 @@
   {
    "teamId": 12490007,
    "name": "Mustangs XI",
-   "played": 12,
+   "played": 13,
    "won": 4,
-   "lost": 6,
+   "lost": 7,
    "tied": 1,
    "noResult": 1,
    "points": 10,
-   "nrr": -1.291,
-   "runsFor": 1217,
-   "oversFor": 198,
-   "runsAgainst": 1216,
-   "oversAgainst": 163.3
+   "nrr": -1.231,
+   "runsFor": 1340,
+   "oversFor": 216,
+   "runsAgainst": 1342,
+   "oversAgainst": 180.3
   },
   {
    "teamId": 12490030,
@@ -3029,21 +3098,6 @@
    "oversAgainst": 145
   },
   {
-   "teamId": 12489771,
-   "name": "Wilson Cricket Club",
-   "played": 12,
-   "won": 3,
-   "lost": 7,
-   "tied": 1,
-   "noResult": 1,
-   "points": 8,
-   "nrr": -0.519,
-   "runsFor": 1014,
-   "oversFor": 180.3,
-   "runsAgainst": 1126,
-   "oversAgainst": 183.3
-  },
-  {
    "teamId": 12480064,
    "name": "Lemurians",
    "played": 12,
@@ -3059,34 +3113,34 @@
    "oversAgainst": 206.1
   },
   {
-   "teamId": 12475573,
-   "name": "X Men - HT",
-   "played": 12,
-   "won": 3,
-   "lost": 8,
-   "tied": 0,
-   "noResult": 1,
-   "points": 7,
-   "nrr": -1.032,
-   "runsFor": 939,
-   "oversFor": 183.2,
-   "runsAgainst": 1158,
-   "oversAgainst": 188.1
-  },
-  {
    "teamId": 12480191,
    "name": "NC Trojans",
-   "played": 12,
-   "won": 2,
+   "played": 13,
+   "won": 3,
    "lost": 8,
    "tied": 1,
    "noResult": 1,
-   "points": 6,
-   "nrr": -1.158,
-   "runsFor": 1039,
-   "oversFor": 188.3,
-   "runsAgainst": 1235,
-   "oversAgainst": 185.1
+   "points": 8,
+   "nrr": -1.015,
+   "runsFor": 1165,
+   "oversFor": 205.3,
+   "runsAgainst": 1358,
+   "oversAgainst": 203.1
+  },
+  {
+   "teamId": 12475573,
+   "name": "X Men - HT",
+   "played": 13,
+   "won": 3,
+   "lost": 9,
+   "tied": 0,
+   "noResult": 1,
+   "points": 7,
+   "nrr": -1.167,
+   "runsFor": 1056,
+   "oversFor": 201.2,
+   "runsAgainst": 1322,
+   "oversAgainst": 206.1
   }
  ],
  "warnings": []

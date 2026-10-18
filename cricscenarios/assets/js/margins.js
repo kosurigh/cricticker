@@ -8,7 +8,8 @@
  *
  * It is exact, not sampled. With a handful of fixtures left every combination
  * of results (win / lose / points shared) is enumerated, points are compared
- * first, and wherever teams finish level on points the net run rate race is
+ * first, then wins (TCL handbook 16.10.5), and wherever teams finish level on
+ * points and wins the net run rate race is
  * solved for the margin, run by run and ball by ball, against the full
  * runs-for / overs-faced / runs-against / overs-bowled figures CricHeroes
  * publishes (engine.baselineFromPublished seeds those into ctx.base).
@@ -31,7 +32,7 @@
  *    run rate ties do not happen in practice.
  */
 
-import { BALLS_PER_OVER } from './engine.js';
+import { BALLS_PER_OVER, winsBeforeNrr } from './engine.js';
 import { winProbability } from './simulate.js';
 
 /** Outcome of one fixture, from the home side's point of view. */
@@ -146,6 +147,34 @@ function nrrAfter(ctx, set, combo, free, margin, S) {
   return (i) => nrrOf(st, i);
 }
 
+/** Wins after `combo` (a shared result is not a win). */
+function winsAfter(ctx, combo) {
+  const w = Float64Array.from(ctx.base.won);
+  for (let f = 0; f < combo.length; f++) {
+    const fx = ctx.remaining[f], o = combo[f];
+    if (o === R.HOME) w[fx.h]++;
+    else if (o === R.AWAY) w[fx.a]++;
+  }
+  return w;
+}
+
+/**
+ * Points and wins after `combo`, and the comparison that comes before net
+ * run rate: points, then (TCL handbook 16.10.5) most wins. `pre(i, j)` > 0
+ * when i finishes above j whatever the net run rates, < 0 below, 0 when net
+ * run rate decides.
+ */
+export function standAfter(ctx, combo) {
+  const pts = pointsAfter(ctx, combo), wins = winsAfter(ctx, combo);
+  const useWins = winsBeforeNrr(ctx.rules);
+  const pre = (i, j) => {
+    const d = pts[i] - pts[j];
+    if (Math.abs(d) > 1e-9) return d;
+    return useWins ? wins[i] - wins[j] : 0;
+  };
+  return { pts, wins, pre, useWins };
+}
+
 function pointsAfter(ctx, combo) {
   const rules = ctx.rules;
   const pts = Float64Array.from(ctx.base.points);
@@ -239,18 +268,29 @@ function resultFor(ctx, combo, f, i) {
  *                                        shared, so rivals' margins decide
  */
 export function scenarioVerdict(ctx, set, t, K, combo) {
-  const pts = pointsAfter(ctx, combo);
+  const { pts, wins, pre } = standAfter(ctx, combo);
   const n = ctx.n;
   let above = 0;
-  const level = [];
+  const level = [], winsAbove = [], winsBelow = [];
   for (let i = 0; i < n; i++) {
     if (i === t) continue;
-    if (pts[i] > pts[t] + 1e-9) above++;
-    else if (Math.abs(pts[i] - pts[t]) < 1e-9) level.push(i);
+    const c = pre(i, t);
+    const samePts = Math.abs(pts[i] - pts[t]) < 1e-9;
+    if (c > 1e-9) { above++; if (samePts) winsAbove.push(i); }
+    else if (Math.abs(c) < 1e-9) level.push(i);
+    else if (samePts) winsBelow.push(i);
   }
   const m = K - above;            // places left for the level group, t included
-  if (m <= 0) return { kind: 'out', above, points: pts[t] };
-  if (level.length < m) return { kind: 'in', points: pts[t] };
+  const w = wins[t];
+  if (m <= 0) {
+    // Did wins push them out? Only worth saying when points alone would not.
+    const byWins = winsAbove.length && above - winsAbove.length < K ? winsAbove : [];
+    return { kind: 'out', above, points: pts[t], wins: w, winsAbove: byWins, winsOf: byWins.map((j) => wins[j]) };
+  }
+  if (level.length < m) {
+    const byWins = winsBelow.length && level.length + winsBelow.length >= m ? winsBelow : [];
+    return { kind: 'in', points: pts[t], wins: w, winsBelow: byWins, winsOf: byWins.map((j) => wins[j]) };
+  }
 
   // Only fixtures involving t or the level group move the race; cache on those.
   const involved = new Set([t, ...level]);
@@ -258,7 +298,7 @@ export function scenarioVerdict(ctx, set, t, K, combo) {
   const cacheKey = `${t}|${K}|${level.join(',')}|${sig}`;
   set.cache = set.cache || new Map();
   if (set.cache.has(cacheKey)) return set.cache.get(cacheKey);
-  const v = raceVerdict(ctx, set, t, K, combo, pts, level, m);
+  const v = { ...raceVerdict(ctx, set, t, K, combo, pts, level, m), wins: w };
   set.cache.set(cacheKey, v);
   return v;
 }
@@ -447,7 +487,7 @@ export function goalMargins(ctx, set, teamId, K, { model = 'form', rates = null 
 
 /**
  * Pairwise: under each of team T's own outcomes, does it finish above `rival`
- * on the table? Points first; level on points, net run rate with the margin
+ * on the table? Points, then wins; level on both, net run rate with the margin
  * solved. The rival's own remaining games (if any, and not against T) are
  * enumerated.
  */
@@ -464,11 +504,15 @@ export function rivalMargins(ctx, set, teamId, rivalId) {
       // Fixtures involving neither team do not change either side's points or
       // NRR, so they stay unplayed (shared = no effect) here.
       const full = c.map((o) => (o === -1 ? R.SHARED : o));
-      const pts = pointsAfter(ctx, full);
+      const s = standAfter(ctx, full);
+      const pts = s.pts;
+      const cw = s.pre(t, r);
       let v;
       if (pts[t] > pts[r] + 1e-9) v = { state: 'above', on: 'points' };
       else if (pts[t] < pts[r] - 1e-9) v = { state: 'below', on: 'points' };
-      else v = { ...pairwise(ctx, set, full, t, r), on: 'nrr' };
+      else if (cw > 1e-9) v = { state: 'above', on: 'wins', points: pts[t], wins: [s.wins[t], s.wins[r]] };
+      else if (cw < -1e-9) v = { state: 'below', on: 'wins', points: pts[t], wins: [s.wins[t], s.wins[r]] };
+      else v = { ...pairwise(ctx, set, full, t, r), on: 'nrr', points: pts[t], wins: [s.wins[t], s.wins[r]] };
       const key = verdictKey(v);
       if (!groups.has(key)) groups.set(key, { verdict: v, cubes: [] });
       groups.get(key).cubes.push({ masks: theirs.map((f) => 1 << c[f]) });
@@ -558,18 +602,22 @@ export function lossMargins(ctx, set, teamId, goalKs) {
       const groups = new Map();
       for (const c of combos(null, vary, blank)) {
         const part = c.map((o) => (o === -1 ? R.SHARED : o));
-        const pts0 = pointsAfter(ctx, part);
-        if (Math.abs(pts0[t] - pts0[r]) > 1e-9) continue;
-        // Does the pair's order ever decide a goal? Points only, every
-        // outcome of the other fixtures.
+        const s0 = standAfter(ctx, part);
+        if (Math.abs(s0.pts[t] - s0.pts[r]) > 1e-9) continue;
+        // Level on points but not on wins: wins decide, not the margin.
+        const byWins = Math.abs(s0.pre(t, r)) > 1e-9;
+        // Does the pair's order ever decide a goal? Every outcome of the
+        // other fixtures; `pre` (points, then wins) decides who is level.
         const goals = new Set();
         for (const c2 of combos(null, rest, c)) {
-          const pts = pointsAfter(ctx, c2);
+          const s = standAfter(ctx, c2);
           let above = 0, level = 0;
           for (let i = 0; i < ctx.n; i++) {
             if (i === t) continue;
-            if (pts[i] > pts[t] + 1e-9) above++;
-            else if (Math.abs(pts[i] - pts[t]) < 1e-9) level++;
+            // For a wins-decided pair, the race is the points-level group.
+            const d = byWins ? s.pts[i] - s.pts[t] : s.pre(i, t);
+            if (d > 1e-9) above++;
+            else if (Math.abs(d) < 1e-9) level++;
           }
           for (const [goal, K] of Ks) {
             const m = K - above;
@@ -578,7 +626,12 @@ export function lossMargins(ctx, set, teamId, goalKs) {
           if (goals.size === Ks.length) break;
         }
         if (!goals.size) continue;
-        const res = lossThresholds(ctx, set, t, r, f, part, dims);
+        const res = byWins
+          ? { winsDecide: true, state: s0.pre(t, r) > 0 ? 'above' : 'below', points: s0.pts[t],
+            wins: [s0.wins[t], s0.wins[r]], nowT: currentNrr(ctx, t), nowR: currentNrr(ctx, r),
+            assumed: false, realistic: true, anyDefeat: s0.pre(t, r) < 0 }
+          : lossThresholds(ctx, set, t, r, f, part, dims);
+        if (!byWins) { res.points = s0.pts[t]; res.wins = [s0.wins[t], s0.wins[r]]; }
         res.goals = [...goals];
         const key = verdictKey(res);
         if (!groups.has(key)) groups.set(key, { res, cubes: [] });
@@ -594,6 +647,19 @@ export function lossMargins(ctx, set, teamId, goalKs) {
     }
   }
   return out;
+}
+
+/**
+ * The loss thresholds for one pair, whether or not their order decides a
+ * goal: team `teamId` loses fixture `f`, every other game of the pair
+ * washed out (no effect). Used by the tests and for facts.
+ */
+export function pairLossThresholds(ctx, set, teamId, rivalId, f) {
+  const t = ctx.index.get(teamId), r = ctx.index.get(rivalId);
+  const fx = ctx.remaining[f];
+  const combo = ctx.remaining.map(() => R.SHARED);
+  combo[f] = fx.h === t ? R.AWAY : R.HOME;
+  return lossThresholds(ctx, set, t, r, f, combo, [f]);
 }
 
 function lossThresholds(ctx, set, t, r, f, combo, dims) {
